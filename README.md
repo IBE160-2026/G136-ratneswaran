@@ -1,4 +1,4 @@
-# Gruppe G136 - Ammo
+# Gruppe G136 - Arrangly
 
 Gruppeprosjekt i **IBE160 Programmering med KI** ved Høgskolen i Molde, høsten 2026 (15 studiepoeng).
 
