@@ -39,7 +39,7 @@ The organizer manages, role-holders execute, and guests get a simple, separate e
 **UJ-1. Leah sets up the 40th birthday and delegates the first wave of work.**
 - **Persona + context:** Leah, head of the welfare committee, has just decided to run Lucas's (head of office) 40th birthday through Arrangly.
 - **Entry state:** Unauthenticated, first-time use of Arrangly.
-- **Path:** Logs in with email → dashboard prompts "create an event" → guided questionnaire (event type, guest count, duration, venue known?, RSVP wanted?, guest-list method) → adds guests by invite link/manual entry → writes a free-text event description (intentions, dress code) → AI proposes tasks (venue, food, speeches, decorations) sized to her answers → she reviews and confirms each → app prompts her to build the team → she adds four people, each tied to a task area (Stine→venue, Peter→catering, Martin→speeches/entertainment, Sheila→decorations/bar).
+- **Path:** Logs in with email → dashboard prompts "create an event" → guided questionnaire (event type, guest count, duration, venue known?, RSVP wanted?, guest-list method) → adds guests by invite link/manual entry → writes a free-text event description (intentions, dress code) → Arrangly activates relevant Roles from the Branch Pool (Venue, Guests, Entertainment, Food & Beverage, Travel & Logistics) and proposes Tasks under them, with Decorations nested as a Subtask under Venue → she reviews and confirms each → app prompts her to build the team → she adds four people to Roles (Stine→Venue, Peter→Food & Beverage, Martin→Entertainment, Sheila→Venue's decorating Subtask *and* Food & Beverage's bar/bartender work).
 - **Climax:** She publishes the event; invites go out to the full guest list in one action.
 - **Resolution:** Session ends with a populated event, an assigned team, and pending guest RSVPs — nothing left in her head alone.
 - **Edge case:** If she skips the venue question in the questionnaire, "book a venue" becomes an AI-suggested task rather than a silent gap.
@@ -64,19 +64,21 @@ The organizer manages, role-holders execute, and guests get a simple, separate e
 
 ## 3. Glossary
 
-- **Event** — The unit of work in Arrangly (e.g. "Lucas's 40th birthday"). Owns a team, a guest list, tasks, and a timeline.
-- **Organizer** — The person who creates an Event and holds full control over it: assigns/changes/revokes Roles, sees everything. Exactly one per Event (may co-exist with delegated Role-holders who also help plan).
-- **Role** — A named area of responsibility within an Event (e.g. venue, catering, decorations), assigned only by the Organizer. Determines what its holder can see and do (RBAC). A person can hold different Roles across different Events, and a Guest can simultaneously hold a Role in the same Event.
+- **Event** — The unit of work in Arrangly (e.g. "Lucas's 40th birthday"). Owns a Team, a guest list, Tasks, a Timeline, and a Run of Show.
+- **Organizer** — The person who creates an Event and holds full control over it: activates Roles and assigns/changes/revokes them, sees everything. Exactly one per Event (may co-exist with delegated Role-holders who also help plan).
+- **Branch Pool** — The pre-generated master set of possible Roles Arrangly can draw from (e.g. Venue, Guests, Entertainment, Food & Beverage, Travel & Logistics, and others suited to other event types). Not all activate on every Event — see Role.
+- **Role** — A planning branch activated on an Event from the Branch Pool, based on event type and description (e.g. a party activates Entertainment; a seminar might not). A Role is simultaneously: (a) the RBAC boundary — only the Organizer can activate, assign, or revoke one, and it determines what its holder can see and do; (b) the grouping for Tasks and Subtasks in that area; and (c) one swimlane on the Timeline — a Role *is* a Line of Effort. Several Role-holders can share a Role. A person can hold different Roles across different Events, and a Guest can simultaneously hold a Role in the same Event. The Organizer can adjust which Roles are active beyond Arrangly's initial activation.
 - **Role-holder** — A person assigned to one or more Roles on an Event's Team.
 - **Team** — The set of people (Organizer + Role-holders) assigned to an Event.
 - **Guest** — A person invited to an Event who has not been assigned a Role. Interacts only through the RSVP flow and their own Guest Dashboard.
-- **Task** — A unit of work with an owner (a person or a Role), a deadline, a status, and optionally dependencies on other Tasks or a Decision Task's outcome.
+- **Task** — A unit of work with an owner (a person or a Role), a deadline, a status, and optionally dependencies on other Tasks, a parent Task (see Subtask), or a Decision Task's outcome.
+- **Subtask** — A Task nested under a parent Task within the same Role (e.g. "Decorations" as a Subtask of the Venue Role).
 - **Decision Task** — A Task that requires a choice from a specific person (not just completion), whose outcome can mark other Tasks obsolete and/or spawn new Tasks.
-- **Line of Effort (LOE)** — A named, ordered chain of Tasks working toward one outcome within an Event (e.g. "Decorations: venue decided → budget → shopping → decorating → tables set → venue ready").
-- **Timeline** — The visual, swimlane view of an Event's Lines of Effort, showing sequence, blocked Tasks, and Decision Task branch points.
+- **Timeline** — The visual, swimlane view of an Event's Roles (each Role = one Line of Effort), showing the sequence of Tasks and Subtasks within each, blocked Tasks, and Decision Task branch points. Organizer/Team-facing — the planning side.
+- **Run of Show** — The Guest-facing, day-of schedule of the Event itself (e.g. doors, dinner, speeches, DJ), distinct from the Timeline. Where the Timeline is the planning view, the Run of Show is what a Guest actually experiences.
 - **Dashboard** — The Organizer's (or relevant Role-holder's) prioritized view of what's done, overdue, blocked, and needs a decision or delegation.
 - **Proposed Task** — A Task auto-suggested by Arrangly (from an event description, a guest's freeform need, or a data change like a late RSVP) that a person must confirm before it becomes an active Task.
-- **Guest Dashboard** — The Guest's own simple view: their Event(s), RSVP status, and any info resolved on their behalf (e.g. taxi details).
+- **Guest Dashboard** — The Guest's own simple view: their Event(s), RSVP status, the Run of Show, and any info resolved on their behalf (e.g. taxi details).
 - **Magic Link** — A unique, per-invite URL that identifies a Guest by matching the email it was sent to, without requiring login credentials.
 
 ## 4. Features
@@ -92,14 +94,17 @@ Any person acting as an Organizer or Role-holder can create an account and log i
 **Consequences (testable):**
 - A new account requires a unique, verified email and a password meeting a minimum strength policy.
 - A logged-in Organizer/Role-holder lands on a dashboard listing their events.
+- A Role-holder is invited to create their account via a unique invite link sent by the Organizer; opening it pre-fills their name/email where known.
 
-#### FR-2: RBAC role assignment and enforcement
+#### FR-2: Role activation and RBAC enforcement
 
-Only the Organizer of an Event can assign, change, or revoke Roles on that Event. A Role-holder can see and act on only what their Role permits. Realizes UJ-1.
+When an Event is created, Arrangly activates a relevant subset of Roles from the Branch Pool based on event type and description; the Organizer can add or remove active Roles beyond that. Only the Organizer can assign, change, or revoke a Role-holder's Role on that Event. A Role-holder can see and act on only what their Role permits. Realizes UJ-1.
 
 **Consequences (testable):**
+- Activated Roles reflect the Event's type/description (e.g. a seminar does not activate Entertainment by default) and can be manually adjusted by the Organizer at any time.
 - A Role-holder attempting to assign themselves a Role, or to view/act on data outside their Role's scope, is rejected server-side (not just hidden in the UI).
 - Revoking a Role immediately removes the holder's access to that Role's Tasks and views.
+- Multiple Role-holders can be assigned to the same Role simultaneously.
 
 #### FR-3: Guest identity via Magic Link with optional PIN account
 
@@ -137,23 +142,25 @@ An Organizer adds Guests to an Event by shareable invite link or by entering the
 
 #### FR-6: AI task suggestion from event description
 
-An Organizer writes a free-text description of the Event (intentions, dress code, etc.); Arrangly proposes an initial set of Tasks based on that description plus the questionnaire answers, which the Organizer reviews and confirms individually before any Task becomes active.
+An Organizer writes a free-text description of the Event (intentions, dress code, etc.); Arrangly proposes an initial set of Tasks, categorized under the Roles it activated (FR-2), including Subtasks where a Task naturally nests under another (e.g. Decorations under Venue). The Organizer reviews and confirms each Task individually before it becomes active.
 
 **Consequences (testable):**
 - No AI-suggested Task becomes active without explicit per-Task confirmation from the Organizer.
+- Every suggested Task is categorized under exactly one active Role at creation; the Organizer can recategorize it afterward.
 - Suggested Tasks reflect questionnaire gaps (e.g. no venue named → a venue Task is suggested).
 
 ### 4.3 Team & Task Management
 
 **Description:** How work gets owned, sequenced, and escalated once a Team exists. Realizes UJ-1, UJ-2.
 
-#### FR-7: Task creation with owner, deadline, status, and dependencies
+#### FR-7: Task creation with owner, deadline, status, dependencies, and hierarchy
 
-Any Task has exactly one owner (a person or a Role), a deadline, a status, and optionally one or more dependencies on other Tasks.
+Any Task has exactly one owner (a person or a Role), a deadline, a status, and optionally one or more dependencies on other Tasks and/or a parent Task (Subtask nesting), always within the same Role.
 
 **Consequences (testable):**
 - A Task blocked by an incomplete dependency is visually distinguishable from an unblocked Task on both the Dashboard and Timeline.
 - Changing a Task's owner reassigns it without losing its history/status.
+- A Subtask cannot be moved to a different Role than its parent Task without first being promoted to a top-level Task.
 
 #### FR-8: Task status model including externally-blocked states
 
@@ -168,7 +175,7 @@ Task status is more granular than done/not-done — it includes at minimum: not 
 A Role-holder sees their assigned Tasks, each Task's scope/expectations, and enough Team context (who else is on the Team) to understand how their part fits. Realizes UJ-2.
 
 **Consequences (testable):**
-- Opening an assigned Task shows its scope description, deadline, dependencies, and current status in one view.
+- Opening an assigned Task shows its scope description, deadline, dependencies, parent Task/Subtasks, and current status in one view.
 - A first-time Role-holder can find their Tasks and understand what's expected within about a minute of registering (brief's stated qualitative target).
 
 #### FR-10: Decision-escalation tasks
@@ -226,7 +233,7 @@ From within a Task, a Role-holder can request an AI-drafted message (e.g. vendor
 
 #### FR-15: Guest RSVP flow
 
-A Guest opening their Magic Link is greeted by name and asked to RSVP yes/no, then (if yes) plus-one, allergies, hotel need, and a freeform "other needs" field.
+A Guest opening their Magic Link is greeted by name and asked to RSVP yes/no, then (if yes) plus-one, allergies and food preferences, hotel need, and a freeform "other needs" field.
 
 **Consequences (testable):**
 - Declining (RSVP no) skips the follow-up questions and ends the flow.
@@ -266,12 +273,13 @@ A single view shows, across the Event: what's done, overdue, blocked, and needs 
 - The Organizer can answer "what's the state of this event" from the Dashboard alone, without messaging anyone (brief's stated qualitative target).
 - The Guests tab shows per-guest RSVP status (responded/pending/declined) individually, plus allergy/hotel data compiled for the owning Role.
 
-#### FR-20: Lines-of-effort timeline
+#### FR-20: Timeline (Role = Line of Effort)
 
-A dedicated Timeline view shows each Line of Effort as a sequential swimlane of Tasks, including blocked Tasks and Decision Task points, without visual branch/fork rendering.
+A dedicated Timeline view renders each active Role as its own swimlane — a Role *is* a Line of Effort. Each lane shows its Tasks and Subtasks in sequence, including blocked Tasks and Decision Task points, without visual branch/fork rendering.
 
 **Consequences (testable):**
-- Each Line of Effort renders as its own lane, ordered by dependency, independent of the others.
+- Each active Role renders as exactly one lane, ordered by dependency, independent of the others.
+- A Subtask renders nested within its parent Task's position on the lane, not as a separate lane.
 - A Decision Task point is visible on its lane even before it's resolved.
 
 **Out of Scope:** Visual forking (showing the obsolete branch graphically rather than as a flat obsolete-marked item) — see §6.2, Target.
@@ -289,6 +297,20 @@ An Organizer (or a Role-holder, scoped to their Role) can send a message to an i
 - Message history is visible to its recipients within the Event, not just as an outbound email.
 
 **Notes:** `[NOTE FOR PM]` Thread model (per-Task vs. per-Event vs. per-Role), read receipts, and notification delivery (in-app only vs. email) are undecided — defer to UX phase.
+
+### 4.8 Run of Show
+
+**Description:** The Guest-facing, day-of schedule of the Event — distinct from the Timeline (FR-20), which is the Organizer/Team's planning view. Where FR-20 is the airline's operations timeline, this is the passenger's itinerary: what's happening and when, from the Guest's side. Realizes UJ-3.
+
+#### FR-22: Guest-facing run of show
+
+Arrangly generates a simple, chronological day-of schedule for the Event (e.g. doors, dinner, speeches, DJ) from the Event's confirmed Tasks and timing, shown on the Guest Dashboard (FR-18).
+
+**Consequences (testable):**
+- The Run of Show reflects confirmed Event timing (from the questionnaire/Tasks), not a Role's internal Task detail — a Guest never sees Role-scoped planning information.
+- Guests without a persistent login can view the Run of Show via their Magic Link once it's published.
+
+**Out of Scope:** Live linkage where a Timeline delay automatically updates the Run of Show — see §6.2, Stretch ("Impact of delays on the run of show").
 
 ## 5. Non-Goals (Explicit)
 
@@ -310,6 +332,7 @@ An Organizer (or a Role-holder, scoped to their Role) can send a message to an i
 - Guest experience: FR-15 through FR-18
 - Organizer dashboard & timeline (sequential, non-branching): FR-19, FR-20
 - Messaging: FR-21
+- Run of show: FR-22
 
 ### 6.2 Out of Scope for MVP
 
@@ -322,7 +345,7 @@ An Organizer (or a Role-holder, scoped to their Role) can send a message to an i
 
 **Stretch — only with time to spare (unchanged from the brief):**
 - AI detection of gaps in the plan (e.g. a DJ without a soundcheck).
-- Delay-impact propagation across the run of show, with Organizer approval.
+- Delay-impact propagation across the Run of Show (builds on FR-22), with Organizer approval.
 - Guest-count changes rippling into food, staffing, and budget.
 - AI-proposed guest program shown in the Guest view.
 - Gift register.
@@ -332,7 +355,7 @@ An Organizer (or a Role-holder, scoped to their Role) can send a message to an i
 ## 7. Success Metrics
 
 **Primary**
-- **SM-1**: A deployed, working web application runs the flagship scenario (40th birthday, 80 guests: venue, dinner, speeches, quiz, DJ) end to end across all three personas by 2026-11-30. Validates FR-1, FR-4, FR-6, FR-7, FR-15, FR-19.
+- **SM-1**: A deployed, working web application runs the flagship scenario (40th birthday, 80 guests: venue, dinner, speeches, quiz, DJ) end to end across all three personas by 2026-11-30. Validates FR-1, FR-4, FR-6, FR-7, FR-15, FR-19, FR-22.
 - **SM-2**: RBAC holds under test — zero observed instances of a user acting outside their Role's granted access. Validates FR-2.
 
 **Secondary**
