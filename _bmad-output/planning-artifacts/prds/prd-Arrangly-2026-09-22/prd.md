@@ -1,8 +1,8 @@
 ---
 title: Arrangly
 created: 2026-09-22
-updated: 2026-09-24
-status: draft
+updated: 2026-09-25
+status: final
 ---
 
 # PRD: Arrangly
@@ -31,8 +31,7 @@ The organizer manages, role-holders execute, and guests get a simple, separate e
 
 ### 2.2 Non-Users (v1)
 
-- Large-scale event producers (festivals, conferences) — explicitly out of scope per the brief.
-- People wanting a generic project-management tool with no event structure (roles, RSVP, guest side) — Arrangly is event-shaped by design, not a Trello alternative.
+Large-scale event producers and generic-PM-tool seekers — see §5 Non-Goals.
 
 ### 2.3 Key User Journeys
 
@@ -48,7 +47,7 @@ The organizer manages, role-holders execute, and guests get a simple, separate e
 - **Persona + context:** Stine, assigned the venue task, already knew it was coming.
 - **Entry state:** Authenticated, notified of a new task assignment.
 - **Path:** Opens task → confirms she'll take it on → declines "already done" → accepts "want help" → adds three candidate venues herself as options on the Task (hotel, restaurant, rooftop bar) — Core ships manual entry here; AI-populated search within a radius is a Target enhancement once proven feasible (see FR-13) → submits them as a Decision Task routed to Leah.
-- **Climax:** ~30 minutes later, Leah's decision comes back (hotel, with the rooftop bar as fallback) plus a new task (book 8 single + 2 double rooms) spawned by that decision. Arrangly flags the venue-confirmation task as priority since other tasks depend on it.
+- **Climax:** ~30 minutes later, Leah's decision comes back (hotel, with the rooftop bar as fallback) plus a new task (book 8 single + 2 double rooms) spawned by that decision. Arrangly flags the venue-confirmation task as a priority since other tasks depend on it.
 - **Resolution:** Stine opens the task, accepts an AI-drafted outreach email (date, headcount, occasion) opened in her own mail client, sends it, and updates status to "reached out to venue, pending answer."
 - **Edge case:** If Leah had picked the rooftop bar instead, no room-booking task would ever have spawned — the Decision Task's outcome only creates a Task for the chosen path. If Stine had instead pre-created a Task tied specifically to the hotel option in advance (e.g. drafting a room list early, before Leah decided), that Task would be marked obsolete rather than deleted once the rooftop bar was chosen.
 
@@ -112,7 +111,7 @@ A Guest is identified by a Magic Link matched to the invited email, with no logi
 
 **Consequences (testable):**
 - Opening a valid Magic Link pre-fills the Guest's name from the invite record, with no signup step.
-- If a PIN is set, the Event appears under "upcoming events" the next time that email logs in.
+- If a PIN is set, the Event appears under "upcoming events" the next time the Guest logs in with that email.
 - An invalid or expired Magic Link shows an explanation, not a generic error.
 
 **Feature-specific NFRs:**
@@ -168,7 +167,7 @@ Task status is more granular than done/not-done — it includes at minimum: not 
 
 **Consequences (testable):**
 - A Task in "waiting on external response" surfaces distinctly from "blocked" (which implies a dependency, not an outside party) on the Dashboard.
-- Status changes are timestamped for later reflection-report documentation of process. `[ASSUMPTION: timestamping wasn't explicitly discussed but is needed to support the course's documentation requirement (§0) and to make "overdue" computable.]`
+- Status changes are timestamped, supporting both "overdue" computation and the course's AI-usage/QA documentation requirement (§0).
 
 #### FR-9: Role-holder task view
 
@@ -192,9 +191,9 @@ The default case needs no branching logic at all: a new Task spawns only after a
 
 **Consequences (testable):**
 - An obsolete Task is visually distinct (e.g. greyed out / filtered) on both Dashboard and Timeline, never deleted.
-- Reversing a Decision Task's outcome re-runs the same spawn/obsolete logic idempotently: a previously obsoleted option-tied Task re-activates, and the other option's tied Task(s), if any, obsolete in turn. No separate undo/redo history is required.
+- Reversing a Decision Task's outcome re-runs the same spawn/obsolete logic idempotently: a previously obsoleted option-tied Task re-activates, and the other option's tied Task(s), if any, become obsolete in turn. No separate undo/redo history is required.
 
-**Out of Scope:** Visual fork/branch rendering in the Timeline UI — see §6.2, Target. This FR covers only the underlying obsolete-marking logic, which can be represented as a flat filtered list.
+**Out of Scope:** Visual fork rendering — see §6.2.
 
 #### FR-12: Task-delegation tracker
 
@@ -251,7 +250,7 @@ A freeform guest need, or an allergy/hotel-need change that affects planning (e.
 From the guest list, the Organizer can trigger a reminder email to a non-responding Guest (or a filtered set of them) on demand.
 
 **Consequences (testable):**
-- The reminder is only sent when explicitly triggered — no automatic time-based send in Core (see §6.2 re: role-holder reminders, which remain Target and unaffected by this decision).
+- The reminder is only sent when explicitly triggered — no automatic time-based send in Core (see §6.2 re: role-holder reminders, which remain Target and are unaffected by FR-17's manual-only scope).
 
 #### FR-18: Guest dashboard
 
@@ -282,11 +281,11 @@ A dedicated Timeline view renders each active Role as its own swimlane — a Rol
 - A Decision Task point is visible on its lane even before it's resolved.
 - Core ships a static, server-computed, read-only render (simple topological sort within a lane, ties broken by deadline) — no drag-and-drop, live editing, or zoom. The view scrolls horizontally so long sequences within a lane stay reachable. Clicking a Task opens it; any richer interactivity is Target.
 
-**Out of Scope:** Visual forking (showing the obsolete branch graphically rather than as a flat obsolete-marked item) — see §6.2, Target.
+**Out of Scope:** Visual fork rendering — see §6.2.
 
 ### 4.7 Communication
 
-**Description:** One-way announcements tied to the Event's structure — shrunk from a full threaded-messaging model after feasibility review, but kept load-bearing in Core because day-of coordination depends on it: a speech running long shifting main-course timing needs to reach the kitchen/serving team immediately, not sit in a backlog.
+**Description:** One-way announcements tied to the Event's structure — shrunk from a full threaded-messaging model after feasibility review, but kept load-bearing in Core because day-of coordination depends on it: a speech running long and shifting main-course timing needs to reach the kitchen/serving team immediately, not sit in a backlog.
 
 #### FR-21: Announcement/notification feed to a Role, person, or group
 
@@ -317,7 +316,7 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 
 **Privacy:** Allergy and other health-adjacent guest data (FR-15) is visible only to the Role it's routed to (e.g. catering), per FR-2's RBAC model — not broadcast to the full Team beyond what each Role needs for planning. This is an access-scoping guardrail, not a compliance program; formal handling (GDPR-style retention/consent flows) is out of scope for v1.
 
-**Cost:** FR-6 and FR-14 (and FR-13's Target-tier AI-search enhancement, if built) all make live AI/tool calls against a personal/course budget, not production infra. Before building any AI-touching FR, define a hard per-feature call cap and a mocking/fixture strategy for development — see Open Question 2 for the specific numbers still to be set.
+**Cost:** FR-6 and FR-14 (and FR-13's Target-tier AI-search enhancement, if built) all make live AI/tool calls against a personal/course budget, not production infra. Before building any AI-touching FR, define a hard per-feature call cap and a mocking/fixture strategy for development — see Open Question 1 for the specific numbers still to be set.
 
 ## 5. Non-Goals (Explicit)
 
@@ -357,10 +356,10 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 - AI detection of gaps in the plan (e.g. a DJ without a soundcheck).
 - Delay-impact propagation across the Run of Show (builds on FR-22), with Organizer approval.
 - Guest-count changes rippling into food, staffing, and budget.
+- Gift register (a wish-list Guests can browse — distinct from crowdfunded/pooled-payment gifts, which stay a Non-Goal per §5).
 - AI-proposed guest program shown in the Guest view.
-- Gift register.
 
-`[NOTE FOR PM]` Per the brief, if Core is at risk, the full team matrix was the first item to cut — that item has since been redefined (§4.3 FR-12, §4.6 FR-20) into leaner Core pieces. AI venue search, the next flagged risk, has since been resolved by moving it to Target outright (FR-13 is now manual entry in Core; see §4.9 and the feasibility review at `review-feasibility.md`). Per that same review, Core's next real risk concentration is the Timeline's rendering (FR-20) and the decision-branching semantics (FR-10/FR-11) rather than a single swappable item — both have since been scoped down directly in their FR text rather than deferred to a future cut.
+`[NOTE FOR PM]` Risk-triage history for this PRD's Core/Target boundary lives in `review-feasibility.md`, not here.
 
 ## 7. Success Metrics
 
@@ -385,4 +384,4 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 
 ## 9. Assumptions Index
 
-- §4.3 FR-8 — Task status changes are timestamped, to support both "overdue" computation and the course's AI-usage/QA documentation requirement.
+No open inline `[ASSUMPTION]` tags remain — FR-8's timestamping inference was confirmed during Finalize triage (see `.memlog.md`) and is now stated as a decided consequence.
