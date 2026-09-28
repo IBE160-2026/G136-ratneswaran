@@ -1,0 +1,324 @@
+- generic [active] [ref=e1]:
+  - heading "Arrangly — visual directions, round 1" [level=1] [ref=e2]
+  - paragraph [ref=e3]: "Same colours (Warm Sky), same content, three densities. Left: Leah's Dashboard on desktop with the sidebar. Right: Stine's All events on her phone (red = 1 overdue with a new-task badge, mustard = 2 at risk, neutral = just a guest). Compare how calm each feels versus how much you can see at once."
+  - generic [ref=e4]:
+    - heading "1 · Airy" [level=2] [ref=e5]
+    - paragraph [ref=e6]: Large bold titles like iOS 'large title', generous spacing, big rounded inset groups. The calmest; shows the least per screen.
+    - generic [ref=e7]:
+      - generic [ref=e13]:
+        - complementary [ref=e14]:
+          - generic [ref=e15]: Arrangly
+          - generic [ref=e16]: 🗂 All events
+          - generic [ref=e17]: Lucas's 40th
+          - generic [ref=e18]: ◉ Dashboard
+          - generic [ref=e19]:
+            - text: ☑ My tasks
+            - generic [ref=e20]: "2"
+          - generic [ref=e21]: 👥 Guests
+          - generic [ref=e22]: ↔ Timeline
+          - generic [ref=e23]: 🧩 Team & Roles
+          - generic [ref=e24]: 📣 Announcements
+          - generic [ref=e25]: 🎉 Landing page
+          - generic [ref=e26]: ⚙ Event settings
+          - generic [ref=e28]: 👤 Leah Hansen
+        - main [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]:
+              - generic [ref=e32]: Dashboard
+              - generic [ref=e33]: Lucas's 40th · Sat 24 Oct · 26 days to go
+            - button "+ New task" [ref=e34]
+          - generic [ref=e35]:
+            - text: Needs you
+            - generic [ref=e36]: "3"
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]: "?"
+              - generic [ref=e40]:
+                - text: Choose dinner menu
+                - generic [ref=e41]: Peter sent 3 options · decide by Thu 1 Oct
+              - button "Decide" [ref=e42]
+            - generic [ref=e43]:
+              - generic [ref=e44]: Buffet
+              - generic [ref=e45]: 3-course
+              - generic [ref=e46]: Tapas
+          - generic [ref=e48]:
+            - generic [ref=e49]: ✦
+            - generic [ref=e50]:
+              - text: "Create task: Send food order details to caterer"
+              - generic [ref=e51]: From caterer note · Catering · Peter · due Wed 14 Oct
+            - button "✓" [ref=e52]
+            - button "✕" [ref=e53]
+          - generic [ref=e55]:
+            - generic [ref=e56]: "!"
+            - text: Send final headcount to venue
+            - generic [ref=e57]: Overdue 1 day
+          - generic [ref=e58]:
+            - text: At risk
+            - generic [ref=e59]: "2"
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]: ⏳
+              - text: DJ contract
+              - generic [ref=e63]: Waiting on DJ
+            - generic [ref=e64]:
+              - generic [ref=e65]: 🔒
+              - text: Decorations
+              - generic [ref=e66]: "Waits for: venue access"
+          - generic [ref=e67]: On track
+          - generic [ref=e68]:
+            - generic [ref=e69]:
+              - generic [ref=e70]: ✓
+              - text: Venue
+              - generic [ref=e71]: Booked
+            - generic [ref=e72]:
+              - generic [ref=e73]: ✓
+              - text: Catering
+              - generic [ref=e74]: Booked
+            - generic [ref=e75]:
+              - generic [ref=e76]: 👥
+              - text: Guests
+              - generic [ref=e77]: 60 coming · 4 declined · 16 pending
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]: 9:41
+          - generic [ref=e81]: ☰
+        - generic [ref=e82]:
+          - generic [ref=e83]: All events
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - text: Lucas's 40th
+                - generic [ref=e87]: Sat 24 Oct · Venue
+              - generic [ref=e88]:
+                - text: "3"
+                - generic [ref=e89]: "1"
+            - generic [ref=e90]: 1 overdue
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - generic [ref=e93]:
+                - text: Sheila & Tom's wedding
+                - generic [ref=e94]: Sat 12 Jun 2027 · Decorations
+              - generic [ref=e95]: "2"
+            - generic [ref=e96]: 2 at risk
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - text: Office Christmas party
+                - generic [ref=e100]: Fri 11 Dec · Guest
+              - generic [ref=e101]: "0"
+            - generic [ref=e102]: RSVP'd · Program published
+          - generic [ref=e103]: + Create new event
+  - generic [ref=e104]:
+    - heading "2 · Balanced" [level=2] [ref=e105]
+    - paragraph [ref=e106]: "Medium titles, comfortable rows, 12px corners. Like the Reminders/Notes apps on Mac: calm but a bit more on screen."
+    - generic [ref=e107]:
+      - generic [ref=e113]:
+        - complementary [ref=e114]:
+          - generic [ref=e115]: Arrangly
+          - generic [ref=e116]: 🗂 All events
+          - generic [ref=e117]: Lucas's 40th
+          - generic [ref=e118]: ◉ Dashboard
+          - generic [ref=e119]:
+            - text: ☑ My tasks
+            - generic [ref=e120]: "2"
+          - generic [ref=e121]: 👥 Guests
+          - generic [ref=e122]: ↔ Timeline
+          - generic [ref=e123]: 🧩 Team & Roles
+          - generic [ref=e124]: 📣 Announcements
+          - generic [ref=e125]: 🎉 Landing page
+          - generic [ref=e126]: ⚙ Event settings
+          - generic [ref=e128]: 👤 Leah Hansen
+        - main [ref=e129]:
+          - generic [ref=e130]:
+            - generic [ref=e131]:
+              - generic [ref=e132]: Dashboard
+              - generic [ref=e133]: Lucas's 40th · Sat 24 Oct · 26 days to go
+            - button "+ New task" [ref=e134]
+          - generic [ref=e135]:
+            - text: Needs you
+            - generic [ref=e136]: "3"
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - generic [ref=e139]: "?"
+              - generic [ref=e140]:
+                - text: Choose dinner menu
+                - generic [ref=e141]: Peter sent 3 options · decide by Thu 1 Oct
+              - button "Decide" [ref=e142]
+            - generic [ref=e143]:
+              - generic [ref=e144]: Buffet
+              - generic [ref=e145]: 3-course
+              - generic [ref=e146]: Tapas
+          - generic [ref=e148]:
+            - generic [ref=e149]: ✦
+            - generic [ref=e150]:
+              - text: "Create task: Send food order details to caterer"
+              - generic [ref=e151]: From caterer note · Catering · Peter · due Wed 14 Oct
+            - button "✓" [ref=e152]
+            - button "✕" [ref=e153]
+          - generic [ref=e155]:
+            - generic [ref=e156]: "!"
+            - text: Send final headcount to venue
+            - generic [ref=e157]: Overdue 1 day
+          - generic [ref=e158]:
+            - text: At risk
+            - generic [ref=e159]: "2"
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - generic [ref=e162]: ⏳
+              - text: DJ contract
+              - generic [ref=e163]: Waiting on DJ
+            - generic [ref=e164]:
+              - generic [ref=e165]: 🔒
+              - text: Decorations
+              - generic [ref=e166]: "Waits for: venue access"
+          - generic [ref=e167]: On track
+          - generic [ref=e168]:
+            - generic [ref=e169]:
+              - generic [ref=e170]: ✓
+              - text: Venue
+              - generic [ref=e171]: Booked
+            - generic [ref=e172]:
+              - generic [ref=e173]: ✓
+              - text: Catering
+              - generic [ref=e174]: Booked
+            - generic [ref=e175]:
+              - generic [ref=e176]: 👥
+              - text: Guests
+              - generic [ref=e177]: 60 coming · 4 declined · 16 pending
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]: 9:41
+          - generic [ref=e181]: ☰
+        - generic [ref=e182]:
+          - generic [ref=e183]: All events
+          - generic [ref=e184]:
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - text: Lucas's 40th
+                - generic [ref=e187]: Sat 24 Oct · Venue
+              - generic [ref=e188]:
+                - text: "3"
+                - generic [ref=e189]: "1"
+            - generic [ref=e190]: 1 overdue
+          - generic [ref=e191]:
+            - generic [ref=e192]:
+              - generic [ref=e193]:
+                - text: Sheila & Tom's wedding
+                - generic [ref=e194]: Sat 12 Jun 2027 · Decorations
+              - generic [ref=e195]: "2"
+            - generic [ref=e196]: 2 at risk
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - generic [ref=e199]:
+                - text: Office Christmas party
+                - generic [ref=e200]: Fri 11 Dec · Guest
+              - generic [ref=e201]: "0"
+            - generic [ref=e202]: RSVP'd · Program published
+          - generic [ref=e203]: + Create new event
+  - generic [ref=e204]:
+    - heading "3 · Compact" [level=2] [ref=e205]
+    - paragraph [ref=e206]: "Mail-style: tight rows, smaller type, subtle 8px corners. Most information at a glance; feels more like a pro tool."
+    - generic [ref=e207]:
+      - generic [ref=e213]:
+        - complementary [ref=e214]:
+          - generic [ref=e215]: Arrangly
+          - generic [ref=e216]: 🗂 All events
+          - generic [ref=e217]: Lucas's 40th
+          - generic [ref=e218]: ◉ Dashboard
+          - generic [ref=e219]:
+            - text: ☑ My tasks
+            - generic [ref=e220]: "2"
+          - generic [ref=e221]: 👥 Guests
+          - generic [ref=e222]: ↔ Timeline
+          - generic [ref=e223]: 🧩 Team & Roles
+          - generic [ref=e224]: 📣 Announcements
+          - generic [ref=e225]: 🎉 Landing page
+          - generic [ref=e226]: ⚙ Event settings
+          - generic [ref=e228]: 👤 Leah Hansen
+        - main [ref=e229]:
+          - generic [ref=e230]:
+            - generic [ref=e231]:
+              - generic [ref=e232]: Dashboard
+              - generic [ref=e233]: Lucas's 40th · Sat 24 Oct · 26 days to go
+            - button "+ New task" [ref=e234]
+          - generic [ref=e235]:
+            - text: Needs you
+            - generic [ref=e236]: "3"
+          - generic [ref=e237]:
+            - generic [ref=e238]:
+              - generic [ref=e239]: "?"
+              - generic [ref=e240]:
+                - text: Choose dinner menu
+                - generic [ref=e241]: Peter sent 3 options · decide by Thu 1 Oct
+              - button "Decide" [ref=e242]
+            - generic [ref=e243]:
+              - generic [ref=e244]: Buffet
+              - generic [ref=e245]: 3-course
+              - generic [ref=e246]: Tapas
+          - generic [ref=e248]:
+            - generic [ref=e249]: ✦
+            - generic [ref=e250]:
+              - text: "Create task: Send food order details to caterer"
+              - generic [ref=e251]: From caterer note · Catering · Peter · due Wed 14 Oct
+            - button "✓" [ref=e252]
+            - button "✕" [ref=e253]
+          - generic [ref=e255]:
+            - generic [ref=e256]: "!"
+            - text: Send final headcount to venue
+            - generic [ref=e257]: Overdue 1 day
+          - generic [ref=e258]:
+            - text: At risk
+            - generic [ref=e259]: "2"
+          - generic [ref=e260]:
+            - generic [ref=e261]:
+              - generic [ref=e262]: ⏳
+              - text: DJ contract
+              - generic [ref=e263]: Waiting on DJ
+            - generic [ref=e264]:
+              - generic [ref=e265]: 🔒
+              - text: Decorations
+              - generic [ref=e266]: "Waits for: venue access"
+          - generic [ref=e267]: On track
+          - generic [ref=e268]:
+            - generic [ref=e269]:
+              - generic [ref=e270]: ✓
+              - text: Venue
+              - generic [ref=e271]: Booked
+            - generic [ref=e272]:
+              - generic [ref=e273]: ✓
+              - text: Catering
+              - generic [ref=e274]: Booked
+            - generic [ref=e275]:
+              - generic [ref=e276]: 👥
+              - text: Guests
+              - generic [ref=e277]: 60 coming · 4 declined · 16 pending
+      - generic [ref=e278]:
+        - generic [ref=e279]:
+          - generic [ref=e280]: 9:41
+          - generic [ref=e281]: ☰
+        - generic [ref=e282]:
+          - generic [ref=e283]: All events
+          - generic [ref=e284]:
+            - generic [ref=e285]:
+              - generic [ref=e286]:
+                - text: Lucas's 40th
+                - generic [ref=e287]: Sat 24 Oct · Venue
+              - generic [ref=e288]:
+                - text: "3"
+                - generic [ref=e289]: "1"
+            - generic [ref=e290]: 1 overdue
+          - generic [ref=e291]:
+            - generic [ref=e292]:
+              - generic [ref=e293]:
+                - text: Sheila & Tom's wedding
+                - generic [ref=e294]: Sat 12 Jun 2027 · Decorations
+              - generic [ref=e295]: "2"
+            - generic [ref=e296]: 2 at risk
+          - generic [ref=e297]:
+            - generic [ref=e298]:
+              - generic [ref=e299]:
+                - text: Office Christmas party
+                - generic [ref=e300]: Fri 11 Dec · Guest
+              - generic [ref=e301]: "0"
+            - generic [ref=e302]: RSVP'd · Program published
+          - generic [ref=e303]: + Create new event
