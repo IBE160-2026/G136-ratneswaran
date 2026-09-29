@@ -1,8 +1,8 @@
 ---
 name: Arrangly
 description: Calm, Apple-clean event-planning web app. shadcn/ui on React + Tailwind; this DESIGN.md specifies the brand-layer delta over shadcn defaults.
-status: draft
-updated: 2026-09-28
+status: final
+updated: 2026-09-29
 colors:
   # Light = "Warm Sky" (warm paper surfaces + one blue accent). Dark = "Clear Sky" (Apple-dark).
   # Every token has a -dark pair. shadcn mapping: background, card, foreground, muted-foreground,
@@ -260,28 +260,28 @@ One brand colour, fixed status meanings, and warm neutrals. Explored in [color-t
 
 **Red means act, grey means wait, purple means decide.** Blocked items are never red.
 
-**Contrast (WCAG 2.2 AA, measured with the WCAG formula).** Pairs marked ⚠ sit close to the floor, so don't lighten them.
+**Contrast (WCAG 2.2 AA, measured with the WCAG formula; re-verified 2026-09-29).** Pairs marked ⚠ sit close to the floor, so don't lighten them.
 
 | Text / element | On | Light | Dark |
 |---|---|---|---|
 | foreground | background | 15.3 | 19.3 |
 | muted-foreground | card | 5.3 | 5.9 |
-| muted-foreground | sidebar | 4.6 ⚠ | — |
-| muted-foreground | primary-soft (proposal subhead) | 4.7 ⚠ | — |
-| muted-foreground | status-decision-soft | 4.6 ⚠ | — |
+| muted-foreground | sidebar | 4.6 ⚠ | 6.7 |
+| muted-foreground | primary-soft (proposal subhead) | 4.7 ⚠ | 5.1 |
+| muted-foreground | status-decision-soft | 4.6 ⚠ | 5.3 |
 | muted-foreground | status-blocked-row | 4.5 ⚠ | 6.4 |
 | primary | background / card | 5.2 / 5.6 | 8.0 / 6.5 |
-| primary | primary-soft (proposal title, active nav) | 4.9 ⚠ | — |
+| primary | primary-soft (proposal title, active nav) | 4.9 ⚠ | 5.5 |
 | primary-foreground | primary | 5.6 | 8.0 |
 | status-decision-foreground | status-decision (Decide) | 7.1 | 8.7 |
 | badge-foreground | badge | 5.4 | 5.4 |
 | status-done / waiting / overdue | card | 5.4 / 6.0 / 6.3 | 8.4 / 8.3 / 6.0 |
 | status-decision | status-decision-soft | 6.1 | 6.4 |
-| status-obsolete | card / background | 5.1 / 4.8 ⚠ | 5.2 |
-| at-risk-text | card / background | 5.1 / 4.7 ⚠ | 9.0 |
-| **Non-text (≥3:1):** input | card / background | 3.8 / 3.6 | 4.1 |
-| at-risk outline | card / background | 4.1 / 3.8 | 9.0 |
-| status-overdue outline, status-decision outline | background | 5.8, 6.6 | 6.0, 8.7 |
+| status-obsolete | card / background | 5.1 / 4.8 ⚠ | 5.2 / 6.4 |
+| at-risk-text | card / background | 5.1 / 4.7 ⚠ | 9.0 / 11.1 |
+| **Non-text (≥3:1):** input | card / background | 3.8 / 3.6 | 4.1 / 5.1 |
+| at-risk outline | card / background | 4.1 / 3.8 | 9.0 / 11.1 |
+| status-overdue outline, status-decision outline | background | 5.8, 6.6 | 7.5, 8.7 |
 | ring | card / background | 5.6 / 5.2 | 6.5 / 8.0 |
 
 ## Typography
@@ -332,20 +332,20 @@ The Timeline decision marker is the one non-rounded shape: a diamond. There are 
 
 ## Components
 
-These shadcn components are used as they come: `Button` (secondary/outline/ghost), `Card`, `Dialog`, `Sheet`, `DropdownMenu`, `Tabs`, `Toast` (sonner), `Avatar`, `Separator`, `Skeleton`, `Checkbox`, `Switch`, `Input`, `Textarea`, `Select`, `RadioGroup`, `Command` (people picker). The exceptions are their border (`{components.input}`) and focus (`{components.focus-ring}`). Icons are **Lucide**, line style only, at 1.75px stroke. **No emojis in the interface.** Emojis are fine in text people write themselves.
+These shadcn components are used as they come: `Button` (secondary/outline/ghost), `Card`, `Dialog`, `Sheet`, `DropdownMenu`, `Tabs`, `Toast` (sonner), `Avatar`, `Separator`, `Skeleton`, `Checkbox`, `Switch`, `Input`, `Textarea`, `Select`, `RadioGroup`, `Command` (people picker). Two overrides apply to all of them: control borders use `{components.input}` and focus uses `{components.focus-ring}`. Icons are **Lucide**, line style only, at 1.75px stroke. **No emojis in the interface.** Emojis are fine in text people write themselves.
 
-These use shadcn as-is, with brand tokens: Announcement composer (`Card` + `Textarea` + `Command` recipient picker + `Switch` "Ask for volunteers"), Announcement feed (`Card` list), Delegate picker (`Command` in a `Dialog`), banners (unpublished event, unpublished changes: `Card` in `{colors.primary-soft}` or muted), Account offer (`Card` + `Button`), Landing page editor (`Card` sections + `Input`/`Textarea`), Guests import (`Dialog` with a column-mapping `Select`).
+Composites built from those shadcn parts, with brand tokens: Announcement composer (`Card` + `Textarea` + `Command` recipient picker + `Switch` "Ask for volunteers"), Announcement feed (`Card` list), Delegate picker (`Command` in a `Dialog`), banners (unpublished event, unpublished changes: `Card` in `{colors.primary-soft}` or muted), Account offer (`Card` + `Button`), Landing page editor (`Card` sections + `Input`/`Textarea`), Guests import (`Dialog` with a column-mapping `Select`).
 
 Arrangly-specific components. Key-screen mocks: [Dashboard](mockups/key-dashboard-desktop.html) · [Timeline](mockups/key-timeline-desktop.html) · [All events](mockups/key-all-events-phone.html) · [Task detail](mockups/key-task-detail-phone.html) · [Landing page + Guest Dashboard](mockups/key-landing-phone.html).
 
 - **Sidebar.** On a `{colors.sidebar}` background: the app name, then the current event's group (Dashboard · My tasks · Guests · Timeline · Team & Roles · Announcements · Landing page · Event settings), with **All events** at the bottom of that group. The user's profile is pinned to the bottom. The active item is `{components.sidebar-item-active}` (tint, weight and a leading bar, so it isn't colour-only). My tasks shows a `{components.notification-badge}` count. Items outside your Role are not rendered.
 - **Event card** (All events). The event name (headline), a subhead with date · your Role (or "Guest"), and a **count circle** (`{components.count-circle}`) on the right. States: neutral, **urgent** (`{components.event-card-urgent}`: circle and outline in `{colors.status-overdue}` plus "N overdue"), **at risk** (`{components.event-card-at-risk}` plus "N at risk"). A **notification badge** sits on the circle's top-right edge.
 - **Create-new-event card.** The same size as an event card, `{components.create-event-card}`, with a centred `plus` icon and label. Always last.
-- **Decision card.** `{components.decision-card}` with a title row: `circle-help` · title (headline) · subhead ("Peter sent 3 options · decide by Thu 1 Oct") · **Decide** (`{components.decide-button}`) right-aligned. The option pills are on one row below. It's slim.
+- **Decision card.** `{components.decision-card}` with a title row: `circle-help` · title (headline) · subhead ("Peter sent 3 options · decide by Thu 1 Oct") · **Decide** (`{components.decide-button}`) right-aligned. The option pills are on one row below. It stays two rows tall.
 - **Decision page options.** A radio group styled as `{components.decision-option-card}`. The selected card gets the `circle-check` icon plus a 2px decision-purple border, not just a tint.
 - **Proposed Task row (✦).** `{components.proposal-row}` with `sparkles` in primary · title "Create task: …" · subhead naming source, Role, owner and due date · **✓** (`{components.confirm-button}`, 44px hit area) and **✕** (ghost, 44px hit area). Its action column lines up with the Decide button.
-- **Section header.** `{typography.section-label}` `h2` plus a count pill. The *Needs you* pill is filled decision purple, the others muted.
-- **Task row.** Status icon · title · status word right-aligned in the status colour (see the Colors status table for every variant). **Blocked:** the whole row tinted `{components.blocked-row}`, `lock`, "Waits for: {blocker}". **Obsolete:** `{components.obsolete-row}` plus the word "Obsolete", no tint. **Problem reported:** `flag` in `{colors.status-overdue}` plus the note excerpt. **Blocks others:** a muted subhead "Blocks 3 tasks" with `link` icon. This is the "priority" cue.
+- **Dashboard sections** (header). `{typography.section-label}` `h2` plus a count pill. The *Needs you* pill is filled decision purple, the others muted.
+- **Task row.** Status icon · title · status word right-aligned in the status colour (see the Colors status table for every variant). The subhead (`{typography.subhead}`, muted) carries owner · deadline; an unowned task reads "Not delegated" with the `user-round` icon. **Blocked:** the whole row tinted `{components.blocked-row}`, `lock`, "Waits for: {blocker}". **Obsolete:** `{components.obsolete-row}` plus the word "Obsolete", no tint. **Problem reported:** `flag` in `{colors.status-overdue}` plus the note excerpt. **Blocks others:** a muted subhead "Blocks 3 tasks" with `link` icon. This is the "priority" cue.
 - **Task detail** (full page). Top to bottom:
   - A back control and the title (`h1`).
   - An **Accept banner** (`{components.accept-banner}`) with the primary *Accept* button, shown until the task is accepted.
@@ -362,10 +362,11 @@ Arrangly-specific components. Key-screen mocks: [Dashboard](mockups/key-dashboar
   - Subtasks nest inside their parent bar. Decision points are `{components.timeline-decision-marker}` diamonds: filled when open, outline when resolved, with a label.
   - Today is `{components.timeline-today-line}`. The event day is a `{colors.primary-soft}` column. Horizontal scroll has a 48px edge fade in `{colors.card}`.
   - The **List view** toggle renders the same data as grouped task rows.
+- **Volunteer response** (announcement). *I can help* is a secondary `Button` with the `hand-helping` icon at the foot of the announcement card. Once tapped it becomes a `circle-check` + "You offered to help" line in `{colors.status-done}` with a ghost *Withdraw*. The sender's card lists responders as `Avatar` + name rows, each with an outline *Assign to task*.
 - **RSVP question** (guest, phone). One question per screen: large title question, answer buttons as full-width option cards (`{components.decision-option-card}` style, primary border when selected), a *Back* text button, and a progress caption "Question 2 of 4".
-- **Guest summary tiles** (Guests tab). A row of `{components.guest-summary-tile}` cards: Guests (numbers always printed; the segmented bar is decorative), Food (aggregated), Hotel, Unanswered requests. Tiles are toggle buttons (pressed = primary border).
+- **Guests tab summary tiles.** A row of `{components.guest-summary-tile}` cards: Guests (numbers always printed; the segmented bar is decorative), Food (aggregated), Hotel, Unanswered requests. Tiles are toggle buttons (pressed = primary border).
 - **Guest row.** Name · RSVP status word · plus-one. Beneath it, bullet points for food, allergies and requests (only the fields the viewer's Role may see).
-- **Landing page (guest).** A hero with the event name (large title), date and place, then grouped cards: About · Program (time-stamped list, which is the Run of Show) · Location · Menu · Practical info.
+- **Landing page** (guest). A hero with the event name (large title), date and place, then grouped cards: About · Program (time-stamped list, which is the Run of Show) · Location · Menu · Practical info.
 - **Guest Dashboard.** Cards for My RSVP (with *Change*), Resolved for you (primary-soft tint, `circle-check`), My requests (each with its reply or "Waiting for an answer").
 - **Send a request** (guest). A secondary button with the `message-circle-plus` icon. On phone it's in a sticky bottom bar on the landing page and Guest Dashboard.
 

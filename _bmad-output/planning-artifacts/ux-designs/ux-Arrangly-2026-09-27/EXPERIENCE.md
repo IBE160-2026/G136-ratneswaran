@@ -1,11 +1,11 @@
 ---
 name: Arrangly
-status: draft
+status: final
 sources:
   - {planning_artifacts}/prds/prd-Arrangly-2026-09-22/prd.md
   - {planning_artifacts}/briefs/brief-Arrangly-2026-09-20/brief.md
   - {planning_artifacts}/briefs/brief-Arrangly-2026-09-20/addendum.md
-updated: 2026-09-28
+updated: 2026-09-29
 ---
 
 # Arrangly — Experience Spine
@@ -17,17 +17,13 @@ updated: 2026-09-28
 - **The spines win on conflict.** Every file in `.working/`, `mockups/`, `wireframes/` and `imports/` is illustrative only.
 - **Two experiences:**
   - **Team experience:** the Organizer and every Role-holder use the same app, sidebar and surfaces. What differs is scope. RBAC (PRD FR-2) decides which Roles, tasks, guest fields and actions each person sees. Anything out of scope is **not rendered** (the server enforces it too).
-  - **Guest experience:** a separate, simplified, Zola-style side with only what a Guest needs.
+  - **Guest experience:** a separate, simplified side, styled like the wedding site Zola, with only what a Guest needs.
 - **One account, many hats.** The same person can be Organizer of one Event, Role-holder in another and Guest in a third. All of them appear under **All events**.
   - A person who is **both Guest and Role-holder in the same Event** gets one event card, which opens the **team experience**. It includes a "Your invitation" card (RSVP + landing page link) at the top of their Dashboard until they answer.
 - **Language:** follows the device/browser language. **Norwegian Bokmål (`nb`) and English (`en`)** are supported, with English as the fallback, and there's a manual override in Profile & Settings.
   - Dates and times are localised (*lør. 24. okt., 19:00* / *Sat Oct 24, 7:00 PM*).
   - Emails use the recipient's saved language if known, otherwise the Organizer's.
-- **Glossary:** PRD §3 terms are used with their PRD meaning: Event, Organizer, Branch Pool, Role, Role-holder, Team, Guest, Task, Subtask, Decision Task, Timeline, Run of Show, Dashboard, Proposed Task, Guest Dashboard, Magic Link. UX additions:
-  - **Role lead:** one Role-holder per Role, set by the Organizer, who may delegate that Role's Tasks.
-  - **Landing page:** the Guest-facing event page. Its **Program** section *is* the Run of Show.
-  - **Problem:** a flag a Task owner raises on a Task (not a status).
-  - "✦" marks anything AI produced, in the UI and in this spine.
+- **Glossary:** all PRD §3 terms keep their PRD meaning (including Role lead, Landing page and Problem, added 2026-09-29). UX convention: "✦" marks anything AI produced, in the UI and in this spine.
 
 ## Information Architecture
 
@@ -72,7 +68,6 @@ Map: [wireframes/ia.excalidraw](wireframes/ia.excalidraw) (open at excalidraw.co
 - Below 1024px the sidebar becomes a `Sheet` sliding in from the **right**, opened by a menu button at the **top right**. The button comes after the `h1` in DOM order.
 - Task detail and Decision are full pages with a back control that returns to the exact scroll position.
 - The Guest experience has no sidebar. It's a single scroll with a sticky *Send a request* bar on phone.
-- Every route sets `document.title` to "{Surface} – {Event} – Arrangly" and moves focus to its `h1`.
 
 ## Voice and Tone
 
@@ -124,13 +119,13 @@ Behavioural rules. Visual specs are in DESIGN.md › Components.
 | Decision card | Dashboard, My tasks | Always first in Needs you. *Decide* opens the Decision page. It never auto-dismisses. |
 | Decision page | Full page | Context, then options as a **radio group** (arrow keys move, one choice). *Confirm decision* records it (FR-10). *+ Add follow-up task* opens Task create inline, so the decider can create and assign in the same action. Tasks tied to an unchosen option become obsolete (FR-11). *Change decision* re-runs this idempotently. |
 | Proposed Task row (✦) | Dashboard, wizard | ✓ creates the task in its Role, owned by the Role lead or named owner (or the Role, during the wizard), with the computed deadline. ✕ dismisses it to *Show dismissed*. Both give an *Undo* toast. The title can be edited inline before ✓. It always shows its source. Nothing becomes active without ✓ (FR-6/16). **Focus:** after the row leaves, focus moves to the next row's primary action. If there's none, to the previous one. If the section is empty, to the section heading. On *Undo*, focus returns to the restored row's ✓. |
-| Task row | Everywhere tasks list | Tapping anywhere opens Task detail. The status word is always visible. Blocked rows only open. Obsolete rows are hidden by default behind *Show obsolete (n)*. A task that others depend on shows "Blocks N tasks", which is the priority cue in KF-2. |
+| Task row | Everywhere tasks list | Tapping anywhere opens Task detail. The status word is always visible. The subhead names the owner ("Peter"), or reads **Not delegated** when no person owns it yet, independent of status (FR-12). The Organizer's "pending only" filter is *Not delegated* in My tasks. Blocked rows only open. Obsolete rows are hidden by default behind *Show obsolete (n)*. A task that others depend on shows "Blocks N tasks", which is the priority cue in KF-2. |
 | Task create / edit | *+ New task* (Dashboard, My tasks, Role view) · *Create task* on any status note · *+ Add follow-up task* (Decision) | Fields: Title\*, Role\* (defaults to context), Owner (person or the Role; defaults to the Role lead), Deadline\* (date, or "N days before the event"), Description, Parent task (same Role only, FR-7), **Depends on…** (task picker), **Only if option… is chosen** (appears when the task depends on an open Decision Task; FR-11). The Organizer can change Role later (FR-6 recategorise); Subtasks must be promoted first (FR-7). Created tasks need *Accept* by their owner. |
-| Task detail | Full page | New for the assignee → **Accept** (the Organizer sees "Not yet accepted" until then). Status control: **Not started · In progress · Waiting on external · Done**, with an optional note. *Blocked* and *Overdue* are computed, not settable. **Help:** ✦ *Draft email*, *Add options → Send for decision*. **Delegate** (Organizer, Role lead). **Report a problem** (owner) → note → raises a Problem. **Guest program** (Organizer): *Show on guest program* switch + guest-facing label + time of day (feeds the Landing page Program; PRD Open Question 3). History lists every change, with *Remove* on tasks created from ✓ (the undo that has no time limit). |
+| Task detail | Full page | New for the assignee → **Accept** (the Organizer sees "Not yet accepted" until then). Status control: **Not started · In progress · Waiting on external · Done**, with an optional note. *Blocked* and *Overdue* are computed, not settable. **Help:** ✦ *Draft email*, *Add options → Send for decision*. **Delegate** (Organizer, Role lead). **Report a problem** (owner) → note → raises a Problem. **Guest program** (Organizer): *Show on guest program* switch + guest-facing label + time of day (feeds the Landing page Program; PRD FR-7/FR-22). History lists every change, with *Remove* on tasks created from ✓ (the undo that has no time limit). |
 | Delegate | Task detail, My tasks | A people picker (`Command`) of the task's Role. The Organizer can pick anyone and change the Role. Invited-but-unregistered people are listed as "Invite pending", and delegating to them notifies them when they join. History and status are kept (FR-7). The new owner must *Accept*. |
 | ✦ Draft email | Task detail | Drafts with event date, headcount and occasion (FR-14), shown for review, then *Open in mail app* (`mailto:`). Arrangly never sends it. |
 | Options entry | Task detail | Named options, each with type and notes (FR-13, manual in Core). *Send for decision* creates a Decision Task for the Organizer (or the chosen decider). |
-| Guests tab | Team | Summary tiles on top (Guests · Food · Hotel · Unanswered requests). Tiles are toggle buttons (`aria-pressed`) that filter the list and announce "Showing 16 pending guests". Guest rows show food, allergies and requests as bullets. Multi-select → *Remind* (FR-17), with a confirm. Fields outside the viewer's Role aren't rendered (PRD §4.9). Import is Target: file → map columns → preview → add. |
+| Guests tab | Team | **Guests tab summary tiles** on top (Guests · Food · Hotel · Unanswered requests). Tiles are toggle buttons (`aria-pressed`) that filter the list and announce "Showing 16 pending guests". Guest rows show food, allergies and requests as bullets. Multi-select → *Remind* (FR-17), with a confirmation dialog. Fields outside the viewer's Role aren't rendered (PRD §4.9). Import is Target: file → map columns → preview → add. |
 | Timeline | Team | One lane per active Role, tasks ordered by dependency then deadline. Subtasks sit inside their parent. Decision points are visible before they're resolved. Read-only in Core. **Keyboard/screen reader:** the scroll area is `role="region"`, `aria-label="Timeline"`, `tabindex="0"`, so arrow keys scroll. Each lane is a labelled list in order. Each task is a link named "{title}, {dates}, {status}, waits for {x}", and focusing it scrolls it into view. **List view** toggle: the same data as grouped task rows (also the phone default). |
 | Announcement composer | Announcements | Recipient picker: the Organizer can pick person / Role / whole team / custom group. A Role-holder can only pick their own Role(s) or people in them (FR-21). Optional **Ask for volunteers** switch. *Send* asks for confirmation and delivers in-app plus through the recipients' channels. No replies. |
 | Volunteer response | Announcement | *I can help* appears on volunteer announcements. After tapping it reads "You offered to help" and can be withdrawn. The sender sees responders in order, each with *Assign to task*, which opens Delegate prefilled. |
@@ -138,6 +133,7 @@ Behavioural rules. Visual specs are in DESIGN.md › Components.
 | RSVP flow | Guest | One question per screen: a `fieldset` whose question is the `h1`, and focus moves there on each step. *Back* is always available. *No* ends the flow warmly. Progress counts only applicable steps ("Question 2 of 4") and updates when branching. Allergies are checkboxes plus "Other". Errors are inline (`aria-invalid` + `aria-describedby`). Answers can be edited later from the Guest Dashboard. |
 | Send a request | Guest | Free text → routed like "other needs" (FR-16) to the owning Role as a ✦ Proposed Task, always visible to the Organizer. The reply appears under the request, with a notification. One reply, no thread. |
 | Account offer | Guest confirmation | Only if the email has no account: *Create an Arrangly account* (password) or *Not now*. Declining keeps access by email (enter email → new magic link). |
+| Landing page | Guest | Shows only the last published version: About, Program (the Run of Show: guest labels + times, never Role detail), Location, Menu, Practical info. Before first publish, Guests see RSVP and Guest Dashboard only. Readable after the event date. Reached from the magic link after RSVP, and from the Guest Dashboard. |
 | Notification preferences | Profile & Settings | Per channel: In-app (always on), Email, Push (web push; asks browser permission when switched on), SMS (**Target**, disabled "Coming later"). |
 
 ## State Patterns
@@ -190,7 +186,7 @@ Behavioural rules. Visual specs are in DESIGN.md › Components.
 - **Optimistic updates** for status changes and ✓/✕, reverted with a toast on failure.
 - **Motion:** 150–250ms ease-out. Rows collapse out, new tasks fade in at their destination, and the sheet slides from the right. `prefers-reduced-motion` → cross-fades only. No confetti. Delight comes from words and a single check animation on *Done* and *Publish*.
 - **No drag and drop in Core** (Timeline is read-only, FR-20). No hover-only affordances. No infinite scroll.
-- **Notifications:** new task, decision result, new decision request, Problem reported, post-deadline RSVP change, announcement, request reply. Each goes through the user's channels. In-app is always on. Several realtime additions are grouped into one announcement: "2 new items in Needs you".
+- **Notifications:** new task, decision result, new decision request, Problem reported, post-deadline RSVP change, announcement, request reply. Each goes through the user's channels. In-app is always on. Several realtime additions are grouped into one notification: "2 new items in Needs you".
 
 ## Accessibility Floor
 
@@ -199,7 +195,7 @@ Behavioural. Visual contrast lives in DESIGN.md › Colors (measured pair table)
 - WCAG 2.2 AA on every surface. Reflow works at **320 CSS px / 400% zoom** with no two-way scrolling (the Timeline's List view covers 1.4.10).
 - A **"Skip to content"** / "Hopp til innhold" link comes first. Landmarks: `nav` (event), `main`, `header`.
 - **Status is never colour-only.** Every state has an icon and a word. Strikethrough is decorative. Obsolete rows say "Obsolete", and their accessible name includes "option not chosen: {option}".
-- Every route sets `document.title` and moves focus to its `h1` (`tabindex="-1"`). Wizard steps and RSVP questions do the same.
+- Every route sets `document.title` to "{Surface} – {Event} – Arrangly" and moves focus to its `h1` (`tabindex="-1"`). Wizard steps and RSVP questions do the same.
 - The focus ring is always visible (DESIGN.md `{components.focus-ring}`), including on tinted rows. Sticky bars use `scroll-padding-bottom`, so focused elements are never hidden behind them.
 - **Live regions:**
   - `role="status"` for AI progress, filter results and list changes (debounced).
@@ -237,7 +233,7 @@ Behavioural. Visual contrast lives in DESIGN.md › Colors (measured pair table)
 
 ## Key Flows
 
-### KF-1 · Leah's glance (desktop) — new, see D1
+### KF-1 · Leah's glance (desktop) — Proposed Task from a status note (PRD FR-6)
 
 1. Leah opens Arrangly. **All events** shows *Lucas's 40th*. She clicks it and the **Dashboard** opens.
 2. At a glance: **On track**: Venue booked; Guests 60 coming · 4 declined · 16 pending; Catering booked. Under Catering is the caterer's status note: *"Caterer needs food preferences and allergies 10 days before delivery."*
@@ -245,14 +241,14 @@ Behavioural. Visual contrast lives in DESIGN.md › Colors (measured pair table)
 4. **Climax:** Leah clicks ✓. The row slides away, an *Undo* toast appears, and focus moves to the next row. The task is now under Catering, assigned to Peter, due 10 days before the event.
 5. She closes the laptop without sending one message.
 
-Failure: the AI couldn't read the note → no proposal. Leah uses *Create task* on the note and gets Task create with Role = Catering prefilled.
+Failure: the AI couldn't read the note → no Proposed Task. Leah uses *Create task* on the note and gets Task create with Role = Catering prefilled.
 
 ### KF-2 · Stine gets the venue decided (phone) — realizes UJ-2
 
 0. *First time:* Stine taps Leah's invite link, creates her account (name and email pre-filled) and lands on the Lucas's 40th Dashboard. Her one task is at the top of Needs you. (SM-3: she understands it within a minute.)
 1. Stine gets a push notification: *"New task: Book venue, Lucas's 40th."* On **All events**, the card shows a red **1** badge on its count circle.
 2. She opens the task (full page) and taps **Accept**. Leah's view changes from "Not yet accepted" to "Accepted".
-3. In **Help** she taps *Add options*: Hotel Alexandra, Brasserie 45, Skybar rooftop, each with a note. Then *Send to Leah for decision*.
+3. In **Help** she taps *Add options*: Hotel Alexandra, Brasserie 45, Skybar rooftop, each with a note. Then *Send for decision*, choosing Leah.
 4. Leah sees the purple **decision card** at the top of Needs you, taps **Decide**, picks **Hotel Alexandra** (rooftop bar as fallback in the note), and uses **+ Add follow-up task**: *Book 8 single + 2 double rooms* → Stine.
 5. **Climax:** Stine's phone buzzes twice: *"Leah chose Hotel Alexandra"* and *"New task: Book 8 single + 2 double rooms."* *Confirm venue* shows "Blocks 3 tasks", so she knows it comes first.
 6. She taps ✦ **Draft email**, reviews the enquiry (date, 80 guests, 40th birthday) and taps *Open in mail app*. She sends it from her own mail.
@@ -285,26 +281,3 @@ Failure: the link has expired → "This link has expired. We can send you a fres
 9. A week before the event, Sheila taps **Report a problem** on *Bar staff*: *"Ola broke his arm, one bartender short."* It appears red in Leah's Needs you. Leah sends an **Announcement** to the whole team with **Ask for volunteers** on. Kari taps **I can help**, and Leah taps *Assign to task*.
 
 Failure: AI drafting fails in step 5 → "Couldn't draft tasks right now. You can add them yourself." The review step opens Task create. If Leah closes the browser mid-wizard, All events shows "Draft · continue setup".
-
-## PRD Deltas (for PM) — temporary
-
-This section is temporary: remove it once PM has folded the deltas into the PRD. These are UX decisions that change or extend the PRD, and each needs PM confirmation before architecture. The due-date move to 2026-12-20 is recorded in the memlog, not here.
-
-| # | Delta | PRD reference | Tier |
-|---|---|---|---|
-| D1 | Proposed Tasks can come from a **task status note** | FR-6, FR-16 source list | Core |
-| D2 | **Role lead:** one per Role; only the lead and the Organizer can delegate that Role's tasks | FR-2, FR-7 | Core |
-| D3 | **Landing page** promoted to Core; its Program section is the Run of Show | FR-22, §6.2 "Guest information page" | Core |
-| D4 | **Guest PIN removed.** Optional real account, or email magic link. Resolves Open Question 2 | FR-3, §8 Q2 | Core |
-| D5 | **Guest requests any time** + one in-app reply | FR-15, FR-16, FR-21 | Core |
-| D6 | **Ask for volunteers** on announcements (*I can help*) | FR-21 | Core |
-| D7 | **Problem** flag on tasks (red, into Needs you), distinct from Blocked | FR-8 | Core |
-| D8 | **Accept** step on new tasks; "Not yet accepted" visible to the Organizer | FR-9, FR-12 | Core |
-| D9 | **RSVP due date** set by the Organizer; post-deadline changes notify | FR-4, FR-15 | Core |
-| D10 | Notification preferences incl. **web push**; **SMS** as Target | §5, §4.9 | Core / Target |
-| D11 | **Seating chart** (not in PRD) and **Registry** on the Guest side | §6.2 Stretch | Stretch |
-| D12 | **Norwegian + English** localisation following device language | not in PRD | Core |
-| D13 | **Status vocabulary:** settable = Not started / In progress / Waiting on external / Done. *Blocked* and *Overdue* are computed. *Problem* is a flag. | FR-8 | Core |
-| D14 | **Guest-program fields on Task** (show on program, guest label, time of day). Resolves Open Question 3 | FR-22, §8 Q3 | Core |
-| D15 | A late RSVP change **notifies** the affected Roles instead of creating a Proposed Task | FR-16 | Core |
-| D16 | ✦ **AI-written landing page text** (About) drafted from event data; counts toward the AI call cap (§4.9) | FR-6/FR-22, §4.9 | Core |

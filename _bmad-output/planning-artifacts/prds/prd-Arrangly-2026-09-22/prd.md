@@ -1,17 +1,17 @@
 ---
 title: Arrangly
 created: 2026-09-22
-updated: 2026-09-25
-status: final
+updated: 2026-09-29
+status: draft
 ---
 
 # PRD: Arrangly
 
 ## 0. Document Purpose
 
-This PRD is for the builder (Aumgaran, solo) and for the downstream BMad workflows — UX, architecture, epics/stories — that will build on it. It builds on the finalized [Product Brief](../../briefs/brief-Arrangly-2026-09-20/brief.md) and its addendum; it does not restate their vision or origin story, only formalizes what ships. Vocabulary is fixed in §3 Glossary and used verbatim throughout. Features are grouped with Functional Requirements (FRs) nested under them, numbered globally (FR-1…FR-22) for stable downstream references. `[ASSUMPTION]` tags mark inferences made while structuring journeys into requirements; all are indexed in §9.
+This PRD is for the builder (Aumgaran, solo) and for the downstream BMad workflows — UX, architecture, epics/stories — that will build on it. It builds on the finalized [Product Brief](../../briefs/brief-Arrangly-2026-09-20/brief.md) and its addendum; it does not restate their vision or origin story, only formalizes what ships. Vocabulary is fixed in §3 Glossary and used verbatim throughout. Features are grouped with Functional Requirements (FRs) nested under them, numbered globally (FR-1…FR-23) for stable downstream references. The UX specification (`ux-Arrangly-2026-09-27`) owns screen-level behaviour; its PRD deltas (D1–D16) are folded in here. `[ASSUMPTION]` tags mark inferences made while structuring journeys into requirements; all are indexed in §9.
 
-Context this PRD is written against: Arrangly is a solo submission for an IBE160 course exam, due 2026-11-30. Grading rewards a working AI-built application with visible documentation of AI usage and quality assurance (70%), plus a reflection report on process and tradeoffs (30%). Scope decisions below were made to stay ambitious rather than solo-scaled-down, with explicit tiering (Core/Target/Stretch, carried over from the brief) so a complete, demonstrable product is guaranteed even if Target/Stretch don't land.
+Context this PRD is written against: Arrangly is a solo submission for an IBE160 course exam, due 2026-12-20. Grading rewards a working AI-built application with visible documentation of AI usage and quality assurance (70%), plus a reflection report on process and tradeoffs (30%). Scope decisions below were made to stay ambitious rather than solo-scaled-down, with explicit tiering (Core/Target/Stretch, carried over from the brief) so a complete, demonstrable product is guaranteed even if Target/Stretch don't land.
 
 ## 1. Vision
 
@@ -38,25 +38,26 @@ Large-scale event producers and generic-PM-tool seekers — see §5 Non-Goals.
 **UJ-1. Leah sets up the 40th birthday and delegates the first wave of work.**
 - **Persona + context:** Leah, head of the welfare committee, has just decided to run Lucas's (head of office) 40th birthday through Arrangly.
 - **Entry state:** Unauthenticated, first-time use of Arrangly.
-- **Path:** Logs in with email → dashboard prompts "create an event" → guided questionnaire (event type, guest count, duration, venue known?, RSVP wanted?, guest-list method) → adds guests by invite link/manual entry → writes a free-text event description (intentions, dress code) → Arrangly activates relevant Roles from the Branch Pool (Venue, Guests, Entertainment, Food & Beverage, Travel & Logistics) and proposes Tasks under them, with Decorations nested as a Subtask under Venue → she reviews and confirms each → app prompts her to build the team → she adds four people to Roles (Stine→Venue, Peter→Food & Beverage, Martin→Entertainment, Sheila→Venue's decorating Subtask *and* Food & Beverage's bar/bartender work).
+- **Path:** Logs in with email → dashboard prompts "create an event" → guided questionnaire (event type, guest count, duration, venue known?, RSVP wanted and its due date, guest-list method) → adds guests by invite link/manual entry → writes a free-text event description (intentions, dress code) → Arrangly activates relevant Roles from the Branch Pool (Venue, Guests, Entertainment, Food & Beverage, Travel & Logistics) and proposes Tasks under them, with Decorations nested as a Subtask under Venue → she reviews and confirms each → app prompts her to build the team → she adds four people to Roles (Stine→Venue lead, Peter→Food & Beverage lead, Martin→Entertainment lead, Sheila→Venue's decorating Subtask *and* Food & Beverage's bar/bartender work); Role-owned Tasks go to each Role lead.
 - **Climax:** She publishes the event; invites go out to the full guest list in one action.
 - **Resolution:** Session ends with a populated event, an assigned team, and pending guest RSVPs — nothing left in her head alone.
 - **Edge case:** If she skips the venue question in the questionnaire, "book a venue" becomes an AI-suggested task rather than a silent gap.
+- **Day-of edge case:** A week before the event, Sheila reports a Problem on *Bar staff* ("Ola broke his arm, one bartender short"). It lands red in Leah's Dashboard; she sends an Announcement to the whole Team asking for volunteers, Kari taps *I can help*, and Leah assigns her the Task.
 
 **UJ-2. Stine gets help on the venue task and escalates the decision.**
 - **Persona + context:** Stine, assigned the venue task, already knew it was coming.
 - **Entry state:** Authenticated, notified of a new task assignment.
-- **Path:** Opens task → confirms she'll take it on → declines "already done" → accepts "want help" → adds three candidate venues herself as options on the Task (hotel, restaurant, rooftop bar) — Core ships manual entry here; AI-populated search within a radius is a Target enhancement once proven feasible (see FR-13) → submits them as a Decision Task routed to Leah.
+- **Path:** Opens task → taps **Accept** (Leah's view changes from "Not yet accepted" to "Accepted") → uses the Task's help options to add three candidate venues herself as options on the Task (hotel, restaurant, rooftop bar) — Core ships manual entry here; AI-populated search within a radius is a Target enhancement once proven feasible (see FR-13) → submits them as a Decision Task routed to Leah.
 - **Climax:** ~30 minutes later, Leah's decision comes back (hotel, with the rooftop bar as fallback) plus a new task (book 8 single + 2 double rooms) spawned by that decision. Arrangly flags the venue-confirmation task as a priority since other tasks depend on it.
-- **Resolution:** Stine opens the task, accepts an AI-drafted outreach email (date, headcount, occasion) opened in her own mail client, sends it, and updates status to "reached out to venue, pending answer."
+- **Resolution:** Stine opens the task, accepts an AI-drafted outreach email (date, headcount, occasion) opened in her own mail client, sends it, and sets status to *Waiting on external* with the note "Asked hotel, waiting for reply."
 - **Edge case:** If Leah had picked the rooftop bar instead, no room-booking task would ever have spawned — the Decision Task's outcome only creates a Task for the chosen path. If Stine had instead pre-created a Task tied specifically to the hotel option in advance (e.g. drafting a room list early, before Leah decided), that Task would be marked obsolete rather than deleted once the rooftop bar was chosen.
 
 **UJ-3. Chris RSVPs and gets a need turned into a task without asking anyone.**
 - **Persona + context:** Chris, a business partner of Lucas's, received an invite link by email.
 - **Entry state:** Unauthenticated guest, arriving via a magic link unique to his invite.
-- **Path:** Clicks the link → recognized by name/email, no signup → greeted with a direct yes/no RSVP question → answers yes → plus-one? allergies? hotel needed? any other needs? → answers with a plus-one and a freeform note requesting airport pickup for both of them → optionally sets a 4-digit PIN to create a persistent login (skipped if his email already has an Arrangly account).
+- **Path:** Clicks the link → recognized by name/email, no signup → greeted with a direct yes/no RSVP question → answers yes → plus-one? allergies? hotel needed? any other needs? → answers with a plus-one and a freeform note requesting airport pickup for both of them → is offered an optional Arrangly account (skipped if his email already has one); declining keeps access by email → lands on the event's Landing page (about, program, location, menu).
 - **Climax:** On submit, Arrangly confirms he's on the list and that details (location, timing) will follow — while behind the scenes, his freeform note becomes a proposed task on the dashboard of whoever owns guest welfare.
-- **Resolution:** Once that task is confirmed and later marked done, the resulting taxi info automatically appears on Chris's own guest dashboard — he never has to chase it.
+- **Resolution:** Once that task is confirmed and later marked done, the resulting taxi info automatically appears on Chris's own guest dashboard — he never has to chase it. Later he sends a request ("Can we bring our baby?") and Leah's one reply appears under it.
 - **Edge case:** If Chris doesn't respond at all, the organizer can trigger a manual reminder from the guest list rather than the system nagging him automatically.
 
 **Scope dial used:** Heavier — auth (three distinct identity models), multi-surface navigation (dashboard, timeline, task detail, guest view), and everything here feeds UX and architecture directly.
@@ -68,16 +69,19 @@ Large-scale event producers and generic-PM-tool seekers — see §5 Non-Goals.
 - **Branch Pool** — The pre-generated master set of possible Roles Arrangly can draw from (e.g. Venue, Guests, Entertainment, Food & Beverage, Travel & Logistics, and others suited to other event types). Not all activate on every Event — see Role.
 - **Role** — A planning branch activated on an Event from the Branch Pool, based on event type and description (e.g. a party activates Entertainment; a seminar might not). A Role is simultaneously: (a) the RBAC boundary — only the Organizer can activate, assign, or revoke one, and it determines what its holder can see and do; (b) the grouping for Tasks and Subtasks in that area; and (c) one swimlane on the Timeline — a Role *is* a Line of Effort. Several Role-holders can share a Role. A person can hold different Roles across different Events, and a Guest can simultaneously hold a Role in the same Event. The Organizer can adjust which Roles are active beyond Arrangly's initial activation.
 - **Role-holder** — A person assigned to one or more Roles on an Event's Team.
+- **Role lead** — The one Role-holder per Role, set by the Organizer, who (besides the Organizer) may delegate that Role's Tasks. Role-owned Tasks default to the Role lead.
 - **Team** — The set of people (Organizer + Role-holders) assigned to an Event.
 - **Guest** — A person invited to an Event who has not been assigned a Role. Interacts only through the RSVP flow and their own Guest Dashboard.
 - **Task** — A unit of work with an owner (a person or a Role), a deadline, a status, and optionally dependencies on other Tasks, a parent Task (see Subtask), or a Decision Task's outcome.
 - **Subtask** — A Task nested under a parent Task within the same Role (e.g. "Decorations" as a Subtask of the Venue Role).
 - **Decision Task** — A Task that requires a choice from a specific person (not just completion), whose outcome can mark other Tasks obsolete and/or spawn new Tasks.
+- **Problem** — A flag a Task's owner raises on that Task, with a note, when something has gone wrong. It is not a status: it sits alongside whatever status the Task has, and is distinct from *Blocked* (dependency-only).
 - **Timeline** — The visual, swimlane view of an Event's Roles (each Role = one Line of Effort), showing the sequence of Tasks and Subtasks within each, blocked Tasks, and Decision Task branch points. Organizer/Team-facing — the planning side.
-- **Run of Show** — The Guest-facing, day-of schedule of the Event itself (e.g. doors, dinner, speeches, DJ), distinct from the Timeline. Where the Timeline is the planning view, the Run of Show is what a Guest actually experiences.
+- **Run of Show** — The Guest-facing, day-of schedule of the Event itself (e.g. doors, dinner, speeches, DJ), distinct from the Timeline. Where the Timeline is the planning view, the Run of Show is what a Guest actually experiences. It is shown as the Program section of the Landing page.
+- **Landing page** — The Guest-facing event page: About, Program (the Run of Show), Location, Menu and practical info. The Organizer reviews and publishes it before Guests see it.
 - **Dashboard** — The Organizer's (or relevant Role-holder's) prioritized view of what's done, overdue, blocked, and needs a decision or delegation.
-- **Proposed Task** — A Task auto-suggested by Arrangly (from an event description, a guest's freeform need, or a data change like a late RSVP) that a person must confirm before it becomes an active Task.
-- **Guest Dashboard** — The Guest's own simple view: their Event(s), RSVP status, the Run of Show, and any info resolved on their behalf (e.g. taxi details).
+- **Proposed Task** — A Task auto-suggested by Arrangly (from an event description, a skipped questionnaire answer, a guest's freeform need or request, or a Task's status note) that a person must confirm before it becomes an active Task.
+- **Guest Dashboard** — The Guest's own simple view: their RSVP, any info resolved on their behalf (e.g. taxi details), and their requests with replies. Links to the Landing page.
 - **Magic Link** — A unique, per-invite URL that identifies a Guest by matching the email it was sent to, without requiring login credentials.
 
 ## 4. Features
@@ -104,18 +108,17 @@ When an Event is created, Arrangly activates a relevant subset of Roles from the
 - A Role-holder attempting to assign themselves a Role, or to view/act on data outside their Role's scope, is rejected server-side (not just hidden in the UI).
 - Revoking a Role immediately removes the holder's access to that Role's Tasks and views.
 - Multiple Role-holders can be assigned to the same Role simultaneously.
+- The Organizer sets exactly one Role lead per Role (and can change it). Only the Role lead and the Organizer can delegate that Role's Tasks; delegation stays within the Role unless done by the Organizer.
 
-#### FR-3: Guest identity via Magic Link with optional PIN account
+#### FR-3: Guest identity via Magic Link with optional account
 
-A Guest is identified by a Magic Link matched to the invited email, with no login required. At the end of RSVP, they may optionally set a 4-digit PIN to create a persistent login tied to that email; this step is skipped if the email already has an Arrangly account. Realizes UJ-3.
+A Guest is identified by a Magic Link matched to the invited email, with no login required. After RSVP, a Guest whose email has no Arrangly account is offered an optional real account (password, same as FR-1) or *Not now*. There is no PIN. Realizes UJ-3.
 
 **Consequences (testable):**
 - Opening a valid Magic Link pre-fills the Guest's name from the invite record, with no signup step.
-- If a PIN is set, the Event appears under "upcoming events" the next time the Guest logs in with that email.
-- An invalid or expired Magic Link shows an explanation, not a generic error.
-
-**Feature-specific NFRs:**
-- A 4-digit PIN is a materially weak sole credential (10,000 combinations, no inherent lockout). `[NOTE FOR PM]` Accepted as a deliberate UX tradeoff for launch; architecture phase should add rate-limiting/lockout on PIN attempts as a mitigation, not a redesign.
+- If the Guest creates an account, the Event appears under their events the next time they log in with that email.
+- A Guest who declines an account can always regain access by entering their email to receive a fresh Magic Link.
+- An invalid or expired Magic Link shows an explanation and offers to send a fresh one, not a generic error.
 
 ### 4.2 Event Setup
 
@@ -123,10 +126,11 @@ A Guest is identified by a Magic Link matched to the invited email, with no logi
 
 #### FR-4: Guided event-creation questionnaire
 
-An Organizer creating an Event answers a short, branching questionnaire (event type, guest count, duration, venue known y/n, RSVP wanted y/n, guest-list method) that produces an initial Event framework.
+An Organizer creating an Event answers a short, branching questionnaire (event type, guest count, duration, venue known y/n, RSVP wanted y/n and RSVP due date, guest-list method) that produces an initial Event framework.
 
 **Consequences (testable):**
 - Answers populate structured Event fields (not just free text) that later steps (AI task suggestion, guest list) read from.
+- The RSVP due date is set by the Organizer and can be changed later in Event settings; it drives FR-16's late-change rule.
 - Skipping a question that later matters (e.g. venue) results in a corresponding Proposed Task rather than a silent gap.
 
 #### FR-5: Guest list entry via invite link or manual add
@@ -147,6 +151,7 @@ An Organizer writes a free-text description of the Event (intentions, dress code
 - No AI-suggested Task becomes active without explicit per-Task confirmation from the Organizer.
 - Every suggested Task is categorized under exactly one active Role at creation; the Organizer can recategorize it afterward.
 - Suggested Tasks reflect questionnaire gaps (e.g. no venue named → a venue Task is suggested).
+- A Task's status note can also yield a Proposed Task (e.g. "Caterer needs food preferences and allergies 10 days before delivery" → a Proposed Task to send them), under the same per-Task confirmation rule.
 
 ### 4.3 Team & Task Management
 
@@ -158,15 +163,18 @@ Any Task has exactly one owner (a person or a Role), a deadline, a status, and o
 
 **Consequences (testable):**
 - A Task blocked by an incomplete dependency is visually distinguishable from an unblocked Task on both the Dashboard and Timeline.
-- Changing a Task's owner reassigns it without losing its history/status.
+- Changing a Task's owner (delegating, per FR-2's Role-lead rule) reassigns it without losing its history/status; the new owner must accept it (FR-9).
 - A Subtask cannot be moved to a different Role than its parent Task without first being promoted to a top-level Task.
+- A Task carries optional guest-program fields: *show on guest program* (on/off), a guest-facing label, and a time of day distinct from its deadline. Only Tasks with *show on guest program* on reach the Run of Show (FR-22).
 
-#### FR-8: Task status model including externally-blocked states
+#### FR-8: Task status model, computed states, and Problem flag
 
-Task status is more granular than done/not-done — it includes at minimum: not started, in progress, waiting on external response, blocked, done.
+Task status is more granular than done/not-done. The owner can set: **Not started, In progress, Waiting on external, Done**, each with an optional status note. **Blocked** (an incomplete dependency) and **Overdue** (past deadline, not Done) are computed by Arrangly, never set by hand. Separately, the owner can raise a **Problem** flag with a note.
 
 **Consequences (testable):**
-- A Task in "waiting on external response" surfaces distinctly from "blocked" (which implies a dependency, not an outside party) on the Dashboard.
+- A Task in "Waiting on external" surfaces distinctly from "Blocked" (which implies a dependency, not an outside party) on the Dashboard.
+- A user cannot set Blocked or Overdue directly; both appear and clear automatically as dependencies and dates change.
+- A raised Problem shows in the Organizer's and the Role lead's Dashboard as needing attention, with its note, until someone resolves it. It is visually distinct from Blocked.
 - Status changes are timestamped, supporting both "overdue" computation and the course's AI-usage/QA documentation requirement (§0).
 
 #### FR-9: Role-holder task view
@@ -175,6 +183,7 @@ A Role-holder sees their assigned Tasks, each Task's scope/expectations, and eno
 
 **Consequences (testable):**
 - Opening an assigned Task shows its scope description, deadline, dependencies, parent Task/Subtasks, and current status in one view.
+- A newly assigned Task must be explicitly **accepted** by its owner. Until then the Organizer sees it as "Not yet accepted"; after 48 hours unaccepted it moves into the Organizer's needs-attention list.
 - A first-time Role-holder can find their Tasks and understand what's expected within about a minute of registering (brief's stated qualitative target).
 
 #### FR-10: Decision-escalation tasks
@@ -197,11 +206,12 @@ The default case needs no branching logic at all: a new Task spawns only after a
 
 #### FR-12: Task-delegation tracker
 
-The Dashboard shows, per Task, whether it has been delegated (owner assigned) or is still pending assignment — independent of completion status.
+Every Task row shows, per Task, whether it has been delegated (a person assigned as owner) or is still pending assignment — independent of completion status.
 
 **Consequences (testable):**
 - A Task with an assigned owner shows as "delegated," never as "pending," regardless of its completion status.
-- The Organizer can filter the Dashboard to pending (undelegated) Tasks only.
+- The Organizer can filter their task list (My tasks) to pending (undelegated) Tasks only. The Dashboard stays ordered by urgency and has no delegation filter.
+- A delegated Task shows whether its owner has accepted it ("Not yet accepted" / "Accepted"), as a separate signal from delegation.
 
 ### 4.4 Task Execution Support
 
@@ -236,14 +246,17 @@ A Guest opening their Magic Link is greeted by name and asked to RSVP yes/no, th
 **Consequences (testable):**
 - Declining (RSVP no) skips the follow-up questions and ends the flow.
 - A submitted RSVP is visible to the Organizer (and relevant Role, per FR-16) within the same session, no delay.
+- A Guest can change their answer at any time, including after the RSVP due date (FR-4).
 
-#### FR-16: Guest-need-driven proposed tasks
+#### FR-16: Guest needs, requests, and late changes
 
-A freeform guest need, or an allergy/hotel-need change that affects planning (e.g. a late RSVP shifting a catering count), surfaces as a Proposed Task on the Dashboard of whoever owns the relevant area (guest welfare, catering, booking). Once confirmed and later completed, any resulting information is automatically shown on that Guest's own Guest Dashboard. Realizes UJ-3.
+A freeform guest need from the RSVP, or a request the Guest sends later from their Guest Dashboard at any time, surfaces as a Proposed Task on the Dashboard of whoever owns the relevant area (guest welfare, catering, booking), and is always visible to the Organizer. Once confirmed and later completed, any resulting information is automatically shown on that Guest's own Guest Dashboard. A request can receive exactly one in-app reply. Changes to RSVP, allergies, or hotel need made **after** the RSVP due date notify the owning Roles instead of creating a Proposed Task; before the due date, such changes just update the Guests tab. Realizes UJ-3.
 
 **Consequences (testable):**
 - A Proposed Task from guest data requires explicit confirmation before becoming an active Task (same rule as FR-6).
 - Completing the resulting Task writes a Guest-visible result (e.g. "your airport pickup: [details]") without any manual step by the Role-holder to notify the Guest.
+- A reply to a Guest request appears under that request on the Guest Dashboard, with a notification to the Guest. There is one reply per request and no thread.
+- A post-due-date RSVP, allergy, or hotel change sends a notification to every holder of the Role(s) that own the changed data, and creates no Proposed Task.
 
 #### FR-17: Manual guest reminder
 
@@ -254,10 +267,10 @@ From the guest list, the Organizer can trigger a reminder email to a non-respond
 
 #### FR-18: Guest dashboard
 
-A Guest with a persistent login (FR-3) sees their upcoming Event(s), their own RSVP status, and any information resolved on their behalf.
+A Guest sees their own RSVP (with *Change my answer*), any information resolved on their behalf, their requests with replies, a *Send a request* action, and a link to the Landing page (FR-22). A Guest with an account (FR-3) also sees their upcoming Event(s) together.
 
 **Consequences (testable):**
-- A Guest without a PIN-based login can still reach the same information via their original Magic Link at any time.
+- A Guest without an account can still reach the same information via their Magic Link at any time.
 
 ### 4.6 Organizer Dashboard & Timeline
 
@@ -265,7 +278,7 @@ A Guest with a persistent login (FR-3) sees their upcoming Event(s), their own R
 
 #### FR-19: Organizer dashboard
 
-A single view shows, across the Event: what's done, overdue, blocked, and needs a decision or delegation, plus a Guests tab aggregating RSVP status and compiled allergy/hotel data routed to the relevant Role.
+A single view shows, across the Event: what's done, overdue, blocked, flagged with a Problem, not yet accepted, and needs a decision or delegation, plus a Guests tab aggregating RSVP status and compiled allergy/hotel data routed to the relevant Role.
 
 **Consequences (testable):**
 - The Organizer can answer "what's the state of this event" from the Dashboard alone, without messaging anyone (brief's stated qualitative target).
@@ -285,30 +298,44 @@ A dedicated Timeline view renders each active Role as its own swimlane — a Rol
 
 ### 4.7 Communication
 
-**Description:** One-way announcements tied to the Event's structure — shrunk from a full threaded-messaging model after feasibility review, but kept load-bearing in Core because day-of coordination depends on it: a speech running long and shifting main-course timing needs to reach the kitchen/serving team immediately, not sit in a backlog.
+**Description:** One-way announcements tied to the Event's structure, plus the notification channels that carry them and other alerts (FR-23). Announcements were shrunk from a full threaded-messaging model after feasibility review, but kept load-bearing in Core because day-of coordination depends on it: a speech running long and shifting main-course timing needs to reach the kitchen/serving team immediately, not sit in a backlog.
 
 #### FR-21: Announcement/notification feed to a Role, person, or group
 
-An Organizer (or a Role-holder, scoped to their Role) can push a one-way announcement to an individual, an entire Role, or a defined group. No threading, no read receipts — announcements append to a flat feed each recipient can scroll.
+An Organizer (or a Role-holder, scoped to their Role) can push a one-way announcement to an individual, an entire Role, the whole Team, or a defined group. No threading, no read receipts — announcements append to a flat feed each recipient can scroll. The sender can switch on **Ask for volunteers**, which adds a one-tap *I can help* response; this is the only response an announcement accepts.
 
 **Consequences (testable):**
 - An announcement sent to a Role reaches every current holder of that Role at send time.
-- Delivery is in-app plus email; the feed is visible to its recipients within the Event, not just as an outbound email.
+- Delivery is in-app plus each recipient's enabled channels (FR-23); the feed is visible to its recipients within the Event, not just as an outbound message.
 - An announcement can be sent standalone at any time; nothing auto-triggers one from a Task or Timeline event in Core.
+- On a volunteer announcement, a recipient can offer help and withdraw the offer. The sender sees responders in order and can assign any of them to a Task in one step (opening delegation prefilled).
 
-**Out of Scope:** Two-way threaded conversation, read receipts, and automatic delay-triggered notifications — see §6.2, Stretch ("Delay-impact propagation... with Organizer approval"), which is where an automatic version of this would live.
+**Out of Scope:** Two-way threaded conversation, free-text replies to announcements, read receipts, and automatic delay-triggered notifications — see §6.2, Stretch ("Delay-impact propagation... with Organizer approval"), which is where an automatic version of this would live.
 
-### 4.8 Run of Show
+#### FR-23: Notification channels and preferences
 
-**Description:** The Guest-facing, day-of schedule of the Event — distinct from the Timeline (FR-20), which is the Organizer/Team's planning view. Where FR-20 is the airline's operations timeline, this is the passenger's itinerary: what's happening and when, from the Guest's side. Realizes UJ-3.
-
-#### FR-22: Guest-facing run of show
-
-Arrangly generates a simple, chronological day-of schedule for the Event (e.g. doors, dinner, speeches, DJ) from the Event's confirmed Tasks and timing, shown on the Guest Dashboard (FR-18).
+Every user chooses how Arrangly reaches them, per channel: **in-app** (always on), **email**, and **web push** (browser notifications, requested only when the user switches it on). Notifications fire for: a new Task assigned, a new decision request, a decision result, a Problem reported, a post-due-date RSVP change (FR-16), an announcement, and a reply to a Guest request.
 
 **Consequences (testable):**
-- The Run of Show reflects confirmed Event timing (from the questionnaire/Tasks), not a Role's internal Task detail — a Guest never sees Role-scoped planning information.
-- Guests without a persistent login can view the Run of Show via their Magic Link once it's published.
+- In-app notifications cannot be switched off; email and web push can.
+- Arrangly never triggers the browser's push-permission prompt unless the user switches web push on. If the browser has blocked push, the setting shows as off with instructions, and Arrangly never re-prompts automatically.
+- Several notifications arriving close together are grouped into one (e.g. "2 new items need you") rather than sent separately.
+
+**Out of Scope:** SMS — it needs an external messaging provider, which §5 rules out for v1. It is shown as a disabled "coming later" option only.
+
+### 4.8 Landing Page & Run of Show
+
+**Description:** The Guest-facing event page, whose Program section is the day-of Run of Show — distinct from the Timeline (FR-20), which is the Organizer/Team's planning view. Where FR-20 is the airline's operations timeline, this is the passenger's itinerary: what's happening and when, from the Guest's side. Realizes UJ-3.
+
+#### FR-22: Landing page with guest-facing Run of Show
+
+Each Event has a Landing page with About, Program, Location, Menu and practical info. The Program is the Run of Show: a simple, chronological day-of schedule (e.g. doors, dinner, speeches, DJ) built from Tasks with *show on guest program* switched on (FR-7), using their guest label and time of day. On first open, Arrangly ✦ drafts the About text as a warm invitation in the Event's language, from the questionnaire, event description, dress code and guest-program Tasks. The Organizer can edit it, ask for a rewrite with a tone hint, or write it themselves. The Organizer reviews the page and publishes it; Guests see only the last published version.
+
+**Consequences (testable):**
+- The Program shows only Tasks with *show on guest program* on, using their guest label and time of day — never a Role's internal Task title, owner, deadline, or status.
+- Guests with or without an account can view the published Landing page via their Magic Link. Before first publish, Guests see RSVP and their Guest Dashboard only.
+- Edits after publishing are not visible to Guests until the Organizer publishes the update.
+- The AI-drafted About counts toward the AI call cap (§4.9). If drafting fails or the cap is reached, the Organizer gets an empty editor with a short explanation, and the page is never blocked.
 
 **Out of Scope:** Live linkage where a Timeline delay automatically updates the Run of Show — see §6.2, Stretch ("Impact of delays on the run of show").
 
@@ -316,7 +343,9 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 
 **Privacy:** Allergy and other health-adjacent guest data (FR-15) is visible only to the Role it's routed to (e.g. catering), per FR-2's RBAC model — not broadcast to the full Team beyond what each Role needs for planning. This is an access-scoping guardrail, not a compliance program; formal handling (GDPR-style retention/consent flows) is out of scope for v1.
 
-**Cost:** FR-6 and FR-14 (and FR-13's Target-tier AI-search enhancement, if built) all make live AI/tool calls against a personal/course budget, not production infra. Before building any AI-touching FR, define a hard per-feature call cap and a mocking/fixture strategy for development — see Open Question 1 for the specific numbers still to be set.
+**Localisation:** The whole product (Team and Guest sides, including AI-drafted text and emails) is available in **Norwegian Bokmål and English**. The language follows the device/browser, falls back to English, and can be overridden in the user's settings. Norwegian strings are written natively, not machine-translated literally. AI-drafted Guest-facing text uses the Event's language.
+
+**Cost:** FR-6, FR-14 and FR-22's About draft (and FR-13's Target-tier AI-search enhancement, if built) all make live AI/tool calls against a personal/course budget, not production infra. Before building any AI-touching FR, define a hard per-feature call cap and a mocking/fixture strategy for development — see Open Question 1 for the specific numbers still to be set.
 
 ## 5. Non-Goals (Explicit)
 
@@ -337,8 +366,11 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 - Task execution support: FR-13 (manual venue-option entry), FR-14 (AI-drafted communication)
 - Guest experience: FR-15 through FR-18
 - Organizer dashboard & timeline (static, sequential, non-branching, horizontally scrollable): FR-19, FR-20
-- Announcements: FR-21 (flat feed, no threading)
-- Run of show: FR-22
+- Announcements & notifications: FR-21 (flat feed, no threading; *Ask for volunteers*), FR-23 (in-app, email, web push)
+- Landing page & Run of Show: FR-22 (incl. ✦ AI-drafted About)
+- Norwegian + English localisation (§4.9)
+
+Added to Core by the UX pass (2026-09-29): Landing page (was Target), Role lead, Accept step, Problem flag, guest requests with one reply, volunteer announcements, web push, localisation, and the AI-drafted About. The due date moved to 2026-12-20 in the same period.
 
 ### 6.2 Out of Scope for MVP
 
@@ -347,7 +379,7 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 - AI-populated venue search (deferred from FR-13) — auto-suggesting candidates from an external venue/places source within a radius. Per feasibility review, real venue APIs don't expose a structured capacity field, so even here this ships as best-effort, LLM-inferred, clearly-flagged-as-approximate information — never a reliable capacity filter. Core's manual entry (FR-13) is not a placeholder for this; it may remain the better path permanently.
 - AI backward-planned timeline with dependencies and lead times (from the brief; builds on FR-20's sequential timeline).
 - Automated reminders to Role-holders (brief's original Target item; distinct from the Guest reminder in FR-17, which is manual and Core).
-- Guest information page and announcements beyond FR-21's flat feed.
+- Announcements beyond FR-21's flat feed. (The guest information page moved to Core as FR-22's Landing page.)
 - Visual fork/branch rendering in the Timeline (deferred from FR-11/FR-20) — the obsolete-marking logic itself ships in Core; only the graphical fork is deferred, as isolated rendering risk rather than data-model risk.
 - Richer Timeline interactivity beyond static read-only render (drag-and-drop, live editing, zoom) — deferred from FR-20.
 - Two-way threaded messaging, read receipts (deferred from FR-21).
@@ -356,7 +388,8 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 - AI detection of gaps in the plan (e.g. a DJ without a soundcheck).
 - Delay-impact propagation across the Run of Show (builds on FR-22), with Organizer approval.
 - Guest-count changes rippling into food, staffing, and budget.
-- Gift register (a wish-list Guests can browse — distinct from crowdfunded/pooled-payment gifts, which stay a Non-Goal per §5).
+- Gift register (a wish-list Guests can browse from the Landing page — distinct from crowdfunded/pooled-payment gifts, which stay a Non-Goal per §5).
+- Seating chart on the Landing page (where each Guest sits). New in the UX pass; not in the brief.
 - AI-proposed guest program shown in the Guest view.
 
 `[NOTE FOR PM]` Risk-triage history for this PRD's Core/Target boundary lives in `review-feasibility.md`, not here.
@@ -364,7 +397,7 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 ## 7. Success Metrics
 
 **Primary**
-- **SM-1**: A deployed, working web application runs the flagship scenario (40th birthday, 80 guests: venue, dinner, speeches, quiz, DJ) end to end across all three personas by 2026-11-30. Validates FR-1, FR-4, FR-6, FR-7, FR-15, FR-19, FR-22.
+- **SM-1**: A deployed, working web application runs the flagship scenario (40th birthday, 80 guests: venue, dinner, speeches, quiz, DJ) end to end across all three personas by 2026-12-20. Validates FR-1, FR-4, FR-6, FR-7, FR-15, FR-19, FR-22.
 - **SM-2**: RBAC holds under test — zero observed instances of a user acting outside their Role's granted access. Validates FR-2.
 
 **Secondary**
@@ -378,9 +411,9 @@ Arrangly generates a simple, chronological day-of schedule for the Event (e.g. d
 
 ## 8. Open Questions
 
-1. What are the specific per-feature AI call caps and mocking/fixture strategy for FR-6, FR-13's Target enhancement, and FR-14 (§4.9 states the guardrail principle; exact numbers still TBD at architecture)?
-2. PIN security hardening (rate-limiting/lockout on the 4-digit Guest PIN) — accepted as a v1 tradeoff; exact mitigation deferred to architecture.
-3. FR-22's Run of Show needs Task-model additions (a guest-facing display label, a public/private flag, and a scheduled time-of-day distinct from a deadline) to know what's safe to show a Guest — resolve during architecture/data-model design, before FR-22 is built.
+1. What are the specific per-feature AI call caps and mocking/fixture strategy for FR-6 (including status-note proposals), FR-14, FR-22's About draft, and FR-13's Target enhancement (§4.9 states the guardrail principle; exact numbers still TBD at architecture)?
+
+*Resolved in the UX pass:* the former Q2 (PIN hardening) no longer applies — the PIN was removed (FR-3). The former Q3 (Run of Show Task fields) is settled by FR-7's guest-program fields.
 
 ## 9. Assumptions Index
 
