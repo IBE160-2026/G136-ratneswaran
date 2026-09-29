@@ -1,0 +1,89 @@
+# 3 visual directions (density / type / shape) on Leah's desktop Dashboard + Stine's phone All events. Warm Sky light.
+out = "/Users/aumgaran/Downloads/Arrangly/_bmad-output/planning-artifacts/ux-designs/ux-Arrangly-2026-09-27/.working/directions-1.html"
+DIRS = [
+ ("1 · Airy", "Large bold titles like iOS 'large title', generous spacing, big rounded inset groups. The calmest; shows the least per screen.",
+  dict(title="34px", body="16px", small="13px", pad="16px", gap="14px", radius="16px", row="48px", tw="700", side="240px")),
+ ("2 · Balanced", "Medium titles, comfortable rows, 12px corners. Like the Reminders/Notes apps on Mac: calm but a bit more on screen.",
+  dict(title="26px", body="15px", small="12px", pad="12px", gap="10px", radius="12px", row="40px", tw="700", side="220px")),
+ ("3 · Compact", "Mail-style: tight rows, smaller type, subtle 8px corners. Most information at a glance; feels more like a pro tool.",
+  dict(title="20px", body="13px", small="11px", pad="8px", gap="6px", radius="8px", row="32px", tw="600", side="200px")),
+]
+C = dict(bg="#FAF7F2", card="#FFFFFF", text="#231F1A", muted="#75695C", line="#EDE6DB", accent="#0066CC", accentSoft="#E8F1FB",
+         done="#1F7A35", waiting="#A04A00", blocked="#C4001A", decision="#7D3C98", decisionSoft="#F4EAF8", obsolete="#8E8E93", grey="#F1ECE4", side="#F3EEE6")
+
+def desktop():
+    return '''<div class="win"><div class="bar3"><i></i><i></i><i></i></div><div class="desk">
+ <aside><div class="sh">Arrangly</div><div class="si">🗂 All events</div><div class="sg">Lucas's 40th</div>
+  <div class="si on">◉ Dashboard</div><div class="si">☑ My tasks <span class="nb">2</span></div><div class="si">👥 Guests</div><div class="si">↔ Timeline</div>
+  <div class="si">🧩 Team &amp; Roles</div><div class="si">📣 Announcements</div><div class="si">🎉 Landing page</div><div class="si">⚙ Event settings</div>
+  <div class="sp"></div><div class="si">👤 Leah Hansen</div></aside>
+ <main><div class="ev"><div><div class="ttl">Dashboard</div><div class="sub">Lucas's 40th · Sat 24 Oct · 26 days to go</div></div><button class="btn">+ New task</button></div>
+  <div class="sec">Needs you <span class="cnt">3</span></div>
+  <div class="card decide"><div class="r"><span class="dot" style="background:var(--decision)">?</span><div><b>Choose dinner menu</b><div class="sub">Peter sent 3 options · decide by Thu 1 Oct</div></div><button class="dbtn">Decide</button></div>
+   <div class="opts"><span>Buffet</span><span>3-course</span><span>Tapas</span></div></div>
+  <div class="card prop"><div class="r"><span class="spark">✦</span><div><b>Create task: Send food order details to caterer</b><div class="sub">From caterer note · Catering · Peter · due Wed 14 Oct</div></div><button class="ok">✓</button><button class="no">✕</button></div></div>
+  <div class="card"><div class="r"><span class="dot" style="background:var(--blocked)">!</span>Send final headcount to venue<span class="st" style="color:var(--blocked)">Overdue 1 day</span></div></div>
+  <div class="sec">At risk <span class="cnt dim">2</span></div>
+  <div class="card list"><div class="r"><span class="dot" style="background:var(--waiting)">⏳</span>DJ contract<span class="st" style="color:var(--waiting)">Waiting on DJ</span></div>
+   <div class="r blk"><span class="dot" style="background:var(--obsolete)">🔒</span>Decorations<span class="st">Waits for: venue access</span></div></div>
+  <div class="sec">On track</div>
+  <div class="card list"><div class="r"><span class="dot" style="background:var(--done)">✓</span>Venue<span class="st" style="color:var(--done)">Booked</span></div>
+   <div class="r"><span class="dot" style="background:var(--done)">✓</span>Catering<span class="st" style="color:var(--done)">Booked</span></div>
+   <div class="r"><span class="dot" style="background:var(--accent)">👥</span>Guests<span class="st"><b>60</b> coming · 4 declined · 16 pending</span></div></div>
+ </main></div></div>'''
+
+def phone():
+    def ev(name, meta, n, badge, state, label):
+        b = f'<span class="badge">{badge}</span>' if badge else ""
+        return f'''<div class="ecard {state}"><div class="r"><div><b>{name}</b><div class="sub">{meta}</div></div>
+          <span class="circ">{n}{b}</span></div><div class="lab">{label}</div></div>'''
+    return f'''<div class="phone"><div class="pbar"><span>9:41</span><span>☰</span></div><div class="pin">
+ <div class="ttl">All events</div>
+ {ev("Lucas's 40th", "Sat 24 Oct · Venue", 3, 1, "red", "1 overdue")}
+ {ev("Sheila &amp; Tom's wedding", "Sat 12 Jun 2027 · Decorations", 2, 0, "amb", "2 at risk")}
+ {ev("Office Christmas party", "Fri 11 Dec · Guest", 0, 0, "", "RSVP'd · Program published")}
+ <div class="ecard create">+ Create new event</div></div></div>'''
+
+css = """*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#fff;color:#1d1d1f;padding:32px 16px}
+h1{font-size:28px;margin:0 0 4px}.intro{color:#6e6e73;max-width:820px;line-height:1.5;margin:0 0 32px}
+section{margin:0 0 56px}h2{font-size:22px;margin:0 0 4px}.reg{color:#6e6e73;margin:0 0 16px;max-width:820px}
+.pair{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.d{color:var(--text);font-size:var(--body)}
+.win{flex:1 1 640px;max-width:900px;border-radius:12px;overflow:hidden;border:1px solid #d9d4cc;box-shadow:0 8px 30px rgba(0,0,0,.08);background:var(--bg)}
+.bar3{height:28px;background:var(--side);border-bottom:1px solid var(--line);display:flex;gap:6px;align-items:center;padding:0 10px}.bar3 i{width:11px;height:11px;border-radius:50%;background:#d8d2c8}
+.desk{display:flex;min-height:560px}aside{width:var(--sidew);background:var(--side);border-right:1px solid var(--line);padding:var(--pad);display:flex;flex-direction:column;gap:2px;font-size:var(--small)}
+.sh{font-weight:700;font-size:var(--body);margin-bottom:8px}.sg{color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:calc(var(--small) - 1px);margin:10px 0 4px}
+.si{padding:6px 8px;border-radius:calc(var(--radius) - 4px);display:flex;align-items:center;gap:6px;font-size:calc(var(--body) - 1px)}.si.on{background:var(--accentSoft);color:var(--accent);font-weight:600}.sp{flex:1}
+.nb{margin-left:auto;background:var(--blocked);color:#fff;border-radius:980px;font-size:10px;padding:0 6px}
+main{flex:1;padding:calc(var(--pad) * 1.6);display:flex;flex-direction:column;gap:var(--gap)}
+.ev{display:flex;justify-content:space-between;align-items:flex-end}.ttl{font-size:var(--title);font-weight:var(--tw);letter-spacing:-.02em;line-height:1.1}
+.sub{font-size:var(--small);color:var(--muted);font-weight:400}.btn{background:var(--accent);color:#fff;border:0;border-radius:980px;padding:7px 14px;font:inherit;font-size:var(--small);font-weight:600}
+.sec{font-size:var(--small);font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:6px;display:flex;gap:6px;align-items:center}
+.cnt{background:var(--decision);color:#fff;border-radius:980px;padding:0 7px;font-size:10px}.cnt.dim{background:var(--muted)}
+.card{background:var(--card);border-radius:var(--radius);padding:calc(var(--pad) * .5) var(--pad);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.r{display:flex;align-items:center;gap:10px;min-height:var(--row)}.list .r+.r{border-top:1px solid var(--line)}
+.dot{width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;display:grid;place-items:center;flex:none}
+.st{margin-left:auto;font-size:var(--small);font-weight:500}.st b{color:var(--text)}
+.decide{background:var(--decisionSoft);border:1.5px solid var(--decision);box-shadow:0 4px 14px rgba(125,60,152,.16)}
+.dbtn{margin-left:auto;background:var(--decision);color:#fff;border:0;border-radius:980px;padding:6px 16px;font:inherit;font-size:var(--small);font-weight:600}
+.opts{display:flex;gap:6px;margin:0 0 calc(var(--pad) * .5) 32px}.opts span{font-size:var(--small);border:1px solid var(--line);background:var(--card);border-radius:980px;padding:2px 10px}
+.prop{background:var(--accentSoft)}.spark{color:var(--accent);width:22px;text-align:center}.ok,.no{border:0;border-radius:50%;width:28px;height:28px;flex:none}.ok{margin-left:auto;background:var(--accent);color:#fff}.no{background:none;color:var(--muted)}
+.blk{background:var(--grey);color:var(--muted);margin:0 calc(var(--pad) * -1);padding:0 var(--pad)}.blk .st{color:var(--muted);font-weight:400}
+.phone{width:320px;flex:none;border-radius:40px;border:10px solid #1d1d1f;background:var(--bg);overflow:hidden;min-height:600px}
+.pbar{display:flex;justify-content:space-between;padding:10px 20px 4px;font-size:13px;font-weight:600}.pin{padding:6px var(--pad) var(--pad);display:flex;flex-direction:column;gap:var(--gap)}
+.ecard{background:var(--card);border-radius:var(--radius);padding:var(--pad);border:1.5px solid var(--line)}.ecard .r{min-height:0;justify-content:space-between}
+.ecard.red{border-color:var(--blocked)}.ecard.amb{border-color:#C9A227}
+.circ{position:relative;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;flex:none}
+.red .circ{border-color:var(--blocked);color:var(--blocked)}.amb .circ{border-color:#C9A227;color:#8A6A00}
+.badge{position:absolute;top:-6px;right:-6px;background:#FF3B30;color:#fff;font-size:11px;border-radius:980px;min-width:18px;height:18px;display:grid;place-items:center;border:2px solid var(--bg)}
+.lab{font-size:var(--small);margin-top:6px;color:var(--muted)}.red .lab{color:var(--blocked);font-weight:600}.amb .lab{color:#8A6A00;font-weight:600}
+.create{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;text-align:center;padding:calc(var(--pad) * 1.6)}"""
+cv = ";".join(f"--{k}:{v}" for k, v in C.items())
+secs = ""
+for n, r, d in DIRS:
+    dv = ";".join(f"--{k}:{v}" for k, v in dict(title=d["title"], body=d["body"], small=d["small"], pad=d["pad"], gap=d["gap"], radius=d["radius"], row=d["row"], tw=d["tw"], sidew=d["side"]).items())
+    secs += f'<section><h2>{n}</h2><p class="reg">{r}</p><div class="pair d" style="{cv};{dv}">{desktop()}{phone()}</div></section>'
+open(out, "w").write(f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arrangly Visual Directions</title>
+<style>{css}\n/* Warm Sky light: {C} */\n/* directions: {DIRS} */</style></head><body>
+<h1>Arrangly — visual directions, round 1</h1><p class="intro">Same colours (Warm Sky), same content, three densities. Left: Leah's Dashboard on desktop with the sidebar. Right: Stine's All events on her phone (red = 1 overdue with a new-task badge, mustard = 2 at risk, neutral = just a guest). Compare how calm each feels versus how much you can see at once.</p>{secs}</body></html>""")
+print(out)

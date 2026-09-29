@@ -1,0 +1,77 @@
+- generic [active] [ref=f19e1]:
+  - generic [ref=f19e2]:
+    - heading "Key screen · Chris's landing page + Guest Dashboard (phone, Norwegian)" [level=1] [ref=f19e3]
+    - paragraph [ref=f19e4]: "Governs: DESIGN.md › Landing page, Guest Dashboard, Send a request · EXPERIENCE.md › Guest experience, KF-3 steps 4–7, Landing page editor (✦ About). Rendered in Norwegian (device language). The Program section is the Run of Show. Spine wins on conflict."
+  - paragraph [ref=f19e5]: Leah's editor (desktop excerpt) · ✦ About drafted by Arrangly
+  - generic [ref=f19e7]:
+    - generic [ref=f19e8]:
+      - heading "About the party" [level=2] [ref=f19e9]
+      - generic [ref=f19e10]: Drafted by Arrangly
+    - generic [ref=f19e13]: "Written from your questionnaire, description (“dinner, speeches, a quiz and a DJ. Smart casual”) and the guest program. Language: Norsk."
+    - generic [ref=f19e14]: "Lørdag 24. oktober fyller Lucas 40, og det skal feires skikkelig! Vi samles på Hotel Alexandra til en kveld med god mat, varme ord og mye latter. Etter velkomstdrinken setter vi oss til en treretters middag, før venner og kolleger hever glasset for jubilanten. Utover kvelden venter en morsom quiz, og når stemningen er på topp tar DJ-en over dansegulvet til langt på natt. Antrekk: pent, men uformelt. Kom som du er, bare litt finere."
+    - generic [ref=f19e15]:
+      - button "Warmer" [ref=f19e16] [cursor=pointer]
+      - button "Shorter" [ref=f19e19] [cursor=pointer]
+      - button "More formal" [ref=f19e22] [cursor=pointer]
+      - button "Write it myself" [ref=f19e25] [cursor=pointer]
+    - generic [ref=f19e26]:
+      - generic [ref=f19e27]: Guests see only the published text, without the ✦ label.
+      - button "Use this text" [ref=f19e28] [cursor=pointer]
+  - paragraph [ref=f19e29]: Landing page / Guest Dashboard
+  - generic [ref=f19e30]:
+    - generic [ref=f19e31]:
+      - generic [ref=f19e32]: 9:41
+      - generic [ref=f19e34]:
+        - generic [ref=f19e35]: Leah inviterer deg til
+        - heading "Lucas' 40-årsdag" [level=1] [ref=f19e36]
+        - generic [ref=f19e37]:
+          - time [ref=f19e38]: lør. 24. okt., 18:00
+          - text: · Hotel Alexandra
+        - generic [ref=f19e39]: Du kommer · 2 personer
+      - generic [ref=f19e43]:
+        - generic [ref=f19e44]:
+          - heading "Om festen" [level=2] [ref=f19e45]
+          - paragraph [ref=f19e48]: "Lørdag 24. oktober fyller Lucas 40, og det skal feires skikkelig! Vi samles på Hotel Alexandra til en kveld med god mat, varme ord og mye latter. Etter velkomstdrinken setter vi oss til en treretters middag, før venner og kolleger hever glasset for jubilanten. Utover kvelden venter en morsom quiz, og når stemningen er på topp tar DJ-en over dansegulvet til langt på natt. Antrekk: pent, men uformelt. Kom som du er, bare litt finere."
+        - generic [ref=f19e49]:
+          - heading "Program" [level=2] [ref=f19e50]
+          - generic [ref=f19e54]:
+            - time [ref=f19e55]: 18:00
+            - generic [ref=f19e56]: Velkomstdrink
+            - time [ref=f19e57]: 19:00
+            - generic [ref=f19e58]: Middag
+            - time [ref=f19e59]: 20:30
+            - generic [ref=f19e60]: Taler
+            - time [ref=f19e61]: 21:30
+            - generic [ref=f19e62]: Quiz
+            - time [ref=f19e63]: 22:30
+            - generic [ref=f19e64]: DJ til 01:00
+        - generic [ref=f19e65]:
+          - heading "Sted" [level=2] [ref=f19e66]
+          - paragraph [ref=f19e70]: Hotel Alexandra, Oslo sentrum. Hotellrom er reservert for gjester som trenger det.
+        - generic [ref=f19e71]:
+          - heading "Meny" [level=2] [ref=f19e72]
+          - paragraph [ref=f19e76]: Tre retter. Vegetar- og allergivennlige alternativer er meldt inn.
+      - button "Send en forespørsel" [ref=f19e78] [cursor=pointer]
+    - generic [ref=f19e81]:
+      - generic [ref=f19e82]: 9:41
+      - generic [ref=f19e84]: Festen
+      - heading "Hei, Chris" [level=1] [ref=f19e88]
+      - generic [ref=f19e89]:
+        - generic [ref=f19e90]:
+          - heading "Mitt svar" [level=2] [ref=f19e91]
+          - paragraph [ref=f19e92]: Ja · 2 personer (med Maria)
+          - paragraph [ref=f19e93]: "Maria: vegetar · Hotell: ja"
+          - generic [ref=f19e94]: Endre svar
+        - generic [ref=f19e95]:
+          - heading "Ordnet for deg" [level=2] [ref=f19e96]
+          - paragraph [ref=f19e100]: Henting på flyplassen
+          - paragraph [ref=f19e101]:
+            - text: Taxi fra OSL kl. 16:30,
+            - time [ref=f19e102]: fre. 23. okt.
+            - text: Sjåføren venter ved ankomsthallen.
+        - generic [ref=f19e103]:
+          - heading "Mine forespørsler" [level=2] [ref=f19e104]
+          - generic [ref=f19e105]:
+            - text: Kan vi ta med babyen?
+            - generic [ref=f19e106]: "Leah svarte: Babyer er hjertelig velkomne!"
+      - button "Send en forespørsel" [ref=f19e112] [cursor=pointer]

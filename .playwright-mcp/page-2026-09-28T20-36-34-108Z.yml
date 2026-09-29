@@ -1,0 +1,288 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - heading "Key screen · Timeline (desktop)" [level=1] [ref=f5e3]
+    - paragraph [ref=f5e4]: "Governs: EXPERIENCE.md › Timeline row (one lane per Role, dependency then deadline, subtasks nested in parent, decision points visible before resolution, horizontal scroll, read-only) · PRD FR-20. Sticky Role column; scroll area is keyboard-focusable. Light then dark. Spine wins on conflict."
+  - paragraph [ref=f5e5]: Light · Warm Sky
+  - generic [ref=f5e12]:
+    - complementary [ref=f5e13]:
+      - generic [ref=f5e14]: Arrangly
+      - generic [ref=f5e15]: Lucas's 40th
+      - generic [ref=f5e16]: Dashboard
+      - generic [ref=f5e23]:
+        - generic [ref=f5e27]: My tasks
+        - generic [ref=f5e28]: "2"
+      - generic [ref=f5e29]: Guests
+      - generic [ref=f5e36]: Timeline
+      - generic [ref=f5e39]: Team & Roles
+      - generic [ref=f5e46]: Announcements
+      - generic [ref=f5e51]: Landing page
+      - generic [ref=f5e55]: Event settings
+      - generic [ref=f5e60]: All events
+      - generic [ref=f5e68]:
+        - generic [ref=f5e69]: LH
+        - generic [ref=f5e70]: Leah Hansen
+    - main [ref=f5e71]:
+      - generic [ref=f5e72]:
+        - generic [ref=f5e73]:
+          - generic [ref=f5e74]: Timeline
+          - generic [ref=f5e75]: Lucas's 40th · one lane per Role · read-only
+        - generic [ref=f5e76]:
+          - generic [ref=f5e77]:
+            - generic [ref=f5e78]: Lanes
+            - generic [ref=f5e80]: List
+          - generic [ref=f5e82]:
+            - generic [ref=f5e83]: Done
+            - generic [ref=f5e87]: Waiting
+            - generic [ref=f5e91]: Overdue
+            - generic [ref=f5e94]: Blocked
+            - generic [ref=f5e98]: Decision
+      - generic [ref=f5e101]:
+        - generic [ref=f5e102]:
+          - generic [ref=f5e103]: Role
+          - generic [ref=f5e104]:
+            - generic [ref=f5e105]: Venue
+            - generic [ref=f5e106]: Stine (lead) · Sheila
+          - generic [ref=f5e107]:
+            - generic [ref=f5e108]: Food & Beverage
+            - generic [ref=f5e109]: Peter (lead) · Sheila
+          - generic [ref=f5e110]:
+            - generic [ref=f5e111]: Entertainment
+            - generic [ref=f5e112]: Martin (lead)
+          - generic [ref=f5e113]:
+            - generic [ref=f5e114]: Guests
+            - generic [ref=f5e115]: Leah
+          - generic [ref=f5e116]:
+            - generic [ref=f5e117]: Travel & Logistics
+            - generic [ref=f5e118]: Martin
+        - region "Timeline, scroll horizontally" [ref=f5e119]:
+          - generic [ref=f5e120]:
+            - generic [ref=f5e121]:
+              - generic [ref=f5e122]: Mon 21 Sep
+              - generic [ref=f5e123]: Mon 28 Sep
+              - generic [ref=f5e124]: Mon 5 Oct
+              - generic [ref=f5e125]: Mon 12 Oct
+              - generic [ref=f5e126]: Mon 19 Oct
+            - generic [ref=f5e127]: Today
+            - generic [ref=f5e129]: Party · Sat 24 Oct
+            - generic [ref=f5e131]:
+              - button "Shortlist venues Done" [ref=f5e132] [cursor=pointer]:
+                - generic [ref=f5e136]:
+                  - generic [ref=f5e137]: Shortlist venues
+                  - generic [ref=f5e138]: Done
+              - 'button "Decision: Choose venue, Decided: Hotel" [ref=f5e139] [cursor=pointer]':
+                - generic [ref=f5e142]:
+                  - generic [ref=f5e143]: Choose venue
+                  - generic [ref=f5e144]: "Decided: Hotel"
+              - button "Book venue Done" [ref=f5e145] [cursor=pointer]:
+                - generic [ref=f5e149]:
+                  - generic [ref=f5e150]: Book venue
+                  - generic [ref=f5e151]: Done
+              - button "Book 8 single + 2 double rooms Waiting on hotel" [ref=f5e152] [cursor=pointer]:
+                - generic [ref=f5e156]:
+                  - generic [ref=f5e157]: Book 8 single + 2 double rooms
+                  - generic [ref=f5e158]: Waiting on hotel
+              - generic [ref=f5e159]:
+                - generic [ref=f5e160]:
+                  - generic [ref=f5e161]: Venue setup
+                  - generic [ref=f5e162]: Not started
+                - 'button "Decorations Waits for: venue access" [ref=f5e163] [cursor=pointer]':
+                  - generic [ref=f5e167]:
+                    - generic [ref=f5e168]: Decorations
+                    - generic [ref=f5e169]: "Waits for: venue access"
+            - generic [ref=f5e170]:
+              - button "Book catering Done" [ref=f5e171] [cursor=pointer]:
+                - generic [ref=f5e175]:
+                  - generic [ref=f5e176]: Book catering
+                  - generic [ref=f5e177]: Done
+              - 'button "Decision: Choose dinner menu, Needs your decision" [ref=f5e178] [cursor=pointer]':
+                - generic [ref=f5e181]:
+                  - generic [ref=f5e182]: Choose dinner menu
+                  - generic [ref=f5e183]: Needs your decision
+              - button "Send food order details Not started" [ref=f5e184] [cursor=pointer]:
+                - generic [ref=f5e185]:
+                  - generic [ref=f5e186]: Send food order details
+                  - generic [ref=f5e187]: Not started
+              - button "Bar staff Not started" [ref=f5e188] [cursor=pointer]:
+                - generic [ref=f5e189]:
+                  - generic [ref=f5e190]: Bar staff
+                  - generic [ref=f5e191]: Not started
+            - generic [ref=f5e192]:
+              - button "DJ contract Waiting on DJ" [ref=f5e193] [cursor=pointer]:
+                - generic [ref=f5e197]:
+                  - generic [ref=f5e198]: DJ contract
+                  - generic [ref=f5e199]: Waiting on DJ
+              - button "Write quiz questions Not yet accepted" [ref=f5e200] [cursor=pointer]:
+                - generic [ref=f5e204]:
+                  - generic [ref=f5e205]: Write quiz questions
+                  - generic [ref=f5e206]: Not yet accepted
+              - 'button "Soundcheck Waits for: DJ contract" [ref=f5e207] [cursor=pointer]':
+                - generic [ref=f5e211]:
+                  - generic [ref=f5e212]: Soundcheck
+                  - generic [ref=f5e213]: "Waits for: DJ contract"
+            - generic [ref=f5e214]:
+              - button "Collect RSVPs In progress" [ref=f5e215] [cursor=pointer]:
+                - generic [ref=f5e216]:
+                  - generic [ref=f5e217]: Collect RSVPs
+                  - generic [ref=f5e218]: In progress
+              - button "Send final headcount to venue Overdue 1 day" [ref=f5e219] [cursor=pointer]:
+                - generic [ref=f5e222]:
+                  - generic [ref=f5e223]: Send final headcount to venue
+                  - generic [ref=f5e224]: Overdue 1 day
+              - 'button "Seating chart Waits for: final RSVPs" [ref=f5e225] [cursor=pointer]':
+                - generic [ref=f5e229]:
+                  - generic [ref=f5e230]: Seating chart
+                  - generic [ref=f5e231]: "Waits for: final RSVPs"
+            - generic [ref=f5e232]:
+              - 'button "Hotel room list Waits for: rooms booked" [ref=f5e233] [cursor=pointer]':
+                - generic [ref=f5e237]:
+                  - generic [ref=f5e238]: Hotel room list
+                  - generic [ref=f5e239]: "Waits for: rooms booked"
+              - button "Airport pickup · Chris +1 Not started" [ref=f5e240] [cursor=pointer]:
+                - generic [ref=f5e241]:
+                  - generic [ref=f5e242]: Airport pickup · Chris +1
+                  - generic [ref=f5e243]: Not started
+      - generic [ref=f5e244]:
+        - generic [ref=f5e245]: Scroll sideways for later dates
+        - generic [ref=f5e246]: Show obsolete (1)
+  - paragraph [ref=f5e247]: Dark · Clear Sky
+  - generic [ref=f5e254]:
+    - complementary [ref=f5e255]:
+      - generic [ref=f5e256]: Arrangly
+      - generic [ref=f5e257]: Lucas's 40th
+      - generic [ref=f5e258]: Dashboard
+      - generic [ref=f5e265]:
+        - generic [ref=f5e269]: My tasks
+        - generic [ref=f5e270]: "2"
+      - generic [ref=f5e271]: Guests
+      - generic [ref=f5e278]: Timeline
+      - generic [ref=f5e281]: Team & Roles
+      - generic [ref=f5e288]: Announcements
+      - generic [ref=f5e293]: Landing page
+      - generic [ref=f5e297]: Event settings
+      - generic [ref=f5e302]: All events
+      - generic [ref=f5e310]:
+        - generic [ref=f5e311]: LH
+        - generic [ref=f5e312]: Leah Hansen
+    - main [ref=f5e313]:
+      - generic [ref=f5e314]:
+        - generic [ref=f5e315]:
+          - generic [ref=f5e316]: Timeline
+          - generic [ref=f5e317]: Lucas's 40th · one lane per Role · read-only
+        - generic [ref=f5e318]:
+          - generic [ref=f5e319]:
+            - generic [ref=f5e320]: Lanes
+            - generic [ref=f5e322]: List
+          - generic [ref=f5e324]:
+            - generic [ref=f5e325]: Done
+            - generic [ref=f5e329]: Waiting
+            - generic [ref=f5e333]: Overdue
+            - generic [ref=f5e336]: Blocked
+            - generic [ref=f5e340]: Decision
+      - generic [ref=f5e343]:
+        - generic [ref=f5e344]:
+          - generic [ref=f5e345]: Role
+          - generic [ref=f5e346]:
+            - generic [ref=f5e347]: Venue
+            - generic [ref=f5e348]: Stine (lead) · Sheila
+          - generic [ref=f5e349]:
+            - generic [ref=f5e350]: Food & Beverage
+            - generic [ref=f5e351]: Peter (lead) · Sheila
+          - generic [ref=f5e352]:
+            - generic [ref=f5e353]: Entertainment
+            - generic [ref=f5e354]: Martin (lead)
+          - generic [ref=f5e355]:
+            - generic [ref=f5e356]: Guests
+            - generic [ref=f5e357]: Leah
+          - generic [ref=f5e358]:
+            - generic [ref=f5e359]: Travel & Logistics
+            - generic [ref=f5e360]: Martin
+        - region "Timeline, scroll horizontally" [ref=f5e361]:
+          - generic [ref=f5e362]:
+            - generic [ref=f5e363]:
+              - generic [ref=f5e364]: Mon 21 Sep
+              - generic [ref=f5e365]: Mon 28 Sep
+              - generic [ref=f5e366]: Mon 5 Oct
+              - generic [ref=f5e367]: Mon 12 Oct
+              - generic [ref=f5e368]: Mon 19 Oct
+            - generic [ref=f5e369]: Today
+            - generic [ref=f5e371]: Party · Sat 24 Oct
+            - generic [ref=f5e373]:
+              - button "Shortlist venues Done" [ref=f5e374] [cursor=pointer]:
+                - generic [ref=f5e378]:
+                  - generic [ref=f5e379]: Shortlist venues
+                  - generic [ref=f5e380]: Done
+              - 'button "Decision: Choose venue, Decided: Hotel" [ref=f5e381] [cursor=pointer]':
+                - generic [ref=f5e384]:
+                  - generic [ref=f5e385]: Choose venue
+                  - generic [ref=f5e386]: "Decided: Hotel"
+              - button "Book venue Done" [ref=f5e387] [cursor=pointer]:
+                - generic [ref=f5e391]:
+                  - generic [ref=f5e392]: Book venue
+                  - generic [ref=f5e393]: Done
+              - button "Book 8 single + 2 double rooms Waiting on hotel" [ref=f5e394] [cursor=pointer]:
+                - generic [ref=f5e398]:
+                  - generic [ref=f5e399]: Book 8 single + 2 double rooms
+                  - generic [ref=f5e400]: Waiting on hotel
+              - generic [ref=f5e401]:
+                - generic [ref=f5e402]:
+                  - generic [ref=f5e403]: Venue setup
+                  - generic [ref=f5e404]: Not started
+                - 'button "Decorations Waits for: venue access" [ref=f5e405] [cursor=pointer]':
+                  - generic [ref=f5e409]:
+                    - generic [ref=f5e410]: Decorations
+                    - generic [ref=f5e411]: "Waits for: venue access"
+            - generic [ref=f5e412]:
+              - button "Book catering Done" [ref=f5e413] [cursor=pointer]:
+                - generic [ref=f5e417]:
+                  - generic [ref=f5e418]: Book catering
+                  - generic [ref=f5e419]: Done
+              - 'button "Decision: Choose dinner menu, Needs your decision" [ref=f5e420] [cursor=pointer]':
+                - generic [ref=f5e423]:
+                  - generic [ref=f5e424]: Choose dinner menu
+                  - generic [ref=f5e425]: Needs your decision
+              - button "Send food order details Not started" [ref=f5e426] [cursor=pointer]:
+                - generic [ref=f5e427]:
+                  - generic [ref=f5e428]: Send food order details
+                  - generic [ref=f5e429]: Not started
+              - button "Bar staff Not started" [ref=f5e430] [cursor=pointer]:
+                - generic [ref=f5e431]:
+                  - generic [ref=f5e432]: Bar staff
+                  - generic [ref=f5e433]: Not started
+            - generic [ref=f5e434]:
+              - button "DJ contract Waiting on DJ" [ref=f5e435] [cursor=pointer]:
+                - generic [ref=f5e439]:
+                  - generic [ref=f5e440]: DJ contract
+                  - generic [ref=f5e441]: Waiting on DJ
+              - button "Write quiz questions Not yet accepted" [ref=f5e442] [cursor=pointer]:
+                - generic [ref=f5e446]:
+                  - generic [ref=f5e447]: Write quiz questions
+                  - generic [ref=f5e448]: Not yet accepted
+              - 'button "Soundcheck Waits for: DJ contract" [ref=f5e449] [cursor=pointer]':
+                - generic [ref=f5e453]:
+                  - generic [ref=f5e454]: Soundcheck
+                  - generic [ref=f5e455]: "Waits for: DJ contract"
+            - generic [ref=f5e456]:
+              - button "Collect RSVPs In progress" [ref=f5e457] [cursor=pointer]:
+                - generic [ref=f5e458]:
+                  - generic [ref=f5e459]: Collect RSVPs
+                  - generic [ref=f5e460]: In progress
+              - button "Send final headcount to venue Overdue 1 day" [ref=f5e461] [cursor=pointer]:
+                - generic [ref=f5e464]:
+                  - generic [ref=f5e465]: Send final headcount to venue
+                  - generic [ref=f5e466]: Overdue 1 day
+              - 'button "Seating chart Waits for: final RSVPs" [ref=f5e467] [cursor=pointer]':
+                - generic [ref=f5e471]:
+                  - generic [ref=f5e472]: Seating chart
+                  - generic [ref=f5e473]: "Waits for: final RSVPs"
+            - generic [ref=f5e474]:
+              - 'button "Hotel room list Waits for: rooms booked" [ref=f5e475] [cursor=pointer]':
+                - generic [ref=f5e479]:
+                  - generic [ref=f5e480]: Hotel room list
+                  - generic [ref=f5e481]: "Waits for: rooms booked"
+              - button "Airport pickup · Chris +1 Not started" [ref=f5e482] [cursor=pointer]:
+                - generic [ref=f5e483]:
+                  - generic [ref=f5e484]: Airport pickup · Chris +1
+                  - generic [ref=f5e485]: Not started
+      - generic [ref=f5e486]:
+        - generic [ref=f5e487]: Scroll sideways for later dates
+        - generic [ref=f5e488]: Show obsolete (1)

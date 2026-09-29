@@ -1,0 +1,62 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - heading "Key screen · Chris's landing page + Guest Dashboard (phone, Norwegian)" [level=1] [ref=f4e3]
+    - paragraph [ref=f4e4]: "Governs: DESIGN.md › Landing page, Guest Dashboard, Send a request · EXPERIENCE.md › Guest experience, KF-3 steps 4–7. Rendered in Norwegian (device language). The Program section is the Run of Show. Spine wins on conflict."
+  - paragraph [ref=f4e5]: Landing page / Guest Dashboard
+  - generic [ref=f4e6]:
+    - generic [ref=f4e7]:
+      - generic [ref=f4e8]: 9:41
+      - generic [ref=f4e10]:
+        - generic [ref=f4e11]: Leah inviterer deg til
+        - heading "Lucas' 40-årsdag" [level=1] [ref=f4e12]
+        - generic [ref=f4e13]:
+          - time [ref=f4e14]: lør. 24. okt., 18:00
+          - text: · Hotel Alexandra
+        - generic [ref=f4e15]: Du kommer · 2 personer
+      - generic [ref=f4e19]:
+        - generic [ref=f4e20]:
+          - heading "Om festen" [level=2] [ref=f4e21]
+          - paragraph [ref=f4e24]: "Vi feirer Lucas med middag, taler, quiz og DJ. Antrekk: pent, men uformelt."
+        - generic [ref=f4e25]:
+          - heading "Program" [level=2] [ref=f4e26]
+          - generic [ref=f4e30]:
+            - time [ref=f4e31]: 18:00
+            - generic [ref=f4e32]: Velkomstdrink
+            - time [ref=f4e33]: 19:00
+            - generic [ref=f4e34]: Middag
+            - time [ref=f4e35]: 20:30
+            - generic [ref=f4e36]: Taler
+            - time [ref=f4e37]: 21:30
+            - generic [ref=f4e38]: Quiz
+            - time [ref=f4e39]: 22:30
+            - generic [ref=f4e40]: DJ til 01:00
+        - generic [ref=f4e41]:
+          - heading "Sted" [level=2] [ref=f4e42]
+          - paragraph [ref=f4e46]: Hotel Alexandra, Oslo sentrum. Hotellrom er reservert for gjester som trenger det.
+        - generic [ref=f4e47]:
+          - heading "Meny" [level=2] [ref=f4e48]
+          - paragraph [ref=f4e52]: Tre retter. Vegetar- og allergivennlige alternativer er meldt inn.
+      - button "Send en forespørsel" [ref=f4e54] [cursor=pointer]
+    - generic [ref=f4e57]:
+      - generic [ref=f4e58]: 9:41
+      - generic [ref=f4e60]: Festen
+      - heading "Hei, Chris" [level=1] [ref=f4e64]
+      - generic [ref=f4e65]:
+        - generic [ref=f4e66]:
+          - heading "Mitt svar" [level=2] [ref=f4e67]
+          - paragraph [ref=f4e68]: Ja · 2 personer (med Maria)
+          - paragraph [ref=f4e69]: "Maria: vegetar · Hotell: ja"
+          - generic [ref=f4e70]: Endre svar
+        - generic [ref=f4e71]:
+          - heading "Ordnet for deg" [level=2] [ref=f4e72]
+          - paragraph [ref=f4e76]: Henting på flyplassen
+          - paragraph [ref=f4e77]:
+            - text: Taxi fra OSL kl. 16:30,
+            - time [ref=f4e78]: fre. 23. okt.
+            - text: Sjåføren venter ved ankomsthallen.
+        - generic [ref=f4e79]:
+          - heading "Mine forespørsler" [level=2] [ref=f4e80]
+          - generic [ref=f4e81]:
+            - text: Kan vi ta med babyen?
+            - generic [ref=f4e82]: "Leah svarte: Babyer er hjertelig velkomne!"
+      - button "Send en forespørsel" [ref=f4e88] [cursor=pointer]

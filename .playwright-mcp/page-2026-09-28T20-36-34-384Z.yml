@@ -1,0 +1,176 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e2]:
+    - heading "Key screen · Leah's Dashboard (desktop, Airy)" [level=1] [ref=f6e3]
+    - paragraph [ref=f6e4]: "Governs: DESIGN.md › Components (Sidebar, Decision card, Proposal row, Task row, Section header) · EXPERIENCE.md › Dashboard sections, KF-1. Light (default) then dark. The spine wins on any conflict."
+  - paragraph [ref=f6e5]: Light · Warm Sky
+  - generic [ref=f6e12]:
+    - complementary [ref=f6e13]:
+      - generic [ref=f6e14]: Arrangly
+      - generic [ref=f6e15]: Lucas's 40th
+      - generic [ref=f6e16]: Dashboard
+      - generic [ref=f6e23]:
+        - generic [ref=f6e27]: My tasks
+        - generic [ref=f6e28]: "2"
+      - generic [ref=f6e29]: Guests
+      - generic [ref=f6e36]: Timeline
+      - generic [ref=f6e39]: Team & Roles
+      - generic [ref=f6e46]: Announcements
+      - generic [ref=f6e51]: Landing page
+      - generic [ref=f6e55]: Event settings
+      - generic [ref=f6e60]: All events
+      - generic [ref=f6e68]:
+        - generic [ref=f6e69]: LH
+        - generic [ref=f6e70]: Leah Hansen
+    - main [ref=f6e71]:
+      - generic [ref=f6e72]:
+        - generic [ref=f6e73]:
+          - generic [ref=f6e74]: Dashboard
+          - generic [ref=f6e75]: Lucas's 40th · Sat 24 Oct · 26 days to go
+        - button "New task" [ref=f6e76] [cursor=pointer]
+      - generic [ref=f6e78]:
+        - heading "Needs you 4" [level=2] [ref=f6e79]:
+          - text: Needs you
+          - generic [ref=f6e80]: "4"
+        - generic [ref=f6e81]:
+          - generic [ref=f6e82]:
+            - generic [ref=f6e86]:
+              - generic [ref=f6e87]: Choose dinner menu
+              - generic [ref=f6e88]: Peter sent 3 options · decide by Thu 1 Oct
+            - button "Decide" [ref=f6e89] [cursor=pointer]
+          - generic [ref=f6e90]:
+            - generic [ref=f6e91]: Buffet
+            - generic [ref=f6e92]: 3-course
+            - generic [ref=f6e93]: Tapas
+        - generic [ref=f6e94]:
+          - generic [ref=f6e97]:
+            - generic [ref=f6e98]: "Create task: Send food order details to caterer"
+            - generic [ref=f6e99]: From caterer note · Catering · Peter · due Wed 14 Oct
+          - generic [ref=f6e100]:
+            - button "Create task" [ref=f6e101]
+            - button "Dismiss suggestion" [ref=f6e104]
+        - generic [ref=f6e108]:
+          - generic [ref=f6e109]:
+            - text: Send final headcount to venue
+            - generic [ref=f6e113]: Overdue 1 day
+            - generic [ref=f6e114]: You
+          - generic [ref=f6e115]:
+            - text: Write quiz questions
+            - generic [ref=f6e120]: Not yet accepted · 2 days
+            - generic [ref=f6e121]: Martin
+        - heading "At risk 3" [level=2] [ref=f6e122]:
+          - text: At risk
+          - generic [ref=f6e123]: "3"
+        - generic [ref=f6e124]:
+          - generic [ref=f6e125]:
+            - text: DJ contract
+            - generic [ref=f6e130]: Waiting on DJ
+            - generic [ref=f6e131]: Martin
+          - generic [ref=f6e132]:
+            - text: Decorations
+            - generic [ref=f6e136]: "Waits for: venue access"
+            - generic [ref=f6e137]: Sheila
+          - generic [ref=f6e138]:
+            - text: Seating chart
+            - generic [ref=f6e142]: "Waits for: final RSVPs"
+            - generic [ref=f6e143]: You
+          - generic [ref=f6e144]: Show obsolete (1)
+        - heading "On track" [level=2] [ref=f6e145]
+        - generic [ref=f6e146]:
+          - generic [ref=f6e147]:
+            - text: Venue
+            - generic [ref=f6e152]: Booked · Hotel Alexandra
+            - generic [ref=f6e153]: Stine
+          - generic [ref=f6e154]:
+            - text: Catering
+            - generic [ref=f6e159]: Booked
+            - generic [ref=f6e160]: Peter
+          - generic [ref=f6e161]: “Caterer needs food preferences and allergies 10 days before delivery.”
+          - generic [ref=f6e162]:
+            - text: Guests
+            - generic [ref=f6e174]: 60 coming · 4 declined · 16 pending
+  - paragraph [ref=f6e175]: Dark · Clear Sky
+  - generic [ref=f6e182]:
+    - complementary [ref=f6e183]:
+      - generic [ref=f6e184]: Arrangly
+      - generic [ref=f6e185]: Lucas's 40th
+      - generic [ref=f6e186]: Dashboard
+      - generic [ref=f6e193]:
+        - generic [ref=f6e197]: My tasks
+        - generic [ref=f6e198]: "2"
+      - generic [ref=f6e199]: Guests
+      - generic [ref=f6e206]: Timeline
+      - generic [ref=f6e209]: Team & Roles
+      - generic [ref=f6e216]: Announcements
+      - generic [ref=f6e221]: Landing page
+      - generic [ref=f6e225]: Event settings
+      - generic [ref=f6e230]: All events
+      - generic [ref=f6e238]:
+        - generic [ref=f6e239]: LH
+        - generic [ref=f6e240]: Leah Hansen
+    - main [ref=f6e241]:
+      - generic [ref=f6e242]:
+        - generic [ref=f6e243]:
+          - generic [ref=f6e244]: Dashboard
+          - generic [ref=f6e245]: Lucas's 40th · Sat 24 Oct · 26 days to go
+        - button "New task" [ref=f6e246] [cursor=pointer]
+      - generic [ref=f6e248]:
+        - heading "Needs you 4" [level=2] [ref=f6e249]:
+          - text: Needs you
+          - generic [ref=f6e250]: "4"
+        - generic [ref=f6e251]:
+          - generic [ref=f6e252]:
+            - generic [ref=f6e256]:
+              - generic [ref=f6e257]: Choose dinner menu
+              - generic [ref=f6e258]: Peter sent 3 options · decide by Thu 1 Oct
+            - button "Decide" [ref=f6e259] [cursor=pointer]
+          - generic [ref=f6e260]:
+            - generic [ref=f6e261]: Buffet
+            - generic [ref=f6e262]: 3-course
+            - generic [ref=f6e263]: Tapas
+        - generic [ref=f6e264]:
+          - generic [ref=f6e267]:
+            - generic [ref=f6e268]: "Create task: Send food order details to caterer"
+            - generic [ref=f6e269]: From caterer note · Catering · Peter · due Wed 14 Oct
+          - generic [ref=f6e270]:
+            - button "Create task" [ref=f6e271]
+            - button "Dismiss suggestion" [ref=f6e274]
+        - generic [ref=f6e278]:
+          - generic [ref=f6e279]:
+            - text: Send final headcount to venue
+            - generic [ref=f6e283]: Overdue 1 day
+            - generic [ref=f6e284]: You
+          - generic [ref=f6e285]:
+            - text: Write quiz questions
+            - generic [ref=f6e290]: Not yet accepted · 2 days
+            - generic [ref=f6e291]: Martin
+        - heading "At risk 3" [level=2] [ref=f6e292]:
+          - text: At risk
+          - generic [ref=f6e293]: "3"
+        - generic [ref=f6e294]:
+          - generic [ref=f6e295]:
+            - text: DJ contract
+            - generic [ref=f6e300]: Waiting on DJ
+            - generic [ref=f6e301]: Martin
+          - generic [ref=f6e302]:
+            - text: Decorations
+            - generic [ref=f6e306]: "Waits for: venue access"
+            - generic [ref=f6e307]: Sheila
+          - generic [ref=f6e308]:
+            - text: Seating chart
+            - generic [ref=f6e312]: "Waits for: final RSVPs"
+            - generic [ref=f6e313]: You
+          - generic [ref=f6e314]: Show obsolete (1)
+        - heading "On track" [level=2] [ref=f6e315]
+        - generic [ref=f6e316]:
+          - generic [ref=f6e317]:
+            - text: Venue
+            - generic [ref=f6e322]: Booked · Hotel Alexandra
+            - generic [ref=f6e323]: Stine
+          - generic [ref=f6e324]:
+            - text: Catering
+            - generic [ref=f6e329]: Booked
+            - generic [ref=f6e330]: Peter
+          - generic [ref=f6e331]: “Caterer needs food preferences and allergies 10 days before delivery.”
+          - generic [ref=f6e332]:
+            - text: Guests
+            - generic [ref=f6e344]: 60 coming · 4 declined · 16 pending

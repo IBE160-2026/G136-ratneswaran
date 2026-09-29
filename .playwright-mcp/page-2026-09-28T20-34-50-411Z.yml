@@ -1,0 +1,73 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - heading "Key screen · Task detail (Stine, phone)" [level=1] [ref=f3e3]
+    - paragraph [ref=f3e4]: "Governs: DESIGN.md › Task detail · EXPERIENCE.md › Task detail, Delegate, ✦ Draft email, KF-2 steps 5–7. Left: just assigned (Accept banner). Right: accepted and Waiting on external, with the bottom action bar. Spine wins on conflict."
+  - paragraph [ref=f3e5]: New task / Accepted, waiting on hotel
+  - generic [ref=f3e6]:
+    - generic [ref=f3e7]:
+      - generic [ref=f3e8]: 9:41
+      - generic [ref=f3e10]: Dashboard
+      - generic [ref=f3e13]:
+        - heading "Book 8 single + 2 double rooms" [level=1] [ref=f3e14]
+        - generic [ref=f3e15]:
+          - generic [ref=f3e16]: Blocks 2 tasks
+          - generic [ref=f3e20]: Not yet accepted
+        - generic [ref=f3e24]:
+          - paragraph [ref=f3e25]: Leah assigned this to you. Leah chose Hotel Alexandra. Book rooms for the out-of-town guests.
+          - button "Accept" [ref=f3e26] [cursor=pointer]
+        - generic [ref=f3e27]:
+          - generic [ref=f3e28]:
+            - generic [ref=f3e29]: Role
+            - generic [ref=f3e30]: Venue
+          - generic [ref=f3e31]:
+            - generic [ref=f3e32]: Owner
+            - generic [ref=f3e33]: Stine (you)
+          - generic [ref=f3e34]:
+            - generic [ref=f3e35]: Due
+            - generic [ref=f3e36]: Fri 9 Oct
+          - generic [ref=f3e37]:
+            - generic [ref=f3e38]: Depends on
+            - generic [ref=f3e39]: Choose venue
+          - generic [ref=f3e43]:
+            - generic [ref=f3e44]: From Leah
+            - generic [ref=f3e45]: Hotel Alexandra chosen
+        - generic [ref=f3e46]: Help
+        - generic [ref=f3e47]:
+          - generic [ref=f3e48]: Draft email to the hotel
+          - generic [ref=f3e53]: Add options
+    - generic [ref=f3e57]:
+      - generic [ref=f3e58]: 9:41
+      - generic [ref=f3e60]: Dashboard
+      - generic [ref=f3e63]:
+        - heading "Book 8 single + 2 double rooms" [level=1] [ref=f3e64]
+        - generic [ref=f3e65]:
+          - generic [ref=f3e66]: Blocks 2 tasks
+          - generic [ref=f3e70]: Waiting on hotel
+        - generic [ref=f3e74]:
+          - generic [ref=f3e75]:
+            - generic [ref=f3e76]: Role
+            - generic [ref=f3e77]: Venue
+          - generic [ref=f3e78]:
+            - generic [ref=f3e79]: Owner
+            - generic [ref=f3e80]: Stine (you)
+          - generic [ref=f3e81]:
+            - generic [ref=f3e82]: Due
+            - generic [ref=f3e83]: Fri 9 Oct
+          - generic [ref=f3e84]:
+            - generic [ref=f3e85]: Depends on
+            - generic [ref=f3e86]: Choose venue
+          - generic [ref=f3e90]:
+            - generic [ref=f3e91]: From Leah
+            - generic [ref=f3e92]: Hotel Alexandra chosen
+        - generic [ref=f3e93]: Status
+        - generic [ref=f3e94]: Waiting on external
+        - generic [ref=f3e101]: Asked hotel, waiting for reply.
+        - generic [ref=f3e102]: Help
+        - generic [ref=f3e103]:
+          - generic [ref=f3e104]: Draft email to the hotel
+          - generic [ref=f3e109]: Opens in your own mail app. Arrangly never sends it for you.
+          - generic [ref=f3e110]: Add options
+      - generic [ref=f3e114]:
+        - button "Mark done" [ref=f3e115] [cursor=pointer]
+        - button "Delegate" [ref=f3e118] [cursor=pointer]
+        - button "Report a problem" [ref=f3e119] [cursor=pointer]
