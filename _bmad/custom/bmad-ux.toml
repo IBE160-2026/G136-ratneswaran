@@ -1,0 +1,9 @@
+# Team override for bmad-ux — survives BMAD updates (install to {project-root}/_bmad/custom/bmad-ux.toml).
+# Source: skill-observations #1, #2 (review 2026-09-29).
+
+[workflow]
+
+persistent_facts = [
+  "Rendered artifacts are unverified until screenshotted: after any creative tool writes HTML (themes, directions, key-screen mocks), take a headless screenshot of each page — serve over http://localhost if the browser blocks file:// — and fix overlaps, truncation and wrapping before returning a summary or opening it for the user. The generator source cannot show collisions.",
+  "DESIGN.md contrast claims must come from the full pair matrix, not the palette: enumerate every (foreground token x surface token) a component actually uses, per mode — including foreground-on-fill (buttons, badges), text on tinted surfaces, and non-text boundaries (input borders, focus ring, state outlines, WCAG 1.4.11) — and compute each ratio. Never hard-code a foreground hex inside a component token; reference a token so the pair is checkable.",
+]

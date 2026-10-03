@@ -1,0 +1,301 @@
+<title>Arrangly-arkitekturen</title>
+<style>
+  :root {
+    --bg: #FAF7F2;
+    --card: #FFFFFF;
+    --sunk: #F3EEE6;
+    --fg: #231F1A;
+    --muted: #75695C;
+    --line: #EDE6DB;
+    --primary: #0066CC;
+    --primary-soft: #E8F1FB;
+    --done: #1F7A35;
+    --waiting: #A04A00;
+    --danger: #C4001A;
+    --decision: #7D3C98;
+    --decision-soft: #F4EAF8;
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #000000; --card: #1C1C1E; --sunk: #0F0F10; --fg: #F5F5F7; --muted: #98989D;
+      --line: #38383A; --primary: #4DA3FF; --primary-soft: #0B2A4A; --done: #30D158;
+      --waiting: #FF9F0A; --danger: #FF6961; --decision: #D08CF2; --decision-soft: #2E1F38;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #000000; --card: #1C1C1E; --sunk: #0F0F10; --fg: #F5F5F7; --muted: #98989D;
+    --line: #38383A; --primary: #4DA3FF; --primary-soft: #0B2A4A; --done: #30D158;
+    --waiting: #FF9F0A; --danger: #FF6961; --decision: #D08CF2; --decision-soft: #2E1F38;
+    color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.55; }
+  .wrap { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: grid; gap: 56px; }
+  header { display: grid; gap: 12px; }
+  .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.1; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+  h2 { font-size: 24px; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+  h3 { font-size: 17px; margin: 0; }
+  p { margin: 0; max-width: 68ch; }
+  .lede { font-size: 18px; color: var(--muted); max-width: 64ch; }
+  section { display: grid; gap: 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--sunk); color: var(--muted); }
+  .chip.ok { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+  .diagram { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; overflow-x: auto; }
+  .diagram pre.mermaid { margin: 0; background: transparent; }
+  .caption { font-size: 14px; color: var(--muted); }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .mod { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 8px; align-content: start; }
+  .mod .owns { font-family: var(--mono); font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .mod .tag { font-size: 12px; font-weight: 600; color: var(--primary); letter-spacing: .04em; text-transform: uppercase; }
+  .layers { display: grid; gap: 8px; }
+  .layer { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .layer .n { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .layer p { color: var(--muted); font-size: 15px; }
+  .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 620px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--sunk); }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  code { font-family: var(--mono); font-size: .9em; background: var(--sunk); padding: 1px 5px; border-radius: 5px; }
+  .chosen { color: var(--done); font-weight: 600; }
+  .gdpr { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .gdpr div { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 4px; }
+  .gdpr strong { font-size: 15px; }
+  .gdpr span { color: var(--muted); font-size: 14.5px; }
+  .callout { background: var(--decision-soft); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 6px; }
+  .callout h3 { color: var(--decision); }
+  .sev { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+  .sev.crit { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .sev.high { color: var(--waiting); background: color-mix(in srgb, var(--waiting) 14%, transparent); }
+  footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 4px; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">IBE160 · Arrangly · Arkitektur</div>
+    <h1>Slik er Arrangly bygget opp</h1>
+    <p class="lede">En oversikt over de tekniske valgene bak Arrangly: hvilke deler appen består av, hvem som eier hvilke data, hvordan sikkerhet og personvern er løst, og hvorfor jeg valgte som jeg gjorde.</p>
+    <div class="meta">
+      <span class="chip ok">21 arkitekturbeslutninger</span>
+      <span class="chip">Next.js 16 + Supabase</span>
+      <span class="chip">Gjennomgått av 2 uavhengige kontrollører</span>
+      <span class="chip">2. oktober 2026</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Hele systemet på én side</h2>
+    <p>Arrangly er én webapp på Vercel og én database i Supabase, begge i Stockholm. Nettleseren snakker med Next.js, som snakker med databasen som den innloggede brukeren. KI, e-post og push er eksterne tjenester som bare nås fra serveren.</p>
+    <div class="diagram">
+<pre class="mermaid">
+flowchart TB
+  subgraph Nettleser
+    UI["Arrangly i nettleseren"]
+    SW["Service worker (push-varsler)"]
+  end
+  subgraph Vercel["Vercel – Next.js 16 (Stockholm)"]
+    Sider["Sider bygget på serveren"]
+    Handlinger["Server Actions"]
+    Lever["Varsel-levering"]
+    Inv["Invitasjonslenker"]
+  end
+  subgraph Supabase["Supabase (Stockholm)"]
+    DB[("Postgres med RLS")]
+    Auth["Innlogging: e-post, Google, GitHub"]
+    RT["Realtime"]
+    Cron["Planlagte jobber"]
+  end
+  Claude["Claude (Anthropic)"]
+  Gmail["Gmail"]
+  UI --> Sider
+  UI --> Handlinger
+  Handlinger --> DB
+  Sider --> DB
+  Inv --> Auth
+  DB -- "nytt varsel" --> Lever
+  Lever --> Gmail
+  Lever --> SW
+  RT --> UI
+  Handlinger --> Claude
+  Cron --> DB
+</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fem moduler, hver med sine egne data</h2>
+    <p>Appen er en <em>modulær monolitt</em>: ett program, delt i fem moduler. Bare modulen som eier en tabell får skrive til den. Trenger en annen modul en endring, kaller den eierens funksjon. Det hindrer at to deler av koden endrer de samme dataene etter ulike regler.</p>
+    <div class="grid">
+      <div class="mod"><span class="tag">Arrangement &amp; team</span><h3>events</h3><p class="owns">arrangementer, roller, rollemedlemmer, invitasjoner</p></div>
+      <div class="mod"><span class="tag">Oppgaver</span><h3>tasks</h3><p class="owns">oppgaver, avhengigheter, beslutninger, problemer, statushistorikk</p></div>
+      <div class="mod"><span class="tag">Gjester</span><h3>guests</h3><p class="owns">gjester, RSVP, mat, hotell, forespørsler, resultater, landingsside</p></div>
+      <div class="mod"><span class="tag">Varsler</span><h3>notifications</h3><p class="owns">utboks, varsler, kunngjøringer, kanalvalg, push-abonnement</p></div>
+      <div class="mod"><span class="tag">KI-gateway</span><h3>ai</h3><p class="owns">KI-forbruk og tak</p></div>
+    </div>
+    <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  tasks["Oppgaver"] --> events["Arrangement &amp; team"]
+  guests["Gjester"] --> events
+  guests -- "foreslå oppgave" --> tasks
+  tasks -- "vis resultat til gjest" --> guests
+  events -- "flytt eierskap" --> tasks
+  events -- "si fra" --> notif["Varsler"]
+  tasks -- "si fra" --> notif
+  guests -- "si fra" --> notif
+  tasks --> ai["KI-gateway"]
+  guests --> ai
+</pre>
+    </div>
+    <p class="caption">Pilene viser hvem som får lese fra eller kalle hvem. KI-gatewayen kaller ingen andre.</p>
+  </section>
+
+  <section>
+    <h2>Eksempel: Leah tar en beslutning</h2>
+    <p>Fra brukerreise UJ-2: Stine har sendt tre lokaler til Leah. Leah velger hotellet. Alt under skjer i én databasetransaksjon, så enten skjer alt, eller ingenting.</p>
+    <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  participant L as Leah (nettleser)
+  participant SA as Server Action
+  participant DB as Database
+  participant V as Varsel-levering
+  participant S as Stine
+  L->>SA: Velger «hotell»
+  SA->>SA: Sjekker input (Zod)
+  SA->>DB: tasks_resolve_decision()
+  Note over DB: I én transaksjon:<br/>lagre beslutningen<br/>lage «book rom»<br/>merke utgåtte oppgaver<br/>legge varsel i utboksen
+  DB-->>L: OK
+  DB->>V: Ny rad i utboksen
+  V->>S: E-post og push
+  DB-->>S: Vises i appen med en gang (Realtime)
+</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sikkerhet i tre lag</h2>
+    <p>Kravet i PRD-en (SM-2) er at ingen skal kunne handle utenfor rollen sin. Det holder ikke å skjule knapper, fordi Supabase har et åpent API som nettleseren kan kalle direkte. Derfor ligger sikkerheten i databasen.</p>
+    <div class="layers">
+      <div class="layer"><span class="n">1</span><div><h3>RLS: hvem ser hvilke rader</h3><p>Hver tabell har regler som spør «hvem er innlogget?». Gjester, arrangører og rolleinnehavere er alle vanlige brukere, så de samme reglene gjelder for alle. Allergier ser bare arrangøren, gjesten selv og rollen som planlegger mat.</p></div></div>
+      <div class="layer"><span class="n">2</span><div><h3>Kolonnetilgang: hva kan endres direkte</h3><p>En bruker kan bare endre enkle felt, som tittelen på en oppgave. Eier, godkjenning, samtykke og svar kan ikke endres direkte.</p></div></div>
+      <div class="layer"><span class="n">3</span><div><h3>SQL-funksjoner: alt som er sammensatt</h3><p>Delegering, beslutninger, RSVP og sletting går gjennom én funksjon hver, som sjekker reglene og gjør alt eller ingenting.</p></div></div>
+    </div>
+    <p class="caption">Hver regel i lag 1–3 har en pgTAP-test som viser både at tilgang gis og at den nektes.</p>
+  </section>
+
+  <section>
+    <h2>Personvern (GDPR)</h2>
+    <p>Allergier og matbehov er helseopplysninger (GDPR art. 9). Jeg valgte et grunnlag som kan bygges og testes innen fristen. Et ekte produkt ville trengt full etterlevelse i tillegg.</p>
+    <div class="gdpr">
+      <div><strong>Data i EU</strong><span>Supabase og Vercel kjører i Stockholm.</span></div>
+      <div><strong>Uttrykkelig samtykke</strong><span>Gjesten krysser av før allergier kan registreres.</span></div>
+      <div><strong>Ingen helsedata til KI</strong><span>Allergier og hotell sendes aldri til Claude.</span></div>
+      <div><strong>Automatisk sletting</strong><span>Gjestedata slettes 15 dager etter arrangementet. Bare antall beholdes.</span></div>
+      <div><strong>Slett mine data</strong><span>Gjesten kan slette alt selv fra gjestedashbordet.</span></div>
+      <div><strong>Personvernerklæring</strong><span>Viser hva som lagres, hvor lenge og hvem som behandler det.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>KI med fast budsjett</h2>
+    <p>All KI går gjennom én gateway med tak per funksjon og et månedstak på 5 USD. Under utvikling og testing brukes lagrede svar (fixtures), så det koster ingenting og testene gir samme resultat hver gang.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Funksjon</th><th>Modell</th><th>Tak</th><th>Når taket er nådd</th></tr></thead>
+        <tbody>
+          <tr><td>Oppgaveliste fra beskrivelse (FR-6)</td><td>Sonnet 5</td><td class="num">3 per arrangement</td><td>Arrangøren legger til oppgaver selv</td></tr>
+          <tr><td>Forslag fra statusnotat (FR-6)</td><td>Haiku 4.5</td><td class="num">20 per arrangement per dag</td><td>Ingen forslag vises</td></tr>
+          <tr><td>E-postutkast (FR-14)</td><td>Sonnet 5</td><td class="num">20 per bruker per dag</td><td>Tomt utkast med fakta fylt inn</td></tr>
+          <tr><td>Velge rolle for gjesteforespørsel (FR-16)</td><td>Haiku 4.5</td><td class="num">1 per forespørsel</td><td>Går til arrangøren</td></tr>
+          <tr><td>Invitasjonstekst (FR-22)</td><td>Sonnet 5</td><td class="num">1 utkast + 5 omskrivinger</td><td>Tom editor</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">Et tungt testet arrangement koster omtrent 0,40 USD med denne fordelingen, mot ca. 1 USD med Opus 5 overalt.</p>
+  </section>
+
+  <section>
+    <h2>Miljøer og testing</h2>
+    <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  Dev["Min Mac: lokal Supabase i Docker"] -->|push| GH["GitHub"]
+  GH -->|"GitHub Actions: pgTAP, Vitest, Playwright"| CI["Tester"]
+  GH -->|"hver branch"| Prev["Testadresse (passordbeskyttet)"]
+  GH -->|main| Prod["Demo"]
+  Prev --> Sky[("Supabase i skyen")]
+  Prod --> Sky
+  CI -->|"bare fra main"| Sky
+</pre>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Testlag</th><th>Verktøy</th><th>Hva det beviser</th></tr></thead>
+        <tbody>
+          <tr><td>Databasen</td><td>pgTAP</td><td>Hver tilgangsregel og SQL-funksjon gir og nekter riktig, også ved direkte API-kall.</td></tr>
+          <tr><td>Logikk</td><td>Vitest</td><td>Tidslinjen sorteres riktig, KI-taket telles riktig, e-post sendes i riktig tempo.</td></tr>
+          <tr><td>Hele reisen</td><td>Playwright</td><td>Leah, Stine og Chris kan gjennomføre UJ-1, UJ-2 og UJ-3 i en ekte nettleser.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Beslutningene og alternativene</h2>
+    <p>Hver beslutning ble tatt ved å sammenligne realistiske alternativer. Valget mitt er markert.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tema</th><th>Alternativer vurdert</th><th>Valgt</th><th>Hvorfor</th></tr></thead>
+        <tbody>
+          <tr><td>Stack</td><td>Next.js + Supabase · Next.js + Neon/Auth.js/Prisma · Next.js + Firebase</td><td class="chosen">Next.js + Supabase</td><td>Tilgangsregler i databasen, innebygd innlogging, planlagte jobber og Realtime på ett sted.</td></tr>
+          <tr><td>Hvor logikken bor</td><td>Alt i SQL · alt i TypeScript · delt</td><td class="chosen">Delt</td><td>Bare de sammensatte operasjonene i SQL. Resten er vanlig TypeScript.</td></tr>
+          <tr><td>Gjesteidentitet</td><td>Egen token uten RLS · stille Supabase-bruker · anonym innlogging</td><td class="chosen">Stille Supabase-bruker</td><td>Én tilgangsmodell for alle. Supabase-lenker varer bare ett døgn, så invitasjonen bruker egen token.</td></tr>
+          <tr><td>Innlogging</td><td>E-post, Google, GitHub, Facebook, Apple, Vipps</td><td class="chosen">E-post, Google, GitHub</td><td>Facebook krever godkjenning, Apple koster penger, Vipps krever organisasjonsnummer.</td></tr>
+          <tr><td>KI-tak</td><td>Per funksjon · bare månedstak · begge</td><td class="chosen">Begge, 5 USD/mnd</td><td>Én feil kan ikke tømme budsjettet.</td></tr>
+          <tr><td>KI-modell</td><td>Sonnet + Haiku · Opus overalt · Haiku overalt</td><td class="chosen">Sonnet + Haiku</td><td>Kvalitet der brukeren ser det, lav pris der det ikke synes.</td></tr>
+          <tr><td>Gruppering av varsler</td><td>2-minutters vindu · 1-minutters vindu · ingen</td><td class="chosen">Ingen</td><td>Erstattet av regelen «én handling, høyst ett varsel per mottaker».</td></tr>
+          <tr><td>Varsellevering</td><td>Database-webhook · Server Action sender · jobb hvert minutt</td><td class="chosen">Webhook + jobb som prøver igjen</td><td>Raskt, og ingen varsler går tapt.</td></tr>
+          <tr><td>E-post</td><td>Resend med eget domene · annen tjeneste · Gmail</td><td class="chosen">Gmail nå</td><td>Gratis og klart med en gang. Bytte er bare oppsett.</td></tr>
+          <tr><td>Miljøer</td><td>Én database · lokal + sky · lokal + test + demo</td><td class="chosen">Lokal + sky</td><td>Trygg utvikling uten å fylle demoen med testdata.</td></tr>
+          <tr><td>Testing</td><td>Alle tre lag · bare nettleser · uten nettleser</td><td class="chosen">Alle tre lag</td><td>Gjør det mulig å bevise SM-2 og GDPR, ikke bare påstå det.</td></tr>
+          <tr><td>GDPR</td><td>Bare tilgangsstyring · grunnlag · full etterlevelse</td><td class="chosen">Grunnlag</td><td>Små, testbare tiltak. Full etterlevelse ville truet fristen.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Kvalitetssikring av selve arkitekturen</h2>
+    <p>Før dokumentet ble ferdig, ble det gjennomgått av to uavhengige KI-kontrollører. Den ene sjekket at teknologien og versjonene stemmer i dag. Den andre prøvde å finne to deler av appen som følger alle reglene og likevel ikke passer sammen.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Alvor</th><th>Funn</th><th>Rettet med</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sev crit">Kritisk</span></td><td>Gjester kunne ikke lese sine egne data med de opprinnelige tilgangsreglene.</td><td>Egen regel for gjester (AD-3)</td></tr>
+          <tr><td><span class="sev crit">Kritisk</span></td><td>Nettleseren kunne kalle databasen direkte og endre eieren av en oppgave.</td><td>Databasen er grensen (AD-19)</td></tr>
+          <tr><td><span class="sev crit">Kritisk</span></td><td>Gjesteforespørsler hadde ingen vei til oppgaver og tilbake.</td><td>Foreslåtte oppgaver og resultater (AD-18)</td></tr>
+          <tr><td><span class="sev crit">Kritisk</span></td><td>GDPR-sletting kunne stoppe på grunn av koblinger i andre tabeller.</td><td>Slettefunksjon per modul (AD-11)</td></tr>
+          <tr><td><span class="sev high">Høy</span></td><td>Supabase bytter API-nøkler rundt innleveringsfristen.</td><td>Nye nøkler fra start (AD-5)</td></tr>
+          <tr><td><span class="sev high">Høy</span></td><td>En videresendt invitasjon kunne logge inn på en full konto.</td><td>Bare rene gjester får innlogging via lenke (AD-4)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <h3>Hva jeg lærte av gjennomgangen</h3>
+      <p>Den første versjonen så komplett ut, men hadde hull som bare synes når man prøver å bygge to deler hver for seg. Å la en uavhengig kontrollør angripe dokumentet fant fem kritiske feil før én linje kode var skrevet.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Kilde: <code>_bmad-output/planning-artifacts/architecture/architecture-Arrangly-2026-09-29/ARCHITECTURE-SPINE.md</code> (engelsk, for utvikling) og beslutningsloggen <code>.memlog.md</code>.</span>
+    <span>Refleksjon over valgene: <code>docs/refleksjonsnotater.md</code>.</span>
+  </footer>
+</div>

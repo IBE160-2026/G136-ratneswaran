@@ -5,7 +5,7 @@ sources:
   - {planning_artifacts}/prds/prd-Arrangly-2026-09-22/prd.md
   - {planning_artifacts}/briefs/brief-Arrangly-2026-09-20/brief.md
   - {planning_artifacts}/briefs/brief-Arrangly-2026-09-20/addendum.md
-updated: 2026-09-29
+updated: 2026-10-02
 ---
 
 # Arrangly — Experience Spine
@@ -33,7 +33,7 @@ Map: [wireframes/ia.excalidraw](wireframes/ia.excalidraw) (open at excalidraw.co
 
 | Surface | Reached from | Purpose | Tier |
 |---|---|---|---|
-| Log in / Sign up | App open | Email + password, verified email (FR-1) | Core |
+| Log in / Sign up | App open | Email + password (verified email), *Continue with Google*, *Continue with GitHub* (FR-1) | Core |
 | Invite → Create account | Role-holder invite link | Name/email pre-filled; lands on the event's Dashboard | Core |
 | **All events** (home) · [mock](mockups/key-all-events-phone.html) | Login · sidebar (bottom of event group) | Cards for every event you're in, as Organizer, Role-holder or Guest; last card is *Create new event* | Core |
 | Create event wizard | *Create new event* card | 6 steps: Questionnaire → Guests → Description → Review ✦ → Team → Publish (FR-4/5/6) | Core |
@@ -47,7 +47,8 @@ Map: [wireframes/ia.excalidraw](wireframes/ia.excalidraw) (open at excalidraw.co
 | Event settings | Sidebar (Organizer) | Dates, RSVP due date, Roles on/off, cancel/delete event | Core |
 | Task detail · [mock](mockups/key-task-detail-phone.html) | Any task row | **Full page.** Scope, deadline, status, dependencies, subtasks, help | Core |
 | Decision | Decision card · *Decide* | **Full page.** Context + options → pick → *+ Add follow-up task* (FR-10/11) | Core |
-| Profile & Settings | Sidebar footer (avatar) | Name, email, password, Appearance, Language, Notifications | Core |
+| Profile & Settings | Sidebar footer (avatar) | Name, email, password, connected Google/GitHub, Appearance, Language, Notifications | Core |
+| Privacy notice | Footer on every page, consent text | What is stored, for how long (15 days after the event for Guest data), and which processors are used (Supabase, Vercel, Anthropic, Google) | Core |
 
 **Guest experience**
 
@@ -58,7 +59,7 @@ Map: [wireframes/ia.excalidraw](wireframes/ia.excalidraw) (open at excalidraw.co
 | RSVP flow | Magic link (first visit, until answered) | Yes/No → plus-one → allergies & food → hotel → other needs (FR-15) | Core |
 | Confirmation | RSVP submit | Warm confirmation; optional *Create an Arrangly account* | Core |
 | Landing page · [mock](mockups/key-landing-phone.html) | After RSVP · magic link · All events | About · Program (Run of Show) · Location · Menu · Practical info | Core |
-| Guest Dashboard | Landing page · magic link | My RSVP · Resolved for you · My requests + replies · *Send a request* | Core |
+| Guest Dashboard | Landing page · magic link | My RSVP · Resolved for you · My requests + replies · *Send a request* · *Delete my data* | Core |
 | Registry | Landing page | Gift wish-list | Stretch |
 | Seating chart | Landing page | Where you sit | Stretch (not in PRD) |
 
@@ -130,9 +131,9 @@ Behavioural rules. Visual specs are in DESIGN.md › Components.
 | Announcement composer | Announcements | Recipient picker: the Organizer can pick person / Role / whole team / custom group. A Role-holder can only pick their own Role(s) or people in them (FR-21). Optional **Ask for volunteers** switch. *Send* asks for confirmation and delivers in-app plus through the recipients' channels. No replies. |
 | Volunteer response | Announcement | *I can help* appears on volunteer announcements. After tapping it reads "You offered to help" and can be withdrawn. The sender sees responders in order, each with *Assign to task*, which opens Delegate prefilled. |
 | Landing page editor | Organizer | **About is ✦ written for the Organizer:** on first open, Arrangly drafts a warm, flowing invitation text (not a list) from the questionnaire, the event description, dress code and the guest-program tasks, in the event's language. The Organizer can edit freely, *Rewrite* with a tone hint (warmer / shorter / more formal) or *Write it myself*. The draft is marked ✦ in the editor only; guests see just the published text. Sections: About, Program (drafted from tasks with *Show on guest program* on, ordered by time), Location, Menu, Practical info. *Preview as guest* → *Publish*. After publishing, edits show "Unpublished changes" until *Publish update*. |
-| RSVP flow | Guest | One question per screen: a `fieldset` whose question is the `h1`, and focus moves there on each step. *Back* is always available. *No* ends the flow warmly. Progress counts only applicable steps ("Question 2 of 4") and updates when branching. Allergies are checkboxes plus "Other". Errors are inline (`aria-invalid` + `aria-describedby`). Answers can be edited later from the Guest Dashboard. |
+| RSVP flow | Guest | One question per screen: a `fieldset` whose question is the `h1`, and focus moves there on each step. *Back* is always available. *No* ends the flow warmly. Progress counts only applicable steps ("Question 2 of 4") and updates when branching. Allergies are checkboxes plus "Other". The allergies & food step starts with an unticked consent checkbox ("I agree that the people planning food can see this. It's deleted 15 days after the event." + link to Privacy notice); food fields stay disabled until it's ticked, and the step can be skipped. *Delete my data* on the Guest Dashboard asks for confirmation, then removes the Guest's RSVP, food, hotel and requests. Errors are inline (`aria-invalid` + `aria-describedby`). Answers can be edited later from the Guest Dashboard. |
 | Send a request | Guest | Free text → routed like "other needs" (FR-16) to the owning Role as a ✦ Proposed Task, always visible to the Organizer. The reply appears under the request, with a notification. One reply, no thread. |
-| Account offer | Guest confirmation | Only if the email has no account: *Create an Arrangly account* (password) or *Not now*. Declining keeps access by email (enter email → new magic link). |
+| Account offer | Guest confirmation | Only if the email has no account: *Create an Arrangly account* (password, or *Continue with Google/GitHub* using the same email) or *Not now*. Declining keeps access by email (enter email → new magic link). |
 | Landing page | Guest | Shows only the last published version: About, Program (the Run of Show: guest labels + times, never Role detail), Location, Menu, Practical info. Before first publish, Guests see RSVP and Guest Dashboard only. Readable after the event date. Reached from the magic link after RSVP, and from the Guest Dashboard. |
 | Notification preferences | Profile & Settings | Per channel: In-app (always on), Email, Push (web push; asks browser permission when switched on), SMS (**Target**, disabled "Coming later"). |
 
@@ -186,7 +187,7 @@ Behavioural rules. Visual specs are in DESIGN.md › Components.
 - **Optimistic updates** for status changes and ✓/✕, reverted with a toast on failure.
 - **Motion:** 150–250ms ease-out. Rows collapse out, new tasks fade in at their destination, and the sheet slides from the right. `prefers-reduced-motion` → cross-fades only. No confetti. Delight comes from words and a single check animation on *Done* and *Publish*.
 - **No drag and drop in Core** (Timeline is read-only, FR-20). No hover-only affordances. No infinite scroll.
-- **Notifications:** new task, decision result, new decision request, Problem reported, post-deadline RSVP change, announcement, request reply. Each goes through the user's channels. In-app is always on. Several realtime additions are grouped into one notification: "2 new items in Needs you".
+- **Notifications:** new task, decision result, new decision request, Problem reported, post-deadline RSVP change, announcement, request reply. Each goes through the user's channels. In-app is always on. Every notification is sent immediately, with no grouping window. One action produces at most one notification per person, so when a single action creates two items for the same person they arrive as one: "2 new items in Needs you".
 
 ## Accessibility Floor
 
