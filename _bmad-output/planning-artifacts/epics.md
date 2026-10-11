@@ -1143,3 +1143,899 @@ So that I can focus and the Organizer can trust the boundaries.
 **When** the action commits
 **Then** a notification to `team(event)` is queued through the outbox, and the Event leaves the Team's lists, a notice the UX spec requires though FR23's list does not name it
 **And** a Playwright test covers the team part of UJ-1.
+
+## Epic 4: Tasks and decisions
+
+The Team can run the work: create, delegate, accept and update Tasks with Subtasks, dependencies and Problems, see their own Tasks, send options for a decision, and have follow-up and obsolete Tasks follow from the outcome.
+
+**Epic-wide conventions (apply to every story below):**
+
+- Every `tasks_*` function parses its input with Zod in the Server Action first, returns `{ ok, data } | { ok, error }`, and takes `expected_updated_at`; a mismatch returns `concurrent_edit`, shown as the UX-DR24 concurrent-edit toast (AD-17).
+- Every mutation is idempotent. A repeated call with the same intent changes nothing, writes no second history row and emits no second notification (NFR7).
+- Every `tasks_*` function calls `tasks_assert_writable(event_id)` (story 4.1) and refuses on a cancelled or ended Event.
+- No notification is emitted while the Event is a draft. Notification kinds used here are `task_assigned`, `decision_requested`, `decision_resolved` and `problem_reported`; payloads hold ids and i18n keys only (NFR7, NFR2).
+- Derived state lives in one `security_invoker` view, `task_state`, which each story extends with `CREATE OR REPLACE VIEW`; nothing derived is stored (AD-3, Task state).
+- Task text, notes and Problem notes are never sent to AI, logged or placed in a notification payload in this epic (AD-11).
+
+### Story 4.1: Tasks table and Role-scoped access
+
+As an Organizer,
+I want Tasks stored so each person can read only what their Role allows,
+So that the Team's work is trustworthy and nobody sees what is not theirs.
+
+**Acceptance Criteria:**
+
+**Given** the migration
+**When** it is applied
+**Then** `tasks` exists with `event_id` (`ON DELETE CASCADE`), required `role_id`, `title`, `description`, `deadline` (a `date` in the Event's time zone), `owner_user_id` (nullable, `ON DELETE SET NULL`), `lifecycle ∈ {proposed, active, dismissed}`, `status ∈ {not_started, in_progress, waiting_external, done}`, `accepted_at`, `delegated_at`, `obsolete`, `confirmed_at`, `created_by` and `updated_at` (AD-18, Conventions)
+**And** later stories add their own columns and tables (`task_dependencies`, `status_history`, `problems`, `decision_options`) in their own migrations, so no story creates structure it does not use.
+
+**Given** a CHECK constraint
+**When** a row has `lifecycle = 'active'` and no `deadline`
+**Then** it is rejected, while a `proposed` row may lack a deadline (FR7)
+**And** a pgTAP test proves both cases.
+
+**Given** RLS on `tasks`
+**When** the Organizer, a holder of the Task's Role, the Task's owner, a holder of a different Role, a Guest-only user and an anonymous caller each read it
+**Then** only the first three see it (AD-3, NFR1)
+**And** a Task whose Role has `roles.active = false` is visible to the Organizer only, and reactivating the Role restores access (Story 2.5: the Organizer owns an inactive Role's work).
+
+**Given** a Task in a draft Event
+**When** anyone but the Organizer reads it
+**Then** it is invisible.
+
+**Given** the grants
+**When** an `authenticated` user writes through PostgREST
+**Then** `INSERT` and `DELETE` are denied, and `UPDATE` is allowed only on the columns this epic lists as direct-edit (`title`, `description`, and the guest-program fields added by Story 4.2)
+**And** a pgTAP test proves a denied direct `UPDATE` for each of `status`, `owner_user_id`, `accepted_at`, `delegated_at`, `role_id`, `lifecycle`, `obsolete` and `event_id` (S3, AD-19).
+
+**Given** `tasks_assert_writable(event_id)` and the `expected_updated_at` check
+**When** a later `tasks_*` function calls them
+**Then** the first refuses on a cancelled or ended Event and the second returns `concurrent_edit` on a stale value
+**And** pgTAP covers allow and deny for both.
+
+**Given** the view `task_state`
+**When** it is created
+**Then** it is `security_invoker` and exposes `is_delegated` and `is_pending` (an owner exists or not), independent of status (FR12)
+**And** a pgTAP test proves a user sees through the view only the rows RLS allows.
+
+**Given** how `tasks_*` functions write to tables that `authenticated` cannot write
+**When** this story is built
+**Then** it states and tests the single privilege model every `tasks_*` function uses, and its pgTAP tests show a direct PostgREST call is denied while the function succeeds
+**And** this is an open point against AD-2 and AD-5 (`security definer` is allowed only for the listed functions) that is settled with `bmad-correct-course` before this story is built, as it is for every module's first story.
+
+**Given** the generated types
+**When** the migration lands
+**Then** `src/types/database.ts` is regenerated and the tasks module is the only writer (AD-1, AD-15).
+
+### Story 4.2: Create, edit and open a Task
+
+As an Organizer or Role lead,
+I want to create and edit Tasks with a deadline,
+So that the work in my Role is written down with an owner-ready scope.
+
+**Acceptance Criteria:**
+
+**Given** Organizer or a Role lead
+**When** I save a new Task through `tasks_create`
+**Then** it is created `active` and `not_started`, Role-owned (`owner_user_id` NULL, so "pending"), with a required title and deadline
+**And** the client supplies the Task id, so a double submit creates one Task
+**And** this function is an addition to the AD-2 list, recorded in this story and offered as an entry for `docs/refleksjonsnotater.md`, because direct `INSERT` stays revoked (AD-2, AD-19).
+
+**Given** a Role-holder who is not the lead, or a holder of another Role
+**When** they call `tasks_create` for the Role
+**Then** it is denied, as it is for an inactive Role or a cancelled Event (pgTAP, FR2).
+
+**Given** the deadline field
+**When** I choose a date or "N days before the event"
+**Then** the resolved date is stored in `deadline` and N in `days_before`, and a past date is accepted and shows *Overdue* straight away
+**And** a Zod schema and a CHECK reject N below 0 or above a bounded maximum, with the error inline and focus on the first error (UX-DR12, AD-17).
+
+**Given** an Event whose `starts_at` changes in `events_update_schedule`
+**When** it commits
+**Then** it calls `tasks_recalculate_deadlines(event_id)`, which recomputes only Tasks with `days_before` set, leaves fixed dates alone, and is idempotent (Story 2.6 hook; AD-1 allows `events → tasks`)
+**And** pgTAP proves the recalculation, a fixed date left untouched, and a second run changing nothing, and no notification is emitted for it.
+
+**Given** the edit form
+**When** I change title, description or the guest-program fields (*show on guest program*, guest-facing label, local time of day; Organizer only, label required when on)
+**Then** title, description and those fields are direct edits on granted columns, and the deadline goes through `tasks_set_deadline` (FR7, AD-19)
+**And** a non-Organizer cannot change the guest-program fields (pgTAP).
+
+**Given** a Task I created by mistake
+**When** I choose *Remove task*
+**Then** `tasks_dismiss` sets `lifecycle = 'dismissed'` with an Undo toast and a timeless *Restore* under *Show dismissed (n)*, and is refused while the Task has active Subtasks or dependents (UX-DR23)
+**And** nothing is ever hard-deleted by a user.
+
+**Given** any Task list
+**When** a Task row renders
+**Then** it follows UX-DR11 (status icon, title, status word, owner or "Not delegated"), and the whole row opens the Task detail page (UX-DR13)
+**And** the detail page has a back control returning to the scroll position, a grouped metadata card and a sticky bottom action bar on phone with safe-area inset, and the later stories add their cards to it.
+
+**Given** a Task I cannot see
+**When** I open its URL
+**Then** I get "You don't have access to this part of the event." and no data (UX-DR24).
+
+### Story 4.3: Subtasks and dependencies
+
+As a Role-holder,
+I want to break a Task into Subtasks and say what it waits for,
+So that the order of work is clear and blocked work is visible.
+
+**Acceptance Criteria:**
+
+**Given** a Task
+**When** I add a Subtask
+**Then** the Subtask's `parent_task_id` points to a Task in the same Role and Event, a Subtask cannot itself have a Subtask (one level), and a holder of the Role may add Subtasks to a Task they own while the lead and Organizer may add to any (FR7)
+**And** a trigger and pgTAP prove a parent in another Role, a nested Subtask and a Subtask of a non-active Task are all rejected.
+
+**Given** a Subtask
+**When** someone tries to move it to another Role
+**Then** it is refused until it is promoted to a top-level Task with `tasks_promote_subtask`, and `tasks_move_to_role` (Organizer only) refuses any Task that has Subtasks, dependencies or dependents, and resets the owner, `delegated_at` and `accepted_at` when it succeeds (FR7, AD-19)
+**And** pgTAP proves the denied moves.
+
+**Given** `task_dependencies`
+**When** I add "Depends on"
+**Then** both Tasks are in the same Role and Event, both are `active`, the Task is not its own dependency, and the pair is unique (AD-19)
+**And** a trigger rejects any cycle by walking the graph under a per-Event advisory lock, and an integration test with two connections inserting A→B and B→A at once shows exactly one succeeds.
+
+**Given** the view `task_state`
+**When** it is extended
+**Then** `blocked` is true when any dependency is `active`, not `obsolete` and not `done`, and `blocked_by` names the first blocker with a count of the rest
+**And** an obsolete, dismissed or proposed Task never blocks anything (F4), and a Task with no remaining open dependency is unblocked at once.
+
+**Given** a blocked Task row
+**When** it renders
+**Then** it has the blocked tint, a Lucide icon and the words "Waits for: {blocker}", never red and never colour alone, and the blocker shows "Blocks N tasks" (UX-DR4, UX-DR11)
+**And** Blocked is visually distinct from a Problem (FR7, FR8).
+
+**Given** a parent Task
+**When** its Subtasks change
+**Then** there is no automatic status rollup in Core, and the parent can be marked Done with open Subtasks, which is noted in this story as a deliberate simplification.
+
+**Given** a non-member or a holder of another Role
+**When** they add or remove a dependency or Subtask
+**Then** it is denied (pgTAP, NFR1).
+
+### Story 4.4: Status, notes and *Overdue*
+
+As a Task owner,
+I want to set a Task's status with an optional note,
+So that the Organizer can see where things stand without asking.
+
+**Acceptance Criteria:**
+
+**Given** `status_history`
+**When** the migration is applied
+**Then** it holds `task_id` (`ON DELETE CASCADE`), `changed_by` (`ON DELETE SET NULL`), `from_status`, `to_status`, `note`, `note_removed_at` and a server-set `created_at`, is append-only for users, and a trigger blocks any update except clearing `note` (S8, FR8)
+**And** pgTAP proves a direct `INSERT`, `UPDATE` and `DELETE` are denied.
+
+**Given** the owner, the Role lead or the Organizer
+**When** they call `tasks_set_status(task, status, note, expected_updated_at)`
+**Then** the status changes, a history row is written with a server timestamp and the optional note, and a repeat of the same status without a new note writes nothing
+**And** a holder who does not own the Task, and every holder of another Role, are denied (pgTAP).
+
+**Given** a delegated Task the owner has not yet accepted
+**When** the owner tries to change its status
+**Then** the call is refused with "Accept this task first", while the lead and the Organizer may still change it
+**And** until Story 4.6 only Role-owned Tasks exist, so this rule is exercised by a fixture row.
+
+**Given** the history list
+**When** someone chooses *Remove* on a note
+**Then** only the note text is cleared and `note_removed_at` is set, the row and its timestamp stay, and only the note's author or the Organizer may do it (S8).
+
+**Given** the view `task_state`
+**When** it is extended
+**Then** `overdue` is true when `now() at time zone events.time_zone` is later than the end of `deadline`, for an `active`, non-`obsolete`, non-`done` Task, and the row shows "Overdue N days" with icon and word (FR8, UX-DR4)
+**And** pgTAP tests the boundary at 23:59:59 and 00:00:00 local time, and across a daylight-saving change.
+
+**Given** the status control
+**When** I change status
+**Then** it is a segmented control on desktop and a full-width `Select` on phone, updates optimistically, and reverts with a toast if the call fails (UX-DR13, NFR16)
+**And** the Status words and icons come from the single status vocabulary (UX-DR4).
+
+**Given** I am offline or the save fails
+**When** I change status
+**Then** the UI reverts, a toast says the change could not be saved and offers *Retry*, and no offline queue exists in Core (UX-DR24)
+**And** two people changing the same Task at once get `concurrent_edit` for the second, not a silent overwrite.
+
+### Story 4.5: Delegate a Task
+
+As a Role lead or Organizer,
+I want to hand a Task to a person,
+So that someone specific is responsible for it.
+
+**Acceptance Criteria:**
+
+**Given** `task_assignment_log`
+**When** the migration is applied
+**Then** it is append-only and records `task_id` (`ON DELETE CASCADE`), `from_user`, `to_user` (both `ON DELETE SET NULL`), `by_user`, `kind ∈ {delegated, accepted, released}` and a server `created_at`, so delegation never loses history (FR7)
+**And** pgTAP proves direct writes are denied.
+
+**Given** an `active` Task
+**When** the Role lead or the Organizer calls `tasks_delegate(task, new_owner, expected_updated_at)`
+**Then** `owner_user_id` and `delegated_at = now()` are set, `accepted_at` is cleared, and a `delegated` log row is written
+**And** only the Organizer and that Role's lead may do it, and a non-lead holder, a holder of another Role and a Task's own owner (unless lead) are denied (FR2, pgTAP).
+
+**Given** the target person
+**When** the lead delegates
+**Then** the target must hold that Role, and when the Organizer delegates the target may be anyone on the Event's Team, including a pending invitee marked "Invite pending"
+**And** a user outside the Event, or one with no Role and no Organizer status, is refused (S4, pgTAP).
+
+**Given** I delegate a Task to myself
+**When** it commits
+**Then** it is accepted at once, no notification is emitted, and no Accept step is asked of me.
+
+**Given** a delegation to someone else in a published Event
+**When** it commits
+**Then** `notifications_emit` queues one `task_assigned` to the new owner in the same transaction, excluding the sender, and none is emitted in a draft Event (FR23, S7)
+**And** a double click delegates once and notifies once.
+
+**Given** a Task that is `done`, `obsolete` or not `active`
+**When** I try to delegate it
+**Then** it is refused.
+
+**Given** the Delegate picker
+**When** I open it
+**Then** it is a `Command` list of the people I may choose, with "Invite pending" entries labelled, keyboard operable, with the 44px hit areas, and the Task detail history shows who held the Task before (UX-DR12)
+**And** a Playwright check covers lead delegating to a holder.
+
+### Story 4.6: Accept a Task and the 48-hour rule
+
+As a Role-holder,
+I want to accept a Task handed to me,
+So that the Organizer knows I have seen it and will do it.
+
+**Acceptance Criteria:**
+
+**Given** a delegated Task I own
+**When** I choose *Accept* on the detail page banner
+**Then** `tasks_accept` sets `accepted_at`, writes an `accepted` log row, and the Organizer's view changes from "Not yet accepted" to "Accepted" (FR9, UJ-2)
+**And** the call is idempotent.
+
+**Given** a user who is not the Task's owner
+**When** they call `tasks_accept`, including the Role lead, the Organizer, a former owner after re-delegation, and anyone on a Role-owned Task
+**Then** it is denied (pgTAP, S5).
+
+**Given** the view `task_state`
+**When** it is extended
+**Then** `stale_unaccepted` is true when `delegated_at` is more than 48 hours ago and `accepted_at` is NULL, for an `active`, non-`done`, non-`obsolete` Task
+**And** pgTAP tests the boundary just before and after 48 hours and that a re-delegation restarts the clock.
+
+**Given** every Task row
+**When** it renders
+**Then** it shows "Delegated to {name}" or "Not delegated" independent of status, and a separate "Not yet accepted" or "Accepted" signal, with icon and word (FR12, UX-DR4)
+**And** the view exposes both signals for the filter in Story 4.9.
+
+**Given** a Task that is stale
+**When** the Organizer opens it
+**Then** "Not yet accepted · {N} days" is shown, and listing it in the Organizer's needs-attention list is done by Epic 5, which reads `stale_unaccepted`
+**And** there is no *Decline* in Core, because FR9 defines none; an owner who cannot take it raises a Problem or asks the lead to reassign.
+
+### Story 4.7: Role lead and revoke hooks
+
+As an Organizer,
+I want changing a Role lead or revoking a holder to move their Tasks safely,
+So that no Task is left with someone who no longer has access and no Role's work is left unowned by accident.
+
+**Acceptance Criteria:**
+
+**Given** `events_set_role_lead` from Story 3.8
+**When** it commits
+**Then** it calls `tasks_assign_role_owned_to_lead(role_id)` in the same transaction, which assigns every Role-owned, `active`, non-`done`, non-`obsolete` Task of that Role to the new lead with `delegated_at = now()` and `accepted_at` cleared, and logs each as `delegated` (AD-18)
+**And** it emits exactly one `task_assigned` to the lead however many Tasks moved, none in a draft, and Tasks already owned by a person are not moved, including the previous lead's.
+
+**Given** `events_revoke_role` from Story 3.9
+**When** it commits
+**Then** it calls `tasks_release_owner(role_id, user_id)` in the same transaction, which returns every Task of that Role owned by the user to Role-owned, clears `delegated_at` and `accepted_at`, and logs `released`
+**And** if the user then holds no Role in the Event, every Task in the Event they own is released too, so an owner can never keep access through `owner_user_id` alone (S2).
+
+**Given** a revoked holder who owned Tasks
+**When** they read or write any Task in the Event
+**Then** nothing is returned and writes are denied, including a Task they owned in another Role (pgTAP, NFR1).
+
+**Given** a revoked Role lead
+**When** the revoke commits
+**Then** the Tasks they owned are Role-owned and the lead flag is cleared in the same transaction (Story 3.9).
+
+**Given** `events_set_role_lead` and `events_revoke_role`
+**When** a non-Organizer calls them
+**Then** it is still denied, and the `tasks_*` hooks are not callable by `authenticated` and are reachable only from those two functions along the allowed module arrow (AD-1, AD-5)
+**And** this story removes the "added by Epic 4" notes left in Stories 3.8 and 3.9.
+
+### Story 4.8: Problem flag
+
+As a Task owner,
+I want to flag that something has gone wrong with a note,
+So that the Organizer and my lead know before it becomes a surprise.
+
+**Acceptance Criteria:**
+
+**Given** `problems`
+**When** the migration is applied
+**Then** it holds `task_id` (`ON DELETE CASCADE`), `raised_by` and `resolved_by` (`ON DELETE SET NULL`), a required bounded `note`, `raised_at`, `resolved_at` and `resolution_note`, with a partial unique index allowing one open Problem per Task (FR8)
+**And** direct writes by `authenticated` are denied (pgTAP).
+
+**Given** the Task's owner, the Role lead or the Organizer
+**When** they call `tasks_report_problem(task, note)`
+**Then** an open Problem exists, a second call on a Task that already has one returns the existing Problem, and it applies to a Task in any status, including `done`
+**And** a non-member, a holder of another Role and a call on an `obsolete`, `proposed` or `dismissed` Task are denied (pgTAP).
+
+**Given** a Problem is raised in a published Event
+**When** it commits
+**Then** `notifications_emit` queues one `problem_reported` to the Organizer and the Role lead, merged into one when they are the same person and excluding the reporter, and none in a draft (FR23, NFR7)
+**And** the payload holds ids only, never the note.
+
+**Given** an open Problem
+**When** a Task row renders
+**Then** it shows "Problem reported" with a flag icon and a note excerpt, visually distinct from Blocked and never colour alone, and the view exposes `has_problem` (FR8, UX-DR4, UX-DR11)
+**And** a Problem on a Task that later becomes `obsolete` stops counting in `has_problem`.
+
+**Given** an open Problem
+**When** the owner, the lead or the Organizer chooses *Resolve problem* with an optional note
+**Then** `tasks_resolve_problem` closes it, records who and when, and a repeat call changes nothing
+**And** raised and resolved Problems appear in the Task's history.
+
+**Given** a Problem note
+**When** it is stored or logged
+**Then** it is never sent to AI, never written to a log line and never put in a notification payload (AD-11).
+
+### Story 4.9: *My tasks*
+
+As a Role-holder,
+I want one place that lists my Tasks and who else is on the Team,
+So that I understand what is expected of me within about a minute.
+
+**Acceptance Criteria:**
+
+**Given** a Role-holder or Organizer
+**When** I open *My tasks*
+**Then** I see the Tasks I own in one view with scope, deadline, dependencies, parent and Subtasks and status, "New" Tasks (not yet accepted) first, then by soonest deadline, plus a short list of who else is on the Team and who leads each Role (FR9, UX-DR11)
+**And** obsolete Tasks sit behind *Show obsolete (n)* and dismissed Tasks are not listed.
+
+**Given** the *Not delegated* filter
+**When** I switch it on
+**Then** it is a toggle button with `aria-pressed` that announces "Showing N pending Tasks", and for the Organizer it lists the pending Tasks of every Role, while a holder sees pending Tasks of their own Roles only (FR12)
+**And** it uses `is_pending` from `task_state` and no new query rules.
+
+**Given** the sidebar item *My tasks*
+**When** it renders
+**Then** its badge counts New (owned and not yet accepted) plus Urgent (owned and overdue or with an open Problem), each Task once, with an accessible name that says what the number means (UX-DR5).
+
+**Given** a joined Role-holder who is not the Organizer
+**When** they open the Event
+**Then** *My tasks* is their landing page until Epic 5's Dashboard replaces it, and the sidebar shows only what their Role can reach (Story 3.10)
+**And** a Playwright check covers join → open Event → see the assigned Task → Accept (UJ-1, Role-holder part).
+
+**Given** the view `task_state`
+**When** this story is built
+**Then** a pgTAP test asserts it exposes every flag Epic 5 needs: `blocked`, `overdue`, `stale_unaccepted`, `is_delegated`, `is_pending`, `has_problem` and `obsolete`, so the Dashboard and Timeline add no stored state (P2)
+**And** a holder of another Role sees none of my Tasks through it.
+
+**Given** loading, failure and no Tasks
+**When** the page renders
+**Then** it shows a final-shape `Skeleton`, a *Retry* card on failure, and a quiet empty state; it is usable at 375px and at 320 CSS px reflow, with focus moved to the `h1` (UX-DR24, UX-DR25, NFR6, NFR12).
+
+### Story 4.10: Options on a Task and sending for decision
+
+As a Role-holder,
+I want to list candidate options on a Task and send them to a named person to decide,
+So that choices such as the venue reach the right person with the context they need.
+
+**Acceptance Criteria:**
+
+**Given** `decision_options`
+**When** the migration is applied
+**Then** it holds `task_id` (`ON DELETE CASCADE`), `name`, `type`, `notes`, `position` and `sent_at`, and a Task may have up to a bounded number of options (FR13)
+**And** direct writes are denied, and `tasks_save_options` replaces the option set only while nothing has been sent.
+
+**Given** the owner, the Role lead or the Organizer
+**When** I add named options with type and notes and choose *Send for decision*
+**Then** at least two options are required, and an option name is unique within the Task
+**And** the Zod schema and a CHECK reject fewer, blank or over-long input, with errors inline (UX-DR14, AD-17).
+
+**Given** *Send for decision* with a recipient and a short context
+**When** `tasks_send_for_decision` commits
+**Then** a Decision Task (`kind = 'decision'`) is created in the same Role with `owner_user_id` set to the recipient, so the recipient needs no extra policy input (S1, AD-3), the options are marked sent and become immutable, and the source Task gets a dependency on the Decision Task and so shows "Waits for: {Decision Task}"
+**And** only one open Decision Task may exist per source Task, enforced by a partial unique index.
+
+**Given** the recipient
+**When** it is validated
+**Then** it must be the Organizer or a member of the Event's Team, and not the sender, and anyone else is refused (pgTAP).
+
+**Given** a sent Decision Task in a published Event
+**When** it commits
+**Then** one `decision_requested` is emitted to the recipient in the same transaction, none in a draft
+**And** the recipient sees the options through the Decision Task even if they hold no Role in the source Task's Role, and a holder of a third Role sees neither (pgTAP, NFR1).
+
+**Given** a Decision Task
+**When** it renders anywhere
+**Then** it shows "Needs your decision" for its recipient, with the purple icon and word, never colour alone (FR10, UX-DR4)
+**And** it cannot be delegated, cannot be set `done` through `tasks_set_status`, and has no Subtasks, because only Story 4.11 resolves it.
+
+**Given** a Decision Task whose owner is revoked
+**When** `tasks_release_owner` runs
+**Then** it reassigns the Decision Task to the Organizer instead of leaving it Role-owned, so a decision is never left without a person (F11)
+**And** this story extends the Story 4.7 function and adds that case to its pgTAP test.
+
+### Story 4.11: Decide and spawn follow-up Tasks
+
+As the person asked to decide,
+I want to choose an option and create the next Task in the same step,
+So that the decision turns into work immediately.
+
+**Acceptance Criteria:**
+
+**Given** the Decision page
+**When** I open it
+**Then** it shows a radio group of option cards with a `circle-check` and a 2px purple border on the selected one, *Confirm decision*, and an inline *+ Add follow-up task*, with a visible focus ring and 44px hit areas (UX-DR10)
+**And** the recipient and the Organizer are the only people who can open the action; anyone else sees the options read-only if they can see the Task.
+
+**Given** `tasks_resolve_decision(decision_task, option, follow_ups, expected_updated_at)`
+**When** it runs
+**Then** it locks the Decision Task `FOR UPDATE`, records the chosen option, who decided and when, sets the Decision Task `done` with a history row, and creates each follow-up as an `active` Task with `spawned_by_option_id` and a client-supplied `spawn_key`, all in one transaction (AD-2, FR10)
+**And** a unique `(spawned_by_option_id, spawn_key)` makes a repeat call create nothing new (F8).
+
+**Given** a follow-up Task
+**When** it is created by the decision
+**Then** it needs a title and deadline, defaults to the source Task's Role (an active Role of the Event), is Role-owned, and at most a bounded number can be created per decision
+**And** the recipient may create it even though they are not the Role's lead, because it is part of this one action and is recorded in the history as spawned by the decision.
+
+**Given** the source Task depends on the Decision Task
+**When** the decision commits
+**Then** the source Task is unblocked and its owner (or the Role lead if it is Role-owned) and the person who sent it for decision each get one `decision_resolved`, merged into one when the same person, excluding the decider
+**And** no notification is sent in a draft.
+
+**Given** the recipient and the Organizer resolve at the same moment, or a double click
+**When** both calls arrive
+**Then** the second waits on the lock and returns the already-recorded result, or `already_resolved` when it names a different option, and an integration test with two connections proves one outcome
+**And** changing a made decision is done by Story 4.12, not here.
+
+**Given** a non-recipient and non-Organizer
+**When** they call the function, including the source Task's owner and the Role lead
+**Then** it is denied (pgTAP, AD-2).
+
+**Given** the flagship venue scenario
+**When** `seed.sql` is loaded
+**Then** it holds the Role-holder who adds three venues, the Organizer who decides and the booking follow-up
+**And** a Playwright test covers UJ-2 end to end: Accept → add three options → send → decide with a follow-up → the source Task unblocks, with AI in fixture mode (NFR9, P1).
+
+### Story 4.12: Option-tied Tasks become obsolete, and decisions can change
+
+As an Organizer,
+I want work prepared for an option that was not chosen to step aside without being lost,
+So that nobody keeps working on a path we dropped, and I can change my mind.
+
+**Acceptance Criteria:**
+
+**Given** the Task form
+**When** I choose "Only if option … is chosen"
+**Then** only options of an open Decision Task I can see are offered, and `only_if_option_id` is saved on the Task (UX-DR12, FR11)
+**And** the foreign key is `ON DELETE CASCADE`, options cannot be deleted by users, and a pgTAP test shows deleting the Event still succeeds.
+
+**Given** `tasks_resolve_decision` from Story 4.11
+**When** it resolves an option
+**Then** every active Task tied to a different option of that Decision Task is set `obsolete = true`, every Task tied to the chosen option stays active, and nothing is deleted (FR11)
+**And** an obsolete Task no longer blocks anything, counts as overdue or as an open Problem (F4).
+
+**Given** a decision already made
+**When** the Organizer or the recipient chooses *Change decision* and confirms a new option
+**Then** the same function re-runs under the lock: Tasks tied to the new option and follow-ups spawned by it are re-activated, those tied to or spawned by the old option are made obsolete, and previously spawned follow-ups are re-used by their `spawn_key` rather than duplicated (FR11, F8)
+**And** running the same change twice leaves identical state and row counts, proven by pgTAP.
+
+**Given** an obsoleted Task that already has work in it
+**When** it becomes obsolete
+**Then** it keeps its status and history, its owner gets one `decision_resolved` merged with the person's other notices, and it can come back if the decision flips again (F9)
+**And** pgTAP proves a direct `DELETE` and a direct `obsolete` update are denied.
+
+**Given** an obsolete Task
+**When** it renders
+**Then** it has strikethrough, an icon and the word "Obsolete" behind *Show obsolete (n)*, and is excluded from the *My tasks* badge, with the data exposed for Epic 5's Dashboard and Timeline (UX-DR4, UX-DR11)
+**And** attempts to change the status, delegate or tie it while obsolete are refused until it is re-activated.
+
+**Given** a non-recipient and non-Organizer
+**When** they change a decision
+**Then** it is denied (pgTAP).
+
+### Story 4.13: Proposed Tasks from questionnaire gaps
+
+As an Organizer,
+I want a skipped question that matters to become a Proposed Task,
+So that an unknown never turns into a silent gap.
+
+**Acceptance Criteria:**
+
+**Given** the Event's `unknown` answers from Story 2.2
+**When** I open the wizard's *Review ✦* step or publish
+**Then** a Server Action in the tasks module calls `tasks_propose_gaps(event_id)`, which reads the answers (`tasks → events` is an allowed arrow) and creates one Proposed Task per unknown, with `lifecycle = 'proposed'` and `source = 'questionnaire_gap'` (FR4, FR6, AD-18)
+**And** `tasks_propose` is the only function that creates a Proposed Task, and it is not callable by `authenticated`.
+
+**Given** the question-to-Role mapping
+**When** it is defined
+**Then** it lives in one place with a Vitest test (venue unknown → `venue`, guest count or guest-list method → `guests`, and so on), each with a suggested deadline "N days before the event"
+**And** a gap whose Role is inactive stays visible to the Organizer under that Role (Story 2.5).
+
+**Given** the function runs again
+**When** the same unknown is still open
+**Then** nothing is duplicated, because rows are unique on `(event_id, source, gap_key)`, and an answered question dismisses its still-`proposed` Task while leaving confirmed ones alone (idempotent)
+**And** two simultaneous runs create one row.
+
+**Given** a Proposed Task
+**When** anyone reads it
+**Then** only the Organizer and holders of its Role see it, and it takes no part in `blocked`, `overdue`, counts, dependencies or the Timeline (AD-3, FR6)
+**And** pgTAP proves a holder of another Role and a Guest cannot read it and `authenticated` cannot call `tasks_propose`.
+
+**Given** a Proposed Task row
+**When** it renders
+**Then** it is marked ✦, attributes its source in words ("From questionnaire · Venue · due {date}") and carries no AI text, since this story does not call AI (UX-DR9, UX-DR26).
+
+### Story 4.14: Review Proposed Tasks
+
+As an Organizer,
+I want to confirm, edit or dismiss each Proposed Task,
+So that no suggestion becomes work unless I say so.
+
+**Acceptance Criteria:**
+
+**Given** the *Review ✦* wizard step and *My tasks*
+**When** Proposed Tasks exist
+**Then** they are grouped per Role with ✓, ✕ and edit on each row, 44px hit areas, an editable title inline, and "Nothing to review" when there are none (UX-DR7, UX-DR9)
+**And** a later epic adds AI-sourced rows to the same step without changing it.
+
+**Given** a Proposed Task
+**When** the Organizer or its Role lead chooses ✓
+**Then** `tasks_confirm_proposed` sets `lifecycle = 'active'` and `confirmed_at`, requires a deadline (the suggested one or one I enter) and rejects the call inline otherwise, and no notification is emitted because FR23 names none
+**And** a double click, or two people confirming at once, confirms once and the second sees "Already confirmed".
+
+**Given** ✕
+**When** I dismiss a Proposed Task
+**Then** `tasks_dismiss` sets `lifecycle = 'dismissed'` with a 10-second Undo toast, and *Show dismissed (n)* with *Restore* is available at any time and returns it to `proposed` if it was never confirmed (UX-DR23, UX-DR8)
+**And** focus moves to the next row or the group heading after a row leaves and returns to the restored row, announced through a `role="status"` region (UX-DR9, UX-DR25).
+
+**Given** a holder who is neither the Organizer nor the Role lead
+**When** they confirm or dismiss
+**Then** it is denied, and confirming a dismissed Task requires restoring it first (pgTAP).
+
+**Given** a confirmed Task
+**When** I look at it
+**Then** it is an ordinary Role-owned Task that can be delegated, edited and given Subtasks, and nothing remembers it was proposed except its `source` shown in the history
+**And** the epic summary lists FR7–FR13 covered and the open items carried forward.
+
+### Carry-forwards from Epic 4
+
+- Epic 5: read `task_state` (`blocked`, `overdue`, `stale_unaccepted`, `is_delegated`, `is_pending`, `has_problem`, `obsolete`) and Proposed Tasks for *Needs you*; the needs-attention list uses `stale_unaccepted`; decision cards come from open Decision Tasks owned by the viewer.
+- Epic 6: AI-sourced Proposed Tasks call `tasks_propose` and reuse the *Review ✦* step; `status-note` must skip Tasks and notes that came from guest needs, and no allergy, food or hotel text may reach a prompt (AD-11).
+- Epic 8: add `source_guest_request_id` to `tasks` with its `ON DELETE SET NULL`, route `tasks_set_status(done)` to `guests_publish_result`, and add `tasks_purge_guest`.
+- Epic 7: Event deletion and guest removal keep going through `guests_delete_guest_data`; every FK added here is `ON DELETE CASCADE` or `SET NULL`.
+- Open against AD-2 and AD-5: how `tasks_*` functions write tables `authenticated` cannot write, and whether `tasks_create` joins the AD-2 list; settle with `bmad-correct-course` before Story 4.1 is built.
+
+## Epic 5: Dashboard and Timeline
+
+An Organizer, or any Role-holder within their scope, can see the state of the Event at a glance (what needs them, what is at risk, what is on track) and read the Event as one swimlane per Role on the Timeline.
+
+**Epic-wide conventions (apply to every story below):**
+
+- Everything is read through `task_state` and the Event's Roles under the viewer's own session and RLS; no story in this epic uses `SUPABASE_SECRET_KEY`, adds a stored column for order or state, or adds a table (AD-3, AD-13).
+- A Role-holder never receives Task data from a Role they do not hold. Every lane of an active Role is shown to everyone on the Team with the Role's name, holders (with "Invite pending" marked) and lead, which is already visible on Team & Roles (Story 3.10); a lane the viewer cannot read shows "Tasks in {Role} are visible to its team." and nothing else.
+- Dates and "today" are computed on the server in the Event's time zone, never from the viewer's browser clock (Conventions).
+- Obsolete and dismissed Tasks are hidden by default; obsolete ones appear only behind *Show obsolete (n)*, and Proposed Tasks never count as Tasks in any total, lane or bar (Stories 4.12–4.14).
+- Status is never colour alone: each state keeps its icon and word from the single vocabulary (UX-DR4); every screen works at 375px, at 320 CSS px reflow, with a final-shape `Skeleton`, a *Retry* card on failure and a visible focus ring (UX-DR24, UX-DR25, NFR5, NFR6).
+- Guest-facing numbers (RSVP status, the pie chart) are Epic 7; this epic reserves the place and shows only what exists.
+
+### Story 5.1: Dashboard sections and scope
+
+As an Organizer or Role-holder,
+I want the Event's Tasks sorted by what needs me,
+So that I do not have to read every Task to know what to do next.
+
+**Acceptance Criteria:**
+
+**Given** the Tasks the viewer can read
+**When** `classifyDashboard(tasks, viewer)` runs
+**Then** it returns the three sections in the fixed order *Needs you*, *At risk* and *On track*, and each Task appears in exactly one, the highest one that matches, with its secondary flags (blocked, waiting, Problem) kept on the row, so the section counts add up with no double counting (UX-DR8)
+**And** a Vitest test covers a Task that is at once overdue, blocked and has a Problem, and shows it once under *Needs you*.
+
+**Given** the viewer is the Organizer
+**When** the sections are built
+**Then** *Needs you* holds, in this order, open Decision Tasks they own, open Problems in any Role, Proposed Tasks in any Role, overdue Tasks in any Role, and Tasks not accepted for more than 48 hours (`stale_unaccepted`), each group by soonest deadline, then title (FR19, FR8, FR9)
+**And** open Decision Tasks owned by someone else appear under *At risk* as "Waiting on {name}", not as an action.
+
+**Given** the viewer is a Role lead
+**When** the sections are built
+**Then** the same rules apply to their own Role only for Problems, Proposed Tasks, overdue and stale Tasks, plus everything they own personally
+**And** a plain holder sees only Tasks they own, and a Task owned by someone else is never in their *Needs you* (FR2).
+
+**Given** any owner, including a holder
+**When** a Task is delegated to them and not yet accepted
+**Then** it shows under their own *Needs you* straight away as "Not yet accepted", so a first-time Role-holder meets their Task first (UJ-1, NFR12).
+
+**Given** *At risk*
+**When** it is built
+**Then** it holds waiting-on-external Tasks first, then blocked Tasks, each by soonest deadline, and *On track* holds the remaining active Tasks summarised per Role (done, open, overdue) rather than listed
+**And** Tasks in an inactive Role are counted for the Organizer only, and never listed under a holder (Story 4.1).
+
+**Given** the viewer's session
+**When** pgTAP queries `task_state`
+**Then** a holder of one Role, a holder of another Role, a Guest-only user and an anonymous caller each receive only the rows RLS allows, and none receives a Proposed Task they may not see (NFR1)
+**And** the function is pure, takes the viewer's id and Role leads as input, and is the only place the section rules live.
+
+### Story 5.2: Dashboard: Needs you
+
+As an Organizer or Role-holder,
+I want the Dashboard to open on what needs me, with each item one step from action,
+So that I can clear what is mine in a minute.
+
+**Acceptance Criteria:**
+
+**Given** an Event
+**When** I open it
+**Then** the Dashboard is the Event's landing page, replacing the interim home of Story 2.4 and *My tasks* as the landing page for the Organizer, and it is the sidebar item *Dashboard* with `aria-current="page"` (UX-DR5, UX-DR8)
+**And** a viewer with no access, including a Guest-only user, sees "You don't have access to this part of the event." and no data (UX-DR24).
+
+**Given** *Needs you* has items
+**When** it renders
+**Then** the section is an `h2` with a count pill, an open Decision Task is shown first as the Decision card, the only lifted element on the screen, with *Decide* opening the Decision page (UX-DR10), and Problems, ✦ Proposed Tasks, overdue and not-yet-accepted rows follow in the order of Story 5.1
+**And** each row is the Task row of UX-DR11 and opens Task detail, and a Proposed Task row has ✓ and ✕ from Story 4.14 working in place.
+
+**Given** a Problem row
+**When** it renders
+**Then** it shows a flag icon, the words "Problem reported" and a note excerpt, visibly different from the grey Blocked state (UX-DR4)
+**And** an overdue row says "Overdue N days" with icon and word.
+
+**Given** nothing needs the viewer
+**When** the section renders
+**Then** it collapses to one quiet line, "Nothing needs you right now.", and is not hidden.
+
+**Given** a row that changes while the page is open
+**When** I act on a row that has moved (for example, someone else already resolved it)
+**Then** the action returns `concurrent_edit`, a toast says so and the page refreshes to the new state, and no action runs twice on a double click (UX-DR24, Story 4.1)
+**And** after any action the page revalidates so counts and sections match the database.
+
+**Given** the page loads
+**When** data is pending or fails
+**Then** a `Skeleton` in the final layout shape is shown, and a failure shows the *Retry* card with `role="alert"` (UX-DR24)
+**And** `document.title` is "Dashboard – {Event} – Arrangly" and focus moves to the `h1` (UX-DR25).
+
+### Story 5.3: Dashboard: At risk and On track
+
+As an Organizer,
+I want to see what is slipping and how each area is going,
+So that I can state the Event's status without asking anyone.
+
+**Acceptance Criteria:**
+
+**Given** *At risk* has items
+**When** it renders
+**Then** each waiting row shows "Waiting on external" with the note excerpt and each blocked row shows "Waits for: {blocker}" with the Blocked tint, never red and never colour alone, soonest deadline first (UX-DR4, UX-DR8)
+**And** the section shows a count pill "N at risk" and collapses to a quiet line when empty.
+
+**Given** *On track*
+**When** it renders
+**Then** it shows one summary row per active Role with counts for done, open and overdue, the Role lead and holders, and a link into that Role's Tasks, plus the number of Guests added so far (FR19)
+**And** a Role whose Tasks the viewer cannot read still shows its name, holders, lead and counts that RLS allows, and never a count that would reveal its Tasks, so a holder of another Role sees "Tasks in {Role} are visible to its team."
+
+**Given** the place reserved for guest numbers
+**When** the Dashboard renders before Epic 7 exists
+**Then** it shows "N guests added" with no RSVP split, no chart and no empty placeholder, and Epic 7 replaces the line with the RSVP summary and pie chart (carry-forward)
+**And** no Guest names or food data are read by this page (NFR2).
+
+**Given** the Organizer
+**When** they read the Dashboard alone
+**Then** they can state how many Tasks are done, overdue, blocked, flagged with a Problem, not yet accepted and waiting on a decision, which is checked against SM-5 in Story 5.9 (FR19).
+
+**Given** Tasks in an inactive Role
+**When** the Organizer views *On track*
+**Then** a line "N tasks belong to inactive Roles" links to Team & Roles, and a holder never sees it (Story 2.5).
+
+**Given** a cancelled, past or draft Event
+**When** the Dashboard opens
+**Then** a cancelled Event is read-only with "Event cancelled", a past Event shows its last state read-only, and a draft shows the publish banner of Story 5.4, with no section left blank without an explanation (UX-DR24).
+
+### Story 5.4: Dashboard housekeeping
+
+As an Organizer,
+I want the publish banner, dismissed suggestions and a Role-holder landing in one place,
+So that the Dashboard is complete for every kind of visitor.
+
+**Acceptance Criteria:**
+
+**Given** an unpublished Event
+**When** the Organizer opens the Dashboard
+**Then** the top banner reads "Only your team can see this event. Publish to send invitations." with *Publish*, and it disappears after publishing (UX-DR8, Story 2.8)
+**And** the *Publish* button reuses the existing confirmation and idempotent `events_publish`.
+
+**Given** dismissed Proposed Tasks
+**When** I choose *Show dismissed (n)* under *Needs you*
+**Then** they list with *Restore*, which returns each one to `proposed` through the Story 4.14 function with an Undo toast, and focus moves to the restored row's ✓ (UX-DR8, UX-DR9)
+**And** the link is absent when none are dismissed.
+
+**Given** a joined Role-holder who is not the Organizer
+**When** they open the Event
+**Then** the Dashboard is their landing page with their own Tasks at the top of *Needs you*, replacing *My tasks* as the landing page from Story 4.9, and *My tasks* stays in the sidebar (UX-DR5)
+**And** a Playwright check covers join → Dashboard → their Task is first → Accept (UJ-1, Role-holder part).
+
+**Given** a person who is both Guest and Role-holder in the same Event
+**When** they open the Event
+**Then** one card opens the Dashboard, and a "Your invitation" card appears at the top until they answer, shown once Epic 7 provides it (UX-DR27)
+**And** this story only reserves the slot.
+
+**Given** a revoked Role-holder or a cancelled Event
+**When** they use the Dashboard
+**Then** the role-revoked `role="alert"` toast and redirect of Story 3.9 still apply, and a cancelled Event offers no *Publish* or action buttons.
+
+### Story 5.5: Event cards show state
+
+As an Organizer or Role-holder,
+I want my events on *All events* to show what is open and what is urgent,
+So that I can see which event needs me before I open it.
+
+**Acceptance Criteria:**
+
+**Given** *All events*
+**When** it loads
+**Then** one grouped query over `task_state` returns, for every Event the viewer can see, the viewer's Open count (their own open Tasks), New count (owned and not yet accepted, as in Story 4.9, so it does not clear on opening, which departs from the UX text and is recorded here), overdue count, and the number of decisions addressed to them, with an index on `(event_id, owner_user_id)` so the page makes one query, not one per card (UX-DR6)
+**And** a Vitest or SQL test with 50 events asserts the query count stays constant.
+
+**Given** a card
+**When** it renders
+**Then** the count circle is Open, the badge is New, and when Urgent is above zero it shows the urgent state with "N overdue" or "N need you", otherwise when At risk is above zero it shows the at-risk state with "N at risk" (UX-DR6)
+**And** the card remains one link whose accessible name includes name, date, role, open, overdue and new counts, for example "Lucas's 40th, Sat 24 Oct, Organizer, 3 open tasks, 1 overdue, 1 new task".
+
+**Given** a cancelled or past Event
+**When** its card renders
+**Then** it shows no counts, only "Cancelled" or its place under *Past events* (Story 2.4).
+
+**Given** a guest-only card
+**When** it renders
+**Then** it keeps the RSVP state from Epic 7, and this story changes nothing for it
+**And** a viewer sees counts only for Tasks RLS lets them read (pgTAP).
+
+**Given** a viewer with no events
+**When** the page loads
+**Then** the "Let's plan something." empty state is unchanged.
+
+### Story 5.6: Timeline computation
+
+As a Team member,
+I want the Timeline computed from the current Tasks every time it is opened,
+So that it always matches the plan and never shows a stale order.
+
+**Acceptance Criteria:**
+
+**Given** `computeTimeline(roles, tasks, event, today)`
+**When** it runs
+**Then** it returns one lane per active Role, sorts each lane topologically by dependency, breaks ties by deadline, then `created_at`, then id so repeated calls give the same order, and nests each Subtask inside its parent (AD-13, FR20)
+**And** no table or column stores the order, and a pgTAP test shows no such column exists.
+
+**Given** a lane
+**When** a Task's bar is computed
+**Then** it ends at the Task's deadline and starts at the latest deadline among its dependencies, or at its `created_at` date when it has none, with at least one day of width and a one-day marker on the deadline when the start would come after the end (T1)
+**And** a Task with a Decision Task point is shown as a point before the decision is made, filled while open and outline once resolved (UX-DR15).
+
+**Given** the lane list
+**When** the Event has two active Roles with no Tasks and one inactive Role with Tasks
+**Then** exactly two lanes are returned, each tagged empty, and the Tasks of the inactive Role are counted separately for a quiet "N tasks belong to inactive Roles" line shown to the Organizer only (FR20)
+**And** a Vitest test asserts lane count equals active Role count in every case.
+
+**Given** a lane the viewer cannot read
+**When** the function receives only the Roles' public details
+**Then** it returns that lane with its Role name, holders and lead and no Task data, and a test proves no Task title, deadline or id from another Role is present in the result.
+
+**Given** a dependency cycle, which Story 4.3 makes impossible
+**When** the function meets one anyway
+**Then** it falls back to deadline order for that lane, terminates, and logs only the Event and Role ids
+**And** a Vitest test forces a cycle and asserts it terminates.
+
+**Given** obsolete Tasks
+**When** the caller does not ask for them
+**Then** they are omitted, and with the option they appear marked obsolete, never removed from the data, and dismissed and Proposed Tasks never appear (FR11)
+**And** a Vitest test covers 300 Tasks across 12 Roles in one pass, and the data is loaded in two queries, one for Roles and one for Tasks and their dependencies, with no per-Task query.
+
+**Given** the axis
+**When** the range is computed
+**Then** it runs from the earliest bar start to the later of the latest deadline and the Event's end, in the Event's time zone, so a two-year-ahead Event and Tasks after the Event are both reachable
+**And** "today" is the Event-zone date, tested around midnight and a daylight-saving change.
+
+### Story 5.7: Timeline: swimlane view
+
+As a Team member,
+I want the Event drawn as one lane per Role,
+So that I can see the order of work and where it will clash.
+
+**Acceptance Criteria:**
+
+**Given** *Timeline* in the sidebar
+**When** I open it on desktop
+**Then** the page shows a sticky Role column with the Role name, holders (with "Invite pending" marked) and lead, 112px lanes, a 24px-per-day axis with Monday week labels, Task bars styled per status with icon and word, a today line and an Event-day column, with a 48px edge fade where it scrolls (UX-DR15)
+**And** weeks across a year boundary and both locales are labelled correctly, tested with Vitest.
+
+**Given** a lane of a Role I do not hold
+**When** it renders
+**Then** the Role column is shown in full and the lane body says "Tasks in {Role} are visible to its team.", with no bars and no counts
+**And** the same lane shows its bars to the Organizer and to its own holders.
+
+**Given** a Task bar
+**When** I click or press Enter on it
+**Then** the Task detail opens, and long titles are truncated in the bar while the link keeps the full name "{title}, {dates}, {status}, waits for {x}" (UX-DR15, UX-DR25)
+**And** blocked Tasks are visibly different from unblocked ones, nested Subtasks sit inside their parent's position, and obsolete Tasks are hidden unless *Show obsolete (n)* is on, kept in the URL so it survives a reload.
+
+**Given** the scroll area
+**When** a keyboard or screen-reader user reaches it
+**Then** it is `role="region"` with `aria-label="Timeline"` and `tabindex="0"`, each lane is a labelled list in order, and focus on a Task scrolls it into view
+**And** the page is read-only, with no drag and drop and no hover-only affordance (UX-DR15, UX-DR23).
+
+**Given** a Timeline with many days
+**When** it spans two years
+**Then** it scrolls horizontally without breaking layout and a *Jump to today* control is available
+**And** a Playwright check opens the flagship Timeline and clicks a Task.
+
+**Given** loading, failure and no Tasks
+**When** the page renders
+**Then** it shows a final-shape `Skeleton`, a *Retry* card on failure and "The timeline fills in as tasks are added." with *New task* for those who may create one (UX-DR24)
+**And** a cancelled or past Event still renders read-only.
+
+### Story 5.8: Timeline: List view
+
+As a Team member on a phone,
+I want the same plan as a plain list,
+So that I can read it on a small screen and with assistive technology.
+
+**Acceptance Criteria:**
+
+**Given** the view toggle
+**When** I choose *List*
+**Then** the same data from `computeTimeline` is shown as grouped task rows, one group per active Role, in the same order, nested Subtasks under their parent, and the toggle state is part of the URL (UX-DR15)
+**And** it is the default below 768px and remains available on desktop.
+
+**Given** a phone at 375px and 320 CSS px reflow
+**When** the List view renders
+**Then** there is no horizontal scrolling, long titles wrap, tap targets are at least 44×44px and every Task row opens its detail (NFR5, NFR6, UX-DR3)
+**And** this meets WCAG 1.4.10 for the Timeline as a whole.
+
+**Given** each Role group
+**When** it renders
+**Then** it has a heading, the lead and holders, and an empty group says "No tasks in this Role yet", with a group for a Role the viewer cannot read saying "Tasks in {Role} are visible to its team." and nothing more
+**And** Decision points are listed with "Needs a decision" or "Decided" as words plus icon.
+
+**Given** a status or Role is conveyed
+**When** the row renders
+**Then** it uses icon and word, never colour alone, and screen readers hear the same "{title}, {dates}, {status}, waits for {x}" name as in the lane view (UX-DR4, UX-DR25).
+
+**Given** the Organizer
+**When** Tasks belong to an inactive Role
+**Then** a line says how many with a link to Team & Roles, and a holder never sees it.
+
+### Story 5.9: Flagship check
+
+As the Organizer of the flagship event,
+I want the whole Dashboard and Timeline proven on the 40th-birthday scenario,
+So that I know I can state its status without asking anyone.
+
+**Acceptance Criteria:**
+
+**Given** `supabase/seed.sql`
+**When** it is loaded
+**Then** it holds the flagship Event with its Roles, a Task graph covering done, overdue, blocked, waiting, a Problem (the bar-staff case), a not-yet-accepted Task, an open Decision Task and a Proposed Task, and nothing in it names a real person (AD-15)
+**And** pgTAP runs against it in CI.
+
+**Given** the seeded Event
+**When** a Playwright test signs in as the Organizer
+**Then** the Dashboard shows each state in the right section, a Decision card first, and the Organizer can read the counts of done, overdue, blocked, Problem, not accepted and awaiting decision without opening a Task (UJ-1, SM-5)
+**And** it also opens the Timeline, finds one lane per active Role, and opens a Task from a bar.
+
+**Given** the same Event
+**When** a Role-holder signs in
+**Then** the Dashboard shows their Tasks first, their Role's lane with bars, every other lane without Task data, and Playwright asserts no other Role's Task title appears anywhere on the page (NFR1, UJ-1)
+**And** the first-time Role-holder path is timed in a manual script and noted against SM-3 and NFR12.
+
+**Given** CI
+**When** a change breaks a section rule, the lane count or the no-leak check
+**Then** the Vitest, pgTAP or Playwright test fails, with AI in fixture mode (NFR9)
+**And** the epic summary lists FR19 (team) and FR20 covered and the carry-forwards below.
+
+### Carry-forwards from Epic 5
+
+- Epic 7: replace "N guests added" on *On track* with the RSVP summary (invited, accepted, declined, not answered) as a pie chart with an accompanying table (never colour alone, WCAG), and add the "Your invitation" card for a Guest who is also a Role-holder; the Guests tab remains Epic 7.
+- Epic 7 and 8: guest-card state on *All events* stays Epic 7; nothing in Epic 5 reads Guest data.
+- Epic 10: notification links and badges must open the Dashboard or the relevant Task.
+- Epic 11: the flagship seed and the Dashboard/Timeline Playwright tests are part of the launch run; a performance check with 300 Tasks is recorded.
+- Out of this epic, noted for later: letting every Role-holder read other Roles' Tasks, which the Organizer asked about and which would change FR2, NFR1 and AD-3, is a `bmad-correct-course` item, not a story here.
