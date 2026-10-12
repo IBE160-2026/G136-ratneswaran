@@ -73,3 +73,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** Kuttliste og Target-rekkefølge basert på faglærerens tilbakemelding. Under analysen fant KI fem avhengigheter forslaget ikke hadde sett: invitasjon og engangskode gikk via e-post-outboxen (3.6, 3.7), varsler ved avlysning og delegering (3.10, 4.5), og at ingen kunne godta en delegert oppgave når godta-trinnet (4.6) flyttes ut, slik at eieren aldri kunne endre status (4.4, 4.9). KI anbefalte funksjonsstopp 8. desember med buffer til 13.
 **Min vurdering:** Godtatt med egne valg. E-post ut av Core, tidslinjen beholdes. Jeg valgte funksjonsstopp 15. desember i stedet for KI-ens anbefaling, med README-test før stoppen som risikodemping.
 **Spor:** `_bmad-output/planning-artifacts/sprint-change-proposal-2026-10-12.md`, PR for `plan/core-scope`
+
+## 2026-10-12 — Epic 6 (AI-assistent, Target 1) skrevet uten elicitation
+
+**Prompt:** «Target epicsene kan du i første omgang kjøre uten Elicitation og ta utgangspunkt i at jeg støtter anbefalingene som gis.» (Kjørt over natten mens jeg sov.)
+**KI foreslo:** Sju stories: bruksregister og `ai_reserve`, gateway i TypeScript med fixtures og fallback, forslag fra beskrivelse, gjennomgang og ny kjøring, forslag fra statusnotat, ✦ utkast til e-post (Target 4) og en AI-sjekk i CI. KI fant at AD-9 (`ai_reserve` må se `auth.uid()`) og AD-5 (revoke fra `authenticated`) motsier hverandre, og satte det opp som et åpent `bmad-correct-course`-punkt i stedet for å la en story omgå reglene. Forslag fra statusnotat fikk i tillegg en ordliste som stopper kall når notatet nevner allergi, mat eller hotell.
+**Min vurdering:** Ikke vurdert ennå; anbefalingene er lagt inn som standardvalg og må gjennomgås av meg i PR-en. Jeg bekrefter eller endrer: språk på forslag (Event-språket), `status-note` som Target 1 og ordlisten som sikkerhetsnett.
+**Spor:** `epics.md` › Epic 6, branch `plan/epic-6-ai-assistant`
