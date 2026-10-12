@@ -43,6 +43,7 @@ Large-scale event producers and generic-PM-tool seekers — see §5 Non-Goals.
 - **Resolution:** Session ends with a populated event, an assigned team, and pending guest RSVPs — nothing left in her head alone.
 - **Edge case:** If she skips the venue question in the questionnaire, "book a venue" becomes an AI-suggested task rather than a silent gap.
 - **Day-of edge case:** A week before the event, Sheila reports a Problem on *Bar staff* ("Ola broke his arm, one bartender short"). It lands red in Leah's Dashboard; she sends an Announcement to the whole Team asking for volunteers, Kari taps *I can help*, and Leah assigns her the Task.
+- **Core path:** the Organizer adds Tasks by hand and shares invitation links; AI-proposed Tasks (UJ-1) and the Accept step and option search (UJ-2) arrive with Target 1–2.
 
 **UJ-2. Stine gets help on the venue task and escalates the decision.**
 - **Persona + context:** Stine, assigned the venue task, already knew it was coming.
@@ -51,6 +52,7 @@ Large-scale event producers and generic-PM-tool seekers — see §5 Non-Goals.
 - **Climax:** ~30 minutes later, Leah's decision comes back (hotel, with the rooftop bar as fallback) plus a new task (book 8 single + 2 double rooms) spawned by that decision. Arrangly flags the venue-confirmation task as a priority since other tasks depend on it.
 - **Resolution:** Stine opens the task, accepts an AI-drafted outreach email (date, headcount, occasion) opened in her own mail client, sends it, and sets status to *Waiting on external* with the note "Asked hotel, waiting for reply."
 - **Edge case:** If Leah had picked the rooftop bar instead, no room-booking task would ever have spawned — the Decision Task's outcome only creates a Task for the chosen path. If Stine had instead pre-created a Task tied specifically to the hotel option in advance (e.g. drafting a room list early, before Leah decided), that Task would be marked obsolete rather than deleted once the rooftop bar was chosen.
+- **Core path:** the Organizer adds Tasks by hand and shares invitation links; AI-proposed Tasks (UJ-1) and the Accept step and option search (UJ-2) arrive with Target 1–2.
 
 **UJ-3. Chris RSVPs and gets a need turned into a task without asking anyone.**
 - **Persona + context:** Chris, a business partner of Lucas's, received an invite link by email.
@@ -59,6 +61,7 @@ Large-scale event producers and generic-PM-tool seekers — see §5 Non-Goals.
 - **Climax:** On submit, Arrangly confirms he's on the list and that details (location, timing) will follow — while behind the scenes, his freeform note becomes a proposed task on the dashboard of whoever owns guest welfare.
 - **Resolution:** Once that task is confirmed and later marked done, the resulting taxi info automatically appears on Chris's own guest dashboard — he never has to chase it. Later he sends a request ("Can we bring our baby?") and Leah's one reply appears under it.
 - **Edge case:** If Chris doesn't respond at all, the organizer can trigger a manual reminder from the guest list rather than the system nagging him automatically.
+- **Core path:** Chris opens the personal link the Organizer shared and RSVPs with plus-one and allergies; turning his note into a Task and the manual reminder arrive with Target 3–4.
 
 **Scope dial used:** Heavier — auth (three distinct identity models), multi-surface navigation (dashboard, timeline, task detail, guest view), and everything here feeds UX and architecture directly.
 
@@ -371,23 +374,27 @@ A full compliance program (records of processing, data processing agreements, DP
 
 ### 6.1 In Scope (Core)
 
-- Accounts & RBAC: FR-1, FR-2, FR-3
-- Event setup: FR-4, FR-5 (link/manual only), FR-6
-- Team & tasks: FR-7 through FR-12 (obsolete-marking limited to pre-created option-specific tasks; no general branch tree)
-- Task execution support: FR-13 (manual venue-option entry), FR-14 (AI-drafted communication)
-- Guest experience: FR-15 through FR-18
+- Accounts & RBAC: FR-1, FR-2, FR-3 (invitations are links the inviter shares; no application email)
+- Event setup: FR-4, FR-5 (link/manual only). Tasks are created by hand; AI task suggestions (FR-6) are Target 1.
+- Team & tasks: FR-7, FR-8 (manual states, computed Blocked and Overdue), FR-9, FR-12 (delegation and its history)
+- Task execution support: FR-13 (manual venue-option entry)
+- Guest experience: FR-15, FR-18
 - Organizer dashboard & timeline (static, sequential, non-branching, horizontally scrollable): FR-19, FR-20
-- Announcements & notifications: FR-21 (flat feed, no threading; *Ask for volunteers*), FR-23 (in-app, email, web push)
-- Landing page & Run of Show: FR-22 (incl. ✦ AI-drafted About)
 - Norwegian + English localisation (§4.9)
 
-Added to Core by the UX pass (2026-09-29): Landing page (was Target), Role lead, Accept step, Problem flag, guest requests with one reply, volunteer announcements, web push, localisation, and the AI-drafted About. The due date moved to 2026-12-20 in the same period.
+Core sends no application email. Supabase Auth's own emails (one-time codes, confirmations, password resets) are the only email in Core.
 
-`[NOTE FOR PM]` These additions grew Core by more than the 20 extra days cover. If Core slips, move to Target in this order: web push (FR-23 keeps in-app + email), then the *I can help* volunteer response (FR-21 keeps plain announcements), then the AI-drafted About (FR-22 keeps a manual editor). Each cut leaves its FR working.
+Re-scoped 2026-10-12 (`sprint-change-proposal-2026-10-12.md`) to a Core one developer can finish and stabilise before the feature freeze on 2026-12-15. Everything moved out stays specified in §6.2 and is built in that order once Core is stable.
 
 ### 6.2 Out of Scope for MVP
 
-**Target — build if Core is stable:**
+**Target, in build order:**
+1. AI task suggestions: FR-6, with Proposed Tasks from questionnaire gaps.
+2. Accept step and 48-hour rule (FR-8/FR-12), Problem flag (FR-8), Decision Tasks and obsolete-marking (FR-10, FR-11).
+3. Application email and notifications: the outbox, in-app/email/web push channels (FR-23), announcements with *Ask for volunteers* (FR-21), manual guest reminder (FR-17), and emailed invitations.
+4. Guest requests with one reply (FR-16), Landing page with Run of Show and AI-drafted About (FR-22), AI-drafted external communication (FR-14).
+
+**Target — after step 4, build if Core is stable:**
 - Bulk guest-list import via file upload (`.xls`/`.csv`) — deferred from FR-5; manual/link entry covers Core.
 - AI-populated venue search (deferred from FR-13) — auto-suggesting candidates from an external venue/places source within a radius. Per feasibility review, real venue APIs don't expose a structured capacity field, so even here this ships as best-effort, LLM-inferred, clearly-flagged-as-approximate information — never a reliable capacity filter. Core's manual entry (FR-13) is not a placeholder for this; it may remain the better path permanently.
 - AI backward-planned timeline with dependencies and lead times (from the brief; builds on FR-20's sequential timeline).

@@ -79,11 +79,11 @@ NFR5 (PRD §5): Web only, not a native app. The Guest side must be usable at 375
 
 NFR6 (EXPERIENCE.md): WCAG 2.2 AA on every surface, including reflow at 320 CSS px / 400% zoom with no two-way scrolling, keyboard support, visible focus ring, status never conveyed by colour alone, and live-region rules.
 
-NFR7 (FR23, AD-7): Notifications are immediate with no time-based grouping; at most one notification per recipient per user action; payloads hold IDs and i18n keys only.
+NFR7 (FR23, AD-7): Notifications are immediate with no time-based grouping; at most one notification per recipient per user action; payloads hold IDs and i18n keys only. **Target 3** (ships with the outbox).
 
-NFR8 (AD-8, AD-10): Email delivery is paced (at most 20 per minute and 400 per day); rows over the cap stay queued and are shown to the Organizer as "x queued"; delivery retries up to 5 attempts, then is marked failed.
+NFR8 (AD-8, AD-10): Email delivery is paced (at most 20 per minute and 400 per day); rows over the cap stay queued and are shown to the Organizer as "x queued"; delivery retries up to 5 attempts, then is marked failed. **Target 3** (ships with the outbox).
 
-NFR9 (AD-16, SM-1): Quality gates. Every RLS policy, grant and SQL function has a pgTAP test proving one allow and one deny; Vitest covers branching TS logic; Playwright covers UJ-1, UJ-2, UJ-3 and the Google account-upgrade flow with AI in fixture mode; all three run in GitHub Actions against local Supabase on every push.
+NFR9 (AD-16, SM-1): Quality gates. Every RLS policy, grant and SQL function has a pgTAP test proving one allow and one deny; Vitest covers branching TS logic; Playwright covers the Core paths of UJ-1, UJ-2 and UJ-3 and the Google account-upgrade flow with AI in fixture mode; all three run in GitHub Actions against local Supabase on every push.
 
 NFR10 (AD-21, AD-4): Abuse resistance on public endpoints: rate limits of 5 per minute per IP, 3 per hour per email or token and 10 guest requests per Guest per day; 256-bit invite tokens stored hashed, compared in constant time, revocable.
 
@@ -91,7 +91,7 @@ NFR11 (SM-1): The flagship scenario (40th birthday, 80 guests: venue, dinner, sp
 
 NFR12 (SM-3, SM-4, SM-5): Usability targets. A first-time Role-holder finds their Tasks and understands what is expected within about a minute; a Guest can RSVP, add a plus-one and register allergies without creating an account; the Organizer can state the Event's status from the Dashboard alone.
 
-NFR13 (PRD §6.1, FR8): Release scope fallback. Status changes are timestamped (FR8), and if Core slips the cut order is web push, then the *I can help* volunteer response, then the AI-drafted About. Each cut must leave its FR working.
+NFR13 (PRD §6): Release scope. Core is fixed by `sprint-change-proposal-2026-10-12.md`; feature freeze 2026-12-15. Target is built in the order of PRD §6.2 only once Core is stable, and each Target step leaves every Core FR working.
 
 NFR14 (AD-20): Environment isolation. Vercel previews are protected and receive only the publishable key; AI runs in fixture mode and delivery happens only from production.
 
@@ -234,9 +234,9 @@ An Organizer can create an Event through the guided questionnaire, have Roles ac
 
 **FRs covered:** FR2 (activation), FR4, FR5 (entry)
 
-### Epic 3: Team and email
+### Epic 3: Team and invitations
 
-An Organizer can invite Role-holders by email, assign them to Roles, set a Role lead and change or revoke a Role, and every invitee joins through a secure invite link. The outbox that carries all of Arrangly's email, reliably and at a safe pace, is built here.
+An Organizer invites people to Roles with a link they share themselves, appoints a Role lead, changes or revokes access, and every invitee joins through a secure invite link; a Role-holder sees only their Role. Application email (outbox and delivery, Stories 3.1–3.4) is **Target 3**.
 
 **FRs covered:** FR2 (assign, lead, revoke), FR1 (Role-holder invite)
 
@@ -254,31 +254,31 @@ An Organizer, or any Role-holder within their scope, can see the state of the Ev
 
 ### Epic 6: AI assistant
 
-An Organizer gets a first set of Proposed Tasks from a one-sentence description, a Task owner gets Proposed Tasks from status notes and drafted outreach emails, and every AI call stays inside its cap with a fallback.
+**Target 1.** An Organizer gets a first set of Proposed Tasks from a one-sentence description, a Task owner gets Proposed Tasks from status notes and drafted outreach emails, and every AI call stays inside its cap with a fallback.
 
 **FRs covered:** FR6, FR14
 
 ### Epic 7: Guests: invitation, RSVP and Guest Dashboard
 
-A Guest opens a personal link, answers the RSVP without an account, and finds their answers and information on a Guest Dashboard. The Organizer sees RSVPs, food and hotel data on the Guests tab, can remind non-responders, and Guest data is deleted on request or 15 days after the Event.
+A Guest opens a personal link, answers the RSVP without an account, and finds their answers and information on a Guest Dashboard. The Organizer sees RSVPs, food and hotel data on the Guests tab, and Guest data is deleted on request or 15 days after the Event. Guests are invited by a personal link the Organizer copies, or by the shared Event link with the email verified by a Supabase Auth one-time code. The manual reminder (FR17) is **Target 3**.
 
 **FRs covered:** FR3, FR5 (sending), FR15, FR17, FR18, FR19 (Guests)
 
 ### Epic 8: Guest requests and resolved needs
 
-A Guest can describe a need or send a request at any time, and it reaches the Role that owns it as a Proposed Task. The Guest gets one reply, sees the result when the Task is done, and owning Roles are notified of late changes.
+**Target 4.** A Guest can describe a need or send a request at any time, and it reaches the Role that owns it as a Proposed Task. The Guest gets one reply, sees the result when the Task is done, and owning Roles are notified of late changes.
 
 **FRs covered:** FR16
 
 ### Epic 9: Landing page and Run of Show
 
-An Organizer drafts, edits and publishes the Event's Landing page, with an AI-drafted About and a Program built from the Tasks marked for guests. Guests see only the published version.
+**Target 4.** An Organizer drafts, edits and publishes the Event's Landing page, with an AI-drafted About and a Program built from the Tasks marked for guests. Guests see only the published version.
 
 **FRs covered:** FR22
 
 ### Epic 10: Announcements and notification channels
 
-An Organizer or Role-holder can send one-way announcements, optionally asking for volunteers, and every user chooses how they are reached: in-app, email or web push.
+**Target 3.** An Organizer or Role-holder can send one-way announcements, optionally asking for volunteers, and every user chooses how they are reached: in-app, email or web push.
 
 **FRs covered:** FR21, FR23
 
@@ -287,6 +287,29 @@ An Organizer or Role-holder can send one-way announcements, optionally asking fo
 The product runs in production with its own environment, secrets and email provider, has a backup routine, the flagship 40th-birthday scenario seeded, and all three journeys passing end to end in a production smoke test. A stranger can run it locally from the README alone, and the release states what shipped against what was planned.
 
 **FRs covered:** none new; closes SM-1 and NFR9
+
+## Release tiers
+
+Set by `sprint-change-proposal-2026-10-12.md`. Feature freeze: **2026-12-15**. Target is built in this order only once Core is stable.
+
+| Epic | Core | Target |
+| --- | --- | --- |
+| 1 Account and app shell | 1.1–1.9 | — |
+| 2 Event and guest list | 2.1–2.10 | — |
+| 3 Team and invitations | 3.5–3.10 | 3.1–3.4 → T3 |
+| 4 Tasks and decisions | 4.1–4.5, 4.7, 4.9 | 4.6, 4.8, 4.10–4.12 → T2; 4.13–4.14 → T1 |
+| 5 Dashboard and Timeline | 5.1–5.9 (Core items only, see the Epic 5 note) | — |
+| 6 AI assistant | — | T1 |
+| 7 Guests | invitation by link, RSVP, Guest Dashboard, data deletion | FR17 reminder → T3 |
+| 8 Guest requests | — | T4 |
+| 9 Landing page and Run of Show | — | T4 |
+| 10 Announcements and channels | — | T3 |
+| 11 Ready for launch | all | — |
+
+- **T1:** AI task suggestions (FR6) and Proposed Tasks from questionnaire gaps.
+- **T2:** Accept step and 48-hour rule, Problem flag, Decision Tasks and obsolete-marking.
+- **T3:** application email (outbox, delivery, pacing), notifications and channels, announcements, guest reminder, emailed invitations.
+- **T4:** guest requests, Landing page and Run of Show, AI-drafted external communication (FR14).
 
 ## Epic 1: Account and app shell
 
@@ -853,11 +876,13 @@ So that the list stays accurate.
 **Then** removal there goes through `guests_delete_guest_data`, which Epic 7 puts in place, and this story notes that handoff in code.
 
 
-## Epic 3: Team and email
+## Epic 3: Team and invitations
 
-An Organizer can invite Role-holders by email, assign them to Roles, set a Role lead and change or revoke a Role, and every invitee joins through a secure invite link. The outbox that carries all of Arrangly's email, reliably and at a safe pace, is built here.
+An Organizer invites people to Roles with a link they share themselves, appoints a Role lead, changes or revokes access, and every invitee joins through a secure invite link; a Role-holder sees only their Role. Application email (outbox and delivery, Stories 3.1–3.4) is **Target 3**.
 
 ### Story 3.1: Outbox and `notifications_emit`
+
+**Tier:** Target 3 — see Release tiers.
 
 As an Organizer,
 I want Arrangly's messages recorded in the same moment as the action that causes them,
@@ -888,6 +913,8 @@ So that nothing is lost and nothing is sent for something that didn't happen.
 **And** it records an `origin` (`production`, `preview` or `local`) supplied by the calling server code, so non-production rows can never be delivered (AD-20).
 
 ### Story 3.2: Delivery route and trigger
+
+**Tier:** Target 3 — see Release tiers.
 
 As an Organizer,
 I want queued messages picked up and delivered exactly once at a time,
@@ -924,6 +951,8 @@ So that email goes out without Server Actions sending it.
 
 ### Story 3.3: Email in the recipient's language
 
+**Tier:** Target 3 — see Release tiers.
+
 As a recipient,
 I want Arrangly's email in my own language,
 So that I understand it and can trust it.
@@ -953,6 +982,8 @@ So that I understand it and can trust it.
 **Then** a checklist covers custom SMTP and the raised Auth rate limit, and those emails stay outside the outbox (AD-10).
 
 ### Story 3.4: Retry, pacing and visible queue
+
+**Tier:** Target 3 — see Release tiers.
 
 As an Organizer,
 I want delivery to retry and keep a safe pace,
@@ -1008,23 +1039,24 @@ So that only the person I invited can join.
 ### Story 3.6: Invite someone to a Role
 
 As an Organizer,
-I want to invite a person to a Role by email,
+I want to invite a person to a Role with a link I share,
 So that they can start helping with the Event.
 
 **Acceptance Criteria:**
 
 **Given** Team & Roles
 **When** I enter a name and email, pick a Role and confirm the shown address
-**Then** a passwordless invitee user is created (secret key, AD-5), a pending membership and a `role_holder` token are created, and an email is queued through `notifications_emit` (FR1, FR2)
+**Then** a passwordless invitee user is created (secret key, AD-5), a pending membership and a `role_holder` token are created, and the invitation link is shown once with *Copy link* and the text "Send this link to {name}" (FR1, FR2)
 **And** only the Organizer can do this, proven by pgTAP.
 
 **Given** the same person is invited again to the same Role
 **When** I confirm
-**Then** `(role_id, user_id)` stays unique, the old token is revoked and a new link is sent (*Resend*).
+**Then** `(role_id, user_id)` stays unique, the old token is revoked and a new link is shown (*New link*).
 
 **Given** an invitation
 **When** I view the list
-**Then** it shows "Invite sent · not joined yet" with *Resend*, and "Couldn't deliver" with the option to correct the address and send again.
+**Then** it shows "Invited · not joined yet" with *New link* and *Correct email*
+**And** **Target 3:** with the outbox, the invitation is also emailed and the list gains "Couldn't deliver".
 
 **Given** a person already holding another Role
 **When** I add them to a second Role
@@ -1055,7 +1087,7 @@ So that I can see what is expected of me.
 
 **Given** I have no account
 **When** I continue
-**Then** my name and email are prefilled and locked, a one-time code is sent to that email, and I can only set a password after entering it, even though the token is valid (pre-account-takeover defence)
+**Then** my name and email are prefilled and locked, a one-time code is sent to that email by Supabase Auth (email OTP, never a magic link), and I can only set a password after entering it, even though the token is valid (pre-account-takeover defence)
 **And** the account creation form follows the Epic 1 password rules.
 
 **Given** my email already has an account
@@ -1069,7 +1101,7 @@ So that I can see what is expected of me.
 
 **Given** a used, revoked or expired link
 **When** I open it
-**Then** I see "This invite has already been used. Log in instead." or an expiry message with a way to request a fresh link, answered identically whether or not the email exists (AD-4).
+**Then** I see "This invite has already been used. Log in instead." or an expiry message telling me to ask the Organizer for a new link, and nothing on the page reveals whether the email has an account (AD-4).
 
 **Given** the flow
 **When** tests run
@@ -1156,7 +1188,8 @@ So that I can focus and the Organizer can trust the boundaries.
 
 **Given** the Organizer cancels or deletes the Event
 **When** the action commits
-**Then** a notification to `team(event)` is queued through the outbox, and the Event leaves the Team's lists, a notice the UX spec requires though FR23's list does not name it
+**Then** the Event leaves the Team's lists
+**And** **Target 3:** a notification to `team(event)` is queued through the outbox, a notice the UX spec requires though FR23's list does not name it
 **And** a Playwright test covers the team part of UJ-1.
 
 ## Epic 4: Tasks and decisions
@@ -1329,7 +1362,7 @@ So that the Organizer can see where things stand without asking.
 **Then** the status changes, a history row is written with a server timestamp and the optional note, and a repeat of the same status without a new note writes nothing
 **And** a holder who does not own the Task, and every holder of another Role, are denied (pgTAP).
 
-**Given** a delegated Task the owner has not yet accepted
+**Given** (**Target 2**) a delegated Task the owner has not yet accepted
 **When** the owner tries to change its status
 **Then** the call is refused with "Accept this task first", while the lead and the Organizer may still change it
 **And** until Story 4.6 only Role-owned Tasks exist, so this rule is exercised by a fixture row.
@@ -1368,7 +1401,8 @@ So that someone specific is responsible for it.
 
 **Given** an `active` Task
 **When** the Role lead or the Organizer calls `tasks_delegate(task, new_owner, expected_updated_at)`
-**Then** `owner_user_id` and `delegated_at = now()` are set, `accepted_at` is cleared, and a `delegated` log row is written
+**Then** `owner_user_id` and `delegated_at = now()` are set, `accepted_at = now()` in Core (delegation counts as accepted), and a `delegated` log row is written
+**And** **Target 2:** Story 4.6 changes this to clear `accepted_at` and adds the Accept step and the 48-hour rule
 **And** only the Organizer and that Role's lead may do it, and a non-lead holder, a holder of another Role and a Task's own owner (unless lead) are denied (FR2, pgTAP).
 
 **Given** the target person
@@ -1380,10 +1414,15 @@ So that someone specific is responsible for it.
 **When** it commits
 **Then** it is accepted at once, no notification is emitted, and no Accept step is asked of me.
 
-**Given** a delegation to someone else in a published Event
+**Given** (**Target 3**) a delegation to someone else in a published Event
 **When** it commits
 **Then** `notifications_emit` queues one `task_assigned` to the new owner in the same transaction, excluding the sender, and none is emitted in a draft Event (FR23, S7)
 **And** a double click delegates once and notifies once.
+
+**Given** a delegation in Core
+**When** it commits
+**Then** no notification is emitted, and the new owner sees the Task in *My tasks* and on the Dashboard
+**And** a double click delegates once.
 
 **Given** a Task that is `done`, `obsolete` or not `active`
 **When** I try to delegate it
@@ -1395,6 +1434,8 @@ So that someone specific is responsible for it.
 **And** a Playwright check covers lead delegating to a holder.
 
 ### Story 4.6: Accept a Task and the 48-hour rule
+
+**Tier:** Target 2 — see Release tiers.
 
 As a Role-holder,
 I want to accept a Task handed to me,
@@ -1459,6 +1500,8 @@ So that no Task is left with someone who no longer has access and no Role's work
 
 ### Story 4.8: Problem flag
 
+**Tier:** Target 2 — see Release tiers.
+
 As a Task owner,
 I want to flag that something has gone wrong with a note,
 So that the Organizer and my lead know before it becomes a surprise.
@@ -1504,7 +1547,7 @@ So that I understand what is expected of me within about a minute.
 
 **Given** a Role-holder or Organizer
 **When** I open *My tasks*
-**Then** I see the Tasks I own in one view with scope, deadline, dependencies, parent and Subtasks and status, "New" Tasks (not yet accepted) first, then by soonest deadline, plus a short list of who else is on the Team and who leads each Role (FR9, UX-DR11)
+**Then** I see the Tasks I own in one view with scope, deadline, dependencies, parent and Subtasks and status, "New" Tasks (not yet accepted, **Target 2**) first, then by soonest deadline, plus a short list of who else is on the Team and who leads each Role (FR9, UX-DR11)
 **And** obsolete Tasks sit behind *Show obsolete (n)* and dismissed Tasks are not listed.
 
 **Given** the *Not delegated* filter
@@ -1514,16 +1557,16 @@ So that I understand what is expected of me within about a minute.
 
 **Given** the sidebar item *My tasks*
 **When** it renders
-**Then** its badge counts New (owned and not yet accepted) plus Urgent (owned and overdue or with an open Problem), each Task once, with an accessible name that says what the number means (UX-DR5).
+**Then** its badge counts Urgent (owned and overdue) in Core, and from **Target 2** also New (owned and not yet accepted) and Tasks with an open Problem, each Task once, with an accessible name that says what the number means (UX-DR5).
 
 **Given** a joined Role-holder who is not the Organizer
 **When** they open the Event
 **Then** *My tasks* is their landing page until Epic 5's Dashboard replaces it, and the sidebar shows only what their Role can reach (Story 3.10)
-**And** a Playwright check covers join → open Event → see the assigned Task → Accept (UJ-1, Role-holder part).
+**And** a Playwright check covers join → open Event → see the assigned Task (UJ-1, Role-holder part); the Accept step is added by Story 4.6 (Target 2).
 
 **Given** the view `task_state`
 **When** this story is built
-**Then** a pgTAP test asserts it exposes every flag Epic 5 needs: `blocked`, `overdue`, `stale_unaccepted`, `is_delegated`, `is_pending`, `has_problem` and `obsolete`, so the Dashboard and Timeline add no stored state (P2)
+**Then** a pgTAP test asserts it exposes the Core flags Epic 5 needs: `blocked`, `overdue`, `is_delegated`, `is_pending` and `obsolete` (Stories 4.6 and 4.8 add `stale_unaccepted` and `has_problem` with their own assertions), so the Dashboard and Timeline add no stored state (P2)
 **And** a holder of another Role sees none of my Tasks through it.
 
 **Given** loading, failure and no Tasks
@@ -1531,6 +1574,8 @@ So that I understand what is expected of me within about a minute.
 **Then** it shows a final-shape `Skeleton`, a *Retry* card on failure, and a quiet empty state; it is usable at 375px and at 320 CSS px reflow, with focus moved to the `h1` (UX-DR24, UX-DR25, NFR6, NFR12).
 
 ### Story 4.10: Options on a Task and sending for decision
+
+**Tier:** Target 2 — see Release tiers.
 
 As a Role-holder,
 I want to list candidate options on a Task and send them to a named person to decide,
@@ -1574,6 +1619,8 @@ So that choices such as the venue reach the right person with the context they n
 
 ### Story 4.11: Decide and spawn follow-up Tasks
 
+**Tier:** Target 2 — see Release tiers.
+
 As the person asked to decide,
 I want to choose an option and create the next Task in the same step,
 So that the decision turns into work immediately.
@@ -1616,6 +1663,8 @@ So that the decision turns into work immediately.
 
 ### Story 4.12: Option-tied Tasks become obsolete, and decisions can change
 
+**Tier:** Target 2 — see Release tiers.
+
 As an Organizer,
 I want work prepared for an option that was not chosen to step aside without being lost,
 So that nobody keeps working on a path we dropped, and I can change my mind.
@@ -1653,6 +1702,8 @@ So that nobody keeps working on a path we dropped, and I can change my mind.
 
 ### Story 4.13: Proposed Tasks from questionnaire gaps
 
+**Tier:** Target 1 — see Release tiers.
+
 As an Organizer,
 I want a skipped question that matters to become a Proposed Task,
 So that an unknown never turns into a silent gap.
@@ -1684,6 +1735,8 @@ So that an unknown never turns into a silent gap.
 **Then** it is marked ✦, attributes its source in words ("From questionnaire · Venue · due {date}") and carries no AI text, since this story does not call AI (UX-DR9, UX-DR26).
 
 ### Story 4.14: Review Proposed Tasks
+
+**Tier:** Target 1 — see Release tiers.
 
 As an Organizer,
 I want to confirm, edit or dismiss each Proposed Task,
@@ -1726,6 +1779,8 @@ So that no suggestion becomes work unless I say so.
 ## Epic 5: Dashboard and Timeline
 
 An Organizer, or any Role-holder within their scope, can see the state of the Event at a glance (what needs them, what is at risk, what is on track) and read the Event as one swimlane per Role on the Timeline.
+
+**Core scope (`sprint-change-proposal-2026-10-12.md`):** Decision cards, Problems, ✦ Proposed Tasks and not-yet-accepted rows come from Target stories (4.6, 4.8, 4.10–4.14). Until those ship, the Dashboard renders and tests only Core items (overdue, blocked, waiting, done, open), shows no placeholder for the rest, and the flagship seed in 5.9 holds only Core states. Each Target story adds its row type, its seed rows and its assertions.
 
 **Epic-wide conventions (apply to every story below):**
 
@@ -2060,3 +2115,4 @@ So that I know I can state its status without asking anyone.
 - Epic 11: a story where someone who has never seen the project follows `README.md` from a fresh clone, with the steps that fail recorded and fixed; the README also lists the demo users from `seed.sql` (Organizer, Role-holder, Guest), links the production URL as a fallback, gives a folder overview with links to the planning documents, `docs/ki-logg.md` and `docs/testplan.md`, and has screenshots of the main views.
 - Epic 11: `docs/testplan.md` with the manual checks automation does not cover (email and web push delivery, keyboard and screen reader on the main flows, 320 px reflow, invalid and repeated input), each ticked with a date before launch.
 - Epic 11: a "Shipped vs planned" section in the README listing Core as delivered, Target and Stretch as not delivered, and any NFR13 cut with its reason and a link to the PRD.
+- Epic 7 (Core): per-guest *Copy link* and the shared Event link with the email verified by a Supabase Auth one-time code; the FR17 reminder is Target 3 (`sprint-change-proposal-2026-10-12.md`).

@@ -10,6 +10,8 @@ updated: 2026-10-02
 
 # Arrangly — Experience Spine
 
+> **Release scope (2026-10-12):** Core ships the flows for Organizer, Role-holder and Guest without application email: invitations show *Copy link*. Decision, Problem, Accept, Proposed-Task, announcement, notification and Landing-page patterns below are Target and appear only when their story ships. See PRD §6 and `sprint-change-proposal-2026-10-12.md`.
+
 ## Foundation
 
 - **Form factor:** multi-surface responsive web, not a native app (PRD §5). The **Organizer** plans mainly on **desktop**. **Role-holders** and **Guests** use it mainly on **phone**: design target 375px, reflow floor 320px.
