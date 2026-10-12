@@ -2736,7 +2736,7 @@ So that I can state the Event's guest status and the right people can act on it.
 
 **Given** a guest's email
 **When** any holder of a Role reads guest rows
-**Then** the email is never returned, because it lives in a Organizer-only `guest_contacts` table (name stays in `guests`), a pgTAP test proves `select email` is denied for each Role and allowed for the Organizer, and this changes Story 2.9, which is not built yet and adopts the split, while Story 3.10's "no Role-holder reads `guests`" becomes "no Role-holder reads contacts, and only the three owning Roles read the guest fields above"
+**Then** the email is never returned, because it lives in an Organizer-only `guest_contacts` table (name stays in `guests`), a pgTAP test proves `select email` is denied for each Role and allowed for the Organizer, and this changes Story 2.9, which is not built yet and adopts the split, while Story 3.10's "no Role-holder reads `guests`" becomes "no Role-holder reads contacts, and only the three owning Roles read the guest fields above"
 **And** this is recorded as a change to be settled with `bmad-correct-course` before Story 2.9 is built.
 
 **Given** RLS on `rsvps`, `guest_food` and `guest_hotel`
