@@ -33,7 +33,10 @@ check 0 "commit with trailer"        guard "$(bash_in $'git commit -m "chore: ti
 check 0 "flag only mentioned in text" guard "$(bash_in "echo 'never use --no-$(printf ver)ify' >> AGENTS.md")"
 check 2 "claude pushes main"         guard "$(bash_in 'git push origin main')"
 check 0 "main only in message text"  guard "$(bash_in $'git commit -F - <<X\nchore: hooks say never push main\n\nCo-Authored-By: C <n@a.com>\nX')"
-check 0 "non-git command"        guard "$(bash_in 'ls -la')"
+check 0 "git and commit only in text" guard "$(bash_in $'cat > notes.md <<X\nsession: building git hooks enforcing commit rules\nX')"
+check 0 "merge only in text"         guard "$(bash_in "echo 'never run gh pr $(printf mer)ge yourself' >> notes.md")"
+check 2 "commit after cd"            guard "$(bash_in 'cd repo && git -C . commit -m "chore: some change without the trailer"')"
+check 0 "non-git command"      guard "$(bash_in 'ls -la')"
 check 2 "edit database.ts"           guard '{"tool_name":"Edit","tool_input":{"file_path":"/x/src/types/database.ts"}}'
 check 2 "edit _bmad"                 guard '{"tool_name":"Write","tool_input":{"file_path":"/x/_bmad/config.toml"}}'
 check 0 "edit normal file"           guard '{"tool_name":"Edit","tool_input":{"file_path":"/x/src/app/page.tsx"}}'

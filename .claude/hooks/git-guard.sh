@@ -18,14 +18,17 @@ if [ "$tool" != Bash ]; then
 fi
 
 cmd=$(jq -r '.tool_input.command // empty' <<<"$input")
-grep -Eq '\bgh\b.*\bpr\b.*\bmerge\b' <<<"$cmd" && block "the owner merges every PR; never merge yourself."
+# A command is '<tool> …' at the start of a line or shell segment, so quoted text and messages never match.
+S='(^|[;&|(]\s*)'
+G="${S}git(\\s+-C\\s+\\S+)?\\s+"
+grep -Eq "${S}gh\\s+pr\\s+merge\\b" <<<"$cmd" && block "the owner merges every PR; never merge yourself."
 # ponytail: catches --no-verify only, not the short 'commit -n'; CI re-checks every commit message anyway.
-grep -Eq -- '\bgit\b.*\b(commit|push)\b.*--no-verify' <<<"$cmd" && block "never skip git hooks (--no-verify)."
-grep -Eq '\bgit\b.*\b(commit|push)\b' <<<"$cmd" || exit 0
-if [ "$branch" = main ] || grep -Eq '\bgit\b[^|;&]*\bpush\b[^|;&]*\bmain\b' <<<"$cmd"; then
+grep -Eq -- "${G}(commit|push)\b[^;&|]*--no-verify" <<<"$cmd" && block "never skip git hooks (--no-verify)."
+grep -Eq "${G}(commit|push)\b" <<<"$cmd" || exit 0
+if [ "$branch" = main ] || grep -Eq "${G}push\b[^;&|]*\bmain\b" <<<"$cmd"; then
   block "no commits or pushes to main. Create a branch (git switch -c feat/<story-id>-<slug>) and open a PR."
 fi
-if grep -Eq '\bgit\b.*\bcommit\b' <<<"$cmd" && ! grep -Eq '\-\-amend|--no-edit' <<<"$cmd"; then
+if grep -Eq "${G}commit\b" <<<"$cmd" && ! grep -Eq '\-\-amend|--no-edit' <<<"$cmd"; then
   # ponytail: reads the trailer from the command text, so 'commit -F <file>' must use a heredoc (-F -).
   grep -q 'Co-Authored-By:' <<<"$cmd" || block "every commit you author keeps the Co-Authored-By trailer (AGENTS.md Policy)."
 fi
