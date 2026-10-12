@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# commit-msg: enforce AGENTS.md › Traceability. Also run by CI on every PR commit.
+# Usage: commit-msg <file> [branch]   (branch defaults to the current one)
+subject=$(head -1 "$1")
+branch=${2:-$(git branch --show-current 2>/dev/null)}
+
+case $subject in Merge*|Revert*|fixup!*|squash!*) exit 0 ;; esac
+
+fail() { printf 'Commit message rejected: %s\n  got: %s\n' "$1" "$subject" >&2; exit 1; }
+
+# Story branches (feat/4.3-slug, fix/4.3-slug): message must start with that story id.
+if [[ $branch =~ ^(feat|fix)/([0-9]+\.[0-9]+)- ]]; then
+  id=${BASH_REMATCH[2]}
+  [[ $subject == "$id: "* ]] || fail "on $branch, start with '$id: '"
+else
+  [[ $subject =~ ^([0-9]+\.[0-9]+|plan|docs|chore|ci|fix):\  ]] \
+    || fail "start with '<story-id>: ' or one of plan:, docs:, chore:, ci:, fix:"
+fi
+
+# Descriptive: at least 4 words after the prefix (blocks 'PRD3', 'UX 0.2').
+words=$(printf '%s' "${subject#*: }" | wc -w)
+[ "$words" -ge 4 ] || fail "say what changed and why (at least 4 words after the prefix)"
+exit 0
