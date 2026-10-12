@@ -284,7 +284,7 @@ An Organizer or Role-holder can send one-way announcements, optionally asking fo
 
 ### Epic 11: Ready for launch
 
-The product runs in production with its own environment, secrets and email provider, has a backup routine, the flagship 40th-birthday scenario seeded, and all three journeys passing end to end in a production smoke test.
+The product runs in production with its own environment, secrets and email provider, has a backup routine, the flagship 40th-birthday scenario seeded, and all three journeys passing end to end in a production smoke test. A stranger can run it locally from the README alone, and the release states what shipped against what was planned.
 
 **FRs covered:** none new; closes SM-1 and NFR9
 
@@ -319,6 +319,16 @@ So that every later story builds on the same foundation.
 **When** it imports `SUPABASE_SECRET_KEY` or the env module's server section
 **Then** lint fails (AD-5)
 **And** `vercel.json` sets `regions: ["arn1"]` (AD-11).
+
+**Given** a fresh clone on a machine that has never run the project
+**When** someone follows only `README.md`
+**Then** it lists the prerequisites with versions (Node, pnpm, Docker, Supabase CLI) and the exact copy-paste commands from clone to running app, and to running pgTAP, Vitest and Playwright
+**And** `.env.example` lists every variable with local defaults and no real secret, so the app runs with AI in fixture mode and local email without any personal key.
+
+**Given** a push or PR
+**When** CI runs
+**Then** ESLint, a Prettier check and a secret scan run alongside the tests, and any failure fails the build
+**And** `pnpm lint` and `pnpm format:check` run the same checks locally.
 
 ### Story 1.2: Design system and language foundation
 
@@ -2039,3 +2049,9 @@ So that I know I can state its status without asking anyone.
 - Epic 10: notification links and badges must open the Dashboard or the relevant Task.
 - Epic 11: the flagship seed and the Dashboard/Timeline Playwright tests are part of the launch run; a performance check with 300 Tasks is recorded.
 - Out of this epic, noted for later: letting every Role-holder read other Roles' Tasks, which the Organizer asked about and which would change FR2, NFR1 and AD-3, is a `bmad-correct-course` item, not a story here.
+
+### Carry-forwards from the release criteria (`docs/sensor-criteria.md`)
+
+- Epic 11: a story where someone who has never seen the project follows `README.md` from a fresh clone, with the steps that fail recorded and fixed; the README also lists the demo users from `seed.sql` (Organizer, Role-holder, Guest), links the production URL as a fallback, gives a folder overview with links to the planning documents, `docs/ki-logg.md` and `docs/testplan.md`, and has screenshots of the main views.
+- Epic 11: `docs/testplan.md` with the manual checks automation does not cover (email and web push delivery, keyboard and screen reader on the main flows, 320 px reflow, invalid and repeated input), each ticked with a date before launch.
+- Epic 11: a "Shipped vs planned" section in the README listing Core as delivered, Target and Stretch as not delivered, and any NFR13 cut with its reason and a link to the PRD.
