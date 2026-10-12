@@ -2116,3 +2116,114 @@ So that I know I can state its status without asking anyone.
 - Epic 11: `docs/testplan.md` with the manual checks automation does not cover (email and web push delivery, keyboard and screen reader on the main flows, 320 px reflow, invalid and repeated input), each ticked with a date before launch.
 - Epic 11: a "Shipped vs planned" section in the README listing Core as delivered, Target and Stretch as not delivered, and any NFR13 cut with its reason and a link to the PRD.
 - Epic 7 (Core): per-guest *Copy link* and the shared Event link with the email verified by a Supabase Auth one-time code; the FR17 reminder is Target 3 (`sprint-change-proposal-2026-10-12.md`).
+
+## Epic 6: AI assistant
+
+**Tier:** Target 1, except Story 6.6 (✦ Draft email), which is Target 4 — see Release tiers.
+
+An Organizer gets a first set of Proposed Tasks from a one-sentence description, a Task owner gets Proposed Tasks from status notes and drafted outreach emails, and every AI call stays inside its cap with a fallback.
+
+**Epic-wide conventions (apply to every story below):**
+
+- Only `src/modules/ai` imports `@anthropic-ai/sdk`; other modules call exports of the ai module. A lint rule and a CI grep fail the build on any other import (AD-1, AD-9).
+- Every call runs in this order: Zod parse in the Server Action, authorise, `ai_reserve`, call, settle or release. Every failure path returns `unavailable` with a reason code and the screen falls back as AD-9 lists; nothing throws to the client and no AI feature blocks a flow (NFR4, AD-17).
+- Fixture mode is the default. Live calls need `NODE_ENV === 'production'` and `AI_LIVE=1`; tests and previews always use `supabase/fixtures/ai` (AD-9, AD-20).
+- A prompt is built from an allowlist of fields by one function per feature. No guest row, guest name or email, allergy, food or hotel text, and no Task note from a guest need can reach it (AD-9, AD-11, NFR2).
+- Server logs carry Event id, user id, feature key, outcome and token counts only, never a prompt or a reply (Conventions).
+- Model output is untrusted. It is parsed with Zod, length-bounded, rendered as plain text, and never becomes an active Task without a ✓ from a person (FR6, AD-18).
+- AI text is marked ✦ and, where it is an estimate, "Approximate: check with the venue" (UX-DR26).
+- Proposals for the Team are written in the Event's language, one language per Event so a Task list never mixes two. A drafted email lets the sender pick `nb` or `en` because the vendor's language may differ.
+
+### Story 6.1: Usage ledger and `ai_reserve`
+
+**Tier:** Target 1 — see Release tiers.
+
+As the Organizer,
+I want every AI call counted against a cap before it runs,
+So that cost stays under USD 5 a month and nobody can use my quota.
+
+**Acceptance Criteria:**
+
+**Given** the migration
+**When** it is applied
+**Then** `ai_usage` exists, owned by the ai module, with `id`, `feature`, `event_id` (`ON DELETE CASCADE`), `user_id` (`ON DELETE SET NULL`), `subject_id`, `request_key`, `status ∈ {reserved, settled, released}`, `reserved_microusd`, `settled_microusd`, `input_tokens`, `output_tokens` and `created_at`, and it stores no prompt and no reply (AD-9, AD-11)
+**And** `authenticated` has no `INSERT`, `UPDATE` or `DELETE` on it and can `SELECT` only its own rows, proven by pgTAP.
+
+**Given** `ai_reserve(feature, event_id, subject_id, request_key, worst_case_microusd)`
+**When** an authorised caller is under the cap
+**Then** one `reserved` row is inserted atomically and its id is returned, and when the cap is reached it returns `unavailable` with the reason `cap_reached` (AD-9)
+**And** the function is `security definer` with `search_path = ''`, is revoked from `public` and `anon`, and is granted to `authenticated` only because it must see `auth.uid()` to authorise; this widens AD-5's "REVOKE … FROM authenticated" and is settled with `bmad-correct-course` before this story is built (the extra arguments beyond AD-9's `(feature, event_id)` are part of the same note).
+
+**Given** the caller rules of AD-9
+**When** the feature is `task-list` the caller must be the Organizer, for `status-note` and `draft-email` the owner of the Task in `subject_id`, and an unknown feature key is refused
+**Then** every other caller, a holder of another Role, a Guest-only user and an anonymous caller get `forbidden` and no row is written
+**And** pgTAP proves one allow and one deny per feature key.
+
+**Given** the caps of AD-9 (`task-list` 3 per Event, `status-note` 20 per Event per UTC day, `draft-email` 20 per user per UTC day)
+**When** two calls arrive in the same millisecond with one slot left
+**Then** exactly one is reserved, because the check and the insert run under one lock per feature and Event, and a pgTAP test with two sessions proves it
+**And** a cancelled or ended Event is refused, as the other modules do.
+
+**Given** the monthly ceiling of USD 5 (5 000 000 micro-USD)
+**When** reserved plus settled cost for the UTC month plus the new worst case would exceed it
+**Then** the call returns `unavailable` with `budget_reached` and no row is written
+**And** the month total is computed under the same lock, so concurrent calls cannot jointly pass the ceiling.
+
+**Given** a repeated `request_key`
+**When** the same user retries (a double click, a network retry)
+**Then** the existing reservation is returned and no second slot is used
+**And** a key used by another user is treated as new.
+
+**Given** a reservation whose caller crashed
+**When** it is older than 5 minutes (the Server Action's `maxDuration` is 60 seconds)
+**Then** the next `ai_reserve` treats it as `released` and counts it as spent only at its settled value, so a crash costs neither a slot nor the ceiling forever
+**And** `ai_settle(reservation_id, input_tokens, output_tokens)` and `ai_release(reservation_id)` are idempotent, are callable only by the reservation's own caller, and a second call changes nothing (pgTAP).
+
+**Given** `ai_purge_user(user_id)`
+**When** it runs
+**Then** it sets `user_id` to `NULL` on that user's rows and is added to the purge hooks `guests_delete_guest_data` calls (AD-11)
+**And** a pgTAP test asserts no foreign key from `ai_usage` is `NO ACTION`.
+
+### Story 6.2: The gateway in TypeScript
+
+**Tier:** Target 1 — see Release tiers.
+
+As the Organizer,
+I want AI to run through one place that respects the caps and never breaks a screen,
+So that a slow, failing or expensive model cannot hurt the Event.
+
+**Acceptance Criteria:**
+
+**Given** `src/modules/ai`
+**When** another module needs a model call
+**Then** it calls one exported function per feature, which reserves, calls, validates and settles, and returns `{ ok: true, data } | { ok: false, error: { code: 'unavailable', reason } }` (AD-9, AD-17)
+**And** an ESLint `no-restricted-imports` rule and a CI grep fail the build if any file outside the module imports `@anthropic-ai/sdk`.
+
+**Given** fixture mode
+**When** a feature runs in development, tests or a preview
+**Then** it returns the recorded response from `supabase/fixtures/ai/{feature}.json` chosen by a hash of the input, makes no network call, and still goes through `ai_reserve` and `ai_settle`, so the caps behave the same way
+**And** live mode is refused with a clear server error at startup unless `NODE_ENV === 'production'` and `AI_LIVE=1`, and a Vitest test proves a preview environment with a key present still uses fixtures (AD-20, NFR14).
+
+**Given** a live call
+**When** the model times out, returns an error, returns text that fails the Zod schema, or the Server Action nears `maxDuration = 60`
+**Then** the reservation is released, `unavailable` with a reason (`timeout`, `provider_error`, `invalid_output`) is returned, and no partial result is kept (AD-9)
+**And** a Vitest test forces each case and asserts the release and that nothing throws.
+
+**Given** a successful call
+**When** it finishes
+**Then** the reservation is settled to the real token counts priced from one `pricing.ts` constant, and a Vitest test covers worst-case reserve, lower settle, and a settle that exceeds the reserve (logged, capped at the reserve)
+**And** the model name for each feature key lives in one place with the key.
+
+**Given** a prompt builder
+**When** it is called
+**Then** its input type is an allowlist object of named fields, not a database row, so a guest field cannot be passed without a type error
+**And** a Vitest test asserts that a builder given a hostile object with `allergies`, `food`, `hotel`, `guest_name` and `email` keys drops them and that none appears in the prompt string.
+
+**Given** logs
+**When** any call runs
+**Then** the log line holds Event id, user id, feature key, outcome and token counts, and a Vitest test asserts a prompt and a reply never reach `console` or the logger.
+
+**Given** the Organizer
+**When** a feature is unavailable
+**Then** the screen shows the fallback copy of UX-DR24 ("Couldn't draft this right now. You can add tasks yourself.") and the flow continues
+**And** an `unavailable` caused by `cap_reached` says so in plain words and is not shown as an error page.
