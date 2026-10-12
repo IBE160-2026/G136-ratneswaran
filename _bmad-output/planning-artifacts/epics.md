@@ -3291,3 +3291,257 @@ So that FR22 holds before the freeze.
 
 - Epic 10: notifications are not part of this epic; nothing here calls `notifications_emit`.
 - Epic 11: the flagship seed's published Landing page and its Playwright checks are part of the launch run; `docs/testplan.md` gets a manual check of the Guest-facing page on a real phone browser.
+
+## Epic 10: Announcements and notification channels
+
+**Tier:** Target 3 — see Release tiers.
+
+An Organizer or Role-holder can send one-way announcements, optionally asking for volunteers, and every user chooses how they are reached: in-app, email or web push.
+
+**Epic-wide conventions (apply to every story below):**
+
+- The outbox itself (`notification_outbox`, `notifications`, `notifications_emit`, the delivery route, retry and pacing) is already built by Stories 3.1–3.4; this epic adds channels, producers and the Announcements feature on top of it, and touches no table those stories own.
+- `announcements`, `announcement_groups`, `announcement_group_members`, `volunteer_offers`, `channel_prefs` and `push_subscriptions` are owned by the notifications module (AD-1); `authenticated` has no direct write to any of them, only through this epic's functions (AD-19).
+- In-app is always on and is not stored as a preference; `channel_prefs` holds only the `email` and `push` toggles a user switched on, and a missing row for a channel means off (FR23).
+- SMS is never built here; it stays the disabled "Coming later" option already shown by UX-DR22 (FR23).
+- An announcement and a reminder are visible to the Realtime publication Story 3.1 scoped to `notifications` and `announcements` only (AD-7).
+
+### Story 10.1: Notification channel preferences
+
+As a user,
+I want to choose whether email and push reach me,
+So that in-app is never the only choice but also never forced on me by surprise.
+
+**Acceptance Criteria:**
+
+**Given** the migration
+**When** it is applied
+**Then** `channel_prefs` exists with `user_id` (`ON DELETE CASCADE`), `channel ∈ {email, push}`, `enabled` and `updated_at`, unique on `(user_id, channel)`, and `authenticated` can `SELECT` only their own rows and write only through `notifications_set_channel_pref(channel, enabled)` (AD-19, pgTAP)
+**And** a pgTAP test proves one user cannot read or change another's preference.
+
+**Given** *Profile & Settings → Notifications*
+**When** the page renders
+**Then** it lists In-app (always on, not a toggle), Email and Push as switches, and SMS as a disabled "Coming later" row, replacing the Story 1.9 note that this section "is not shown yet" (FR23, UX-DR22)
+**And** switching email or push calls `notifications_set_channel_pref` and the new state applies to the next notification, never retroactively.
+
+**Given** a user with no `channel_prefs` row for a channel
+**When** a notification is due
+**Then** the delivery route treats a missing row as off for email and push, so a new user's default is in-app only, matching FR23's "requested only when switched on"
+**And** a Vitest test over the route's recipient resolution covers a missing row, an explicit off and an explicit on.
+
+**Given** a Guest-only user
+**When** they open *Profile & Settings*
+**Then** the same Notifications section is available to them, because FR23 says "each user", and in-app for a Guest means the Guest Dashboard's own notice area, which Story 10.3 wires up.
+
+### Story 10.2: Web push subscriptions and delivery
+
+As a user,
+I want to turn on push notifications in my browser,
+So that I notice something without having the app open.
+
+**Acceptance Criteria:**
+
+**Given** the migration
+**When** it is applied
+**Then** `push_subscriptions` exists with `user_id` (`ON DELETE CASCADE`), `endpoint` (unique), `p256dh`, `auth_key` and `created_at`, written only by `notifications_subscribe_push(subscription)` and `notifications_unsubscribe_push(endpoint)`, both deriving the user from `auth.uid()` (AD-19)
+**And** a pgTAP test proves a direct write and reading another user's subscriptions are denied.
+
+**Given** I switch Push on in Story 10.1
+**When** the browser's permission prompt appears
+**Then** it is requested only at that moment, never on page load, using the `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and `public/sw.js` already scaffolded in Story 1.1, and granting it calls `notifications_subscribe_push` (FR23, UX-DR22)
+**And** denying it, or the browser blocking it, shows "Blocked in browser settings" with the per-browser instructions UX-DR22 lists, and turns the switch back off.
+
+**Given** iOS Safari
+**When** push is not supported outside an installed PWA
+**Then** the switch shows the *Add to Home Screen* explanation from UX-DR22 instead of the permission prompt (NFR5).
+
+**Given** the delivery route (Story 3.2)
+**When** a claimed row has a recipient with `push` enabled and at least one subscription
+**Then** it also posts a Web Push message built from the same ids and i18n key as the email, using `VAPID_PRIVATE_KEY`, writes `push_sent_at`, and a `404` or `410` response deletes that subscription row in the same request (AD-7, AD-8)
+**And** a Vitest test forces a 410 and asserts the subscription is gone and the row's other channels are unaffected.
+
+**Given** a user with no subscription, or push switched off
+**When** the route runs
+**Then** the push attempt is skipped silently, exactly like a channel that was never enabled, and the email and in-app channels are unaffected
+**And** a pgTAP test proves a user with push enabled but zero subscriptions produces no error row.
+
+### Story 10.3: Decision notifications go live
+
+As a Role-holder asked to decide,
+I want an actual notification when I am asked, and when I decide,
+So that I do not have to keep checking the Dashboard by habit.
+
+**Acceptance Criteria:**
+
+**Given** Stories 4.10 and 4.11's `decision_requested` and `decision_resolved` calls
+**When** this epic ships
+**Then** those calls reach a real `notification_outbox`, exactly as `task_assigned` (Story 4.5) and `problem_reported` (Story 4.8) already do once the outbox exists, with no change to Epic 4's code
+**And** a Vitest test exercises both kinds end to end through the real delivery route in fixture-free form (it needs no AI), asserting the recipient and the i18n key.
+
+**Given** Story 4.10's `decision_requested` and Story 4.11's `decision_resolved` ACs
+**When** they were written
+**Then** they, unlike Story 4.5's delegation notice, were not written with an explicit "(Target 3)" gate, so a build that ships Target 2 before this epic would call `notifications_emit` before the outbox tables exist
+**And** this is flagged here as a `bmad-correct-course` point for Epic 4 — add the same gate Story 4.5 uses — rather than silently patched in this document.
+
+**Given** a decision's recipient
+**When** `decision_requested` or `decision_resolved` fires
+**Then** it follows this epic's channel rules exactly like every other kind, and the sender of a decision never receives their own notification (Story 3.1's exclusion rule).
+
+### Story 10.4: Emailed invitations and personal guest links
+
+As an Organizer,
+I want invitations and guest links to go out by email once the outbox exists,
+So that I don't have to copy and paste 80 messages by hand.
+
+**Acceptance Criteria:**
+
+**Given** Story 3.6's Role-holder invitation
+**When** it is created in a published Event
+**Then** the invitation link is also emailed through `notifications_emit`, the list shows "Invited · not joined yet" as before plus "Couldn't deliver" when delivery fails, and *Copy link* stays available as a fallback (FR1, Story 3.6)
+**And** a pgTAP test proves the emitted kind carries no plaintext token, only the notification id the route resolves at send time, matching AD-4's "plaintext exists only in the emailed link" rule.
+
+**Given** Story 7.1's personal guest link
+**When** the Organizer chooses *Email this guest their link* next to *Copy link*
+**Then** the link is emailed to the guest's contact address from `guest_contacts` (Story 7.7's split), the guest row shows "Link emailed · not opened" and *Copy link* remains available for guests reached another way (FR5)
+**And** *Copy all links* and *Copy invitation text* (Story 7.1) are unchanged, because not every Organizer wants every guest emailed.
+
+**Given** the shared-link quota note from Story 7.2 ("Shared link paused today")
+**When** this epic ships
+**Then** the note is removed from the Guests page, because the per-Event code-request cap (100/day) was only needed while the shared link was the one email-sending path available to a stranger; it still exists in the database as a safety limit, just no longer surfaced as the headline explanation
+**And** a Vitest test asserts the copy change without touching Story 7.2's limiter itself.
+
+**Given** delivery fails for an emailed invitation or link
+**When** the Organizer opens Team & Roles or Guests
+**Then** they see "Couldn't deliver" with the existing fallback actions (*Copy link*, *New link*), never a raw error (UX-DR24).
+
+### Story 10.5: A fresh guest link by email
+
+As a Guest whose link stopped working,
+I want to ask for a new one myself,
+So that I don't have to track down the Organizer.
+
+**Acceptance Criteria:**
+
+**Given** an expired, revoked or unknown guest token
+**When** the page that used to show only the static message (Story 7.1, 7.5) loads
+**Then** it now also offers "Get a fresh link" with an email field, replacing the Core "no email field" rule those stories recorded (FR3)
+**And** submitting gives the same neutral "If that email is on this Event's guest list, we've sent a fresh link." whether or not it matches, reusing Story 7.2's non-revealing pattern.
+
+**Given** a matching guest email
+**When** the request is valid
+**Then** a new `guest` token is issued exactly as Story 7.1's *New link* does, the old link is revoked, and the fresh one is emailed through the outbox (AD-4)
+**And** the same per-IP and per-email limits from Story 7.2 apply, so this cannot be used to spam a guest's inbox.
+
+**Given** this flow
+**When** it is combined with Story 7.5's Guest Dashboard
+**Then** a Guest whose session is still valid never sees this form, only someone who actually lost access does, so a logged-in Guest is not confused by an unnecessary offer.
+
+### Story 10.6: Announcements: compose and send
+
+As an Organizer or a Role-holder,
+I want to send a one-way message to the people it concerns,
+So that I can reach a group without a Task for every notice.
+
+**Acceptance Criteria:**
+
+**Given** the migration
+**When** it is applied
+**Then** `announcements` exists with `id`, `event_id` (`ON DELETE CASCADE`), `sender_id` (`ON DELETE SET NULL`), `body` (bounded), `ask_for_volunteers`, `created_at`; `announcement_groups` and `announcement_group_members` let a sender name a custom group of people for one send; and `authenticated` writes only through `notifications_send_announcement` (AD-19, pgTAP)
+**And** a pgTAP test enumerates every foreign key and fails on any `NO ACTION`.
+
+**Given** the composer
+**When** the Organizer, or a Role-holder scoped to their Role, writes a message and picks a recipient (one person, a Role, the whole Team or a custom group built for this send)
+**Then** a Role-holder's picker is scoped server-side to people and Roles they can see (their own Role's members and anyone in a Role they hold), never the full Team list, and the Organizer's picker is unrestricted (FR21, AD-3)
+**And** a pgTAP test proves a Role-holder cannot target a Role they do not hold.
+
+**Given** *Send*
+**When** I confirm in the required dialog (UX-DR23)
+**Then** `notifications_send_announcement` writes the row and calls `notifications_emit` with an `announcement` kind to every resolved recipient, excluding the sender, in one transaction, and the message appears in the flat feed with no threading and no read receipts (FR21, NFR7)
+**And** a draft Event refuses the action, matching every other producer in this project.
+
+**Given** the feed
+**When** anyone who was a recipient opens it
+**Then** announcements show newest first, each with the sender's name, the recipient scope in words ("To: Food & Beverage") and the time, and an announcement to a now-revoked Role-holder or a now-removed guest still shows to everyone else who received it (FR21)
+**And** an empty feed says "No announcements yet."
+
+### Story 10.7: Ask for volunteers and *I can help*
+
+As the sender of an announcement,
+I want to ask who can help and see who offered,
+So that I can assign the work without a separate round of messages.
+
+**Acceptance Criteria:**
+
+**Given** *Ask for volunteers* switched on while composing
+**When** the announcement sends
+**Then** every recipient sees a one-tap *I can help* button under the message, and `volunteer_offers` (`announcement_id` `ON DELETE CASCADE`, `user_id` `ON DELETE CASCADE`, `offered_at`, unique on `(announcement_id, user_id)`) records a tap through `notifications_offer_help` (FR21, AD-19)
+**And** tapping again shows "You offered to help" and *Withdraw*, which calls `notifications_withdraw_offer` and removes the row.
+
+**Given** the sender
+**When** they open their own sent announcement
+**Then** they see the responders in the order they offered, each with *Assign to task*, which opens the Story 4.5 Delegate picker prefilled with that person, so assigning takes one step from the announcement (FR21)
+**And** `notifications_assign_responder` calls `tasks_delegate` (Story 4.5) rather than writing `tasks` directly, keeping the cross-module write inside its owning function (AD-1).
+
+**Given** a responder who is later assigned
+**When** the assignment completes
+**Then** their offer stays recorded as history and is not removed, so the sender can still see everyone who offered, assigned or not
+**And** a recipient without an active Role in the Event (a Guest reached as part of "the whole Team" by mistake) never sees *I can help*, because volunteering is scoped to the Team, not Guests (FR21).
+
+**Given** the sender is not the Organizer
+**When** they view responders or assign a Task
+**Then** they can only assign within a Role they lead or hold, exactly as Story 4.5's own rules already require, and `notifications_assign_responder` adds no new privilege beyond calling `tasks_delegate` as that same person.
+
+### Story 10.8: Manual guest reminder
+
+As an Organizer,
+I want to remind guests who haven't answered, on demand,
+So that I can chase replies without an automatic email going out on its own.
+
+**Acceptance Criteria:**
+
+**Given** the Guests tab's *Remind* action, reserved by Story 7.7
+**When** the Organizer selects one or more non-responding guests, or uses the "Not answered" filter and chooses *Remind all filtered*
+**Then** `guests_send_reminder(event_id, guest_ids)` queues one `rsvp_reminder` notification per selected guest through `notifications_emit`, Organizer-only, and never for a guest who already answered (FR17)
+**And** it is on demand only; nothing in this story adds a time-based or automatic send, matching FR17's "no automatic time-based send in Core" extended unchanged into this Target.
+
+**Given** a guest with no account and no email channel preference of their own
+**When** they are reminded
+**Then** the reminder email always goes out for a Guest, because a Guest's only channel is the one Arrangly already has (their contact email), and Story 10.1's per-user toggle does not apply to guest-only sends (FR23 is about app users; Guests are reminded by design, not by a preference they have not been offered a page for).
+
+**Given** the same guest is selected again shortly after
+**When** *Remind* is pressed twice in quick succession
+**Then** a cooldown (documented, matching the 60-second pattern already used for Story 7.2's codes) prevents a second reminder to the same guest inside a few minutes, so a double click cannot double-send, and the Organizer sees "Reminder sent" per guest, or "Couldn't deliver" if the delivery route reports failure.
+
+**Given** a cancelled or ended Event
+**When** the Organizer tries to remind
+**Then** it is refused, matching every Guest-facing action's read-only rule in those states (Epic 7 conventions).
+
+### Story 10.9: Notifications and announcements flow check
+
+As the owner of the project,
+I want channels, announcements and volunteering proven end to end,
+So that FR21 and FR23 hold before the freeze.
+
+**Acceptance Criteria:**
+
+**Given** `supabase/seed.sql`
+**When** it is loaded
+**Then** the flagship Event has at least one user with push subscribed, one announcement with volunteers including one assigned and one withdrawn offer, and one guest already reminded, and nothing in it names a real person (AD-15)
+**And** pgTAP runs against it in CI.
+
+**Given** the seeded Event
+**When** a Playwright test runs as a Role-holder
+**Then** they turn on email and push in Settings, receive a Task-assignment notification once it is triggered, send an announcement scoped to their Role with *Ask for volunteers*, see a responder, and assign them to a Task in one step (UJ-1, NFR9)
+**And** a second test, as the Organizer, reminds a non-responding guest and sees the delivery outcome.
+
+**Given** CI
+**When** a change breaks a channel toggle, the Role-scoped recipient picker, the one-offer-per-user rule or the reminder cooldown
+**Then** the pgTAP, Vitest or Playwright test fails, with no AI involved anywhere in this epic (NFR9)
+**And** the epic summary lists FR21 and FR23 covered, the Epic 4 `bmad-correct-course` flag from Story 10.3, and the carry-forwards below.
+
+### Carry-forwards from Epic 10
+
+- Epic 8: the `guest_request_replied` and `guest_need_result` kinds this epic's channel rules now apply to were written in Epic 8 assuming this epic's outbox and channels exist, consistent with the Target-3-before-Target-4 build order.
+- Epic 9: no dependency; nothing in the Landing page emits a notification.
+- Epic 11: push and email delivery, and the real VAPID/SMTP configuration, are manual checks in `docs/testplan.md`; the flagship seed's announcement and reminder are part of the launch run.
+- Open point to settle with `bmad-correct-course` before this epic is built: add the explicit "(Target 3)" gate to Stories 4.10 and 4.11's notification calls, matching Story 4.5's pattern, so Epic 4 never calls a function that does not exist yet when built before this epic.
