@@ -2543,3 +2543,175 @@ So that I do not have to copy 80 personal links.
 **Given** the flow
 **When** tests run
 **Then** pgTAP proves the binding function's allow and deny (Event, kind, existing email, non-guest-only user), and a Playwright test covers link → name and email → code (read from the local Supabase mail inbox) → RSVP start (UJ-3).
+
+### Story 7.3: RSVP: yes or no, plus-one and other needs
+
+As a Guest,
+I want to answer yes or no, bring a plus-one and mention anything else,
+So that the Organizer knows whether I am coming.
+
+**Acceptance Criteria:**
+
+**Given** I am signed in as a Guest with no answer yet
+**When** the RSVP opens
+**Then** I am greeted by name and shown one question per screen as a `fieldset` whose question is the `h1`, with focus moved there on each step, *Back* always available, and progress "Question 2 of 4" that counts only the steps that apply (FR15, UX-DR20)
+**And** the first question is yes or no with the Event's name, date and my RSVP due date shown as "Reply by {date}" in the Event's time zone.
+
+**Given** I answer *No*
+**When** I submit
+**Then** the follow-ups are skipped, "Thanks for letting us know, {name}." is shown, and I can still open my Guest Dashboard and change my answer (FR15, UX-DR20)
+**And** a *No* after an earlier *Yes* deletes my plus-one, food and hotel rows in the same transaction.
+
+**Given** I answer *Yes*
+**When** I reach the plus-one step
+**Then** I choose none or one plus-one, with an optional name of up to 80 characters, and the headcount is me plus at most one (FR15)
+**And** *other needs* is a free-text field of up to 500 characters with the hint "Anything we should know? Please don't write health details here. There is a separate step for those." and is stored as written, never interpreted in Core.
+
+**Given** the table
+**When** the migration is applied
+**Then** `rsvps` exists with one row per guest (`guest_id` unique, `ON DELETE CASCADE`), `attending`, `plus_one`, `plus_one_name`, `other_needs`, `answered_at` and `updated_at`, and a CHECK that `plus_one_name` and `other_needs` are empty when `attending` is false
+**And** only the function `guests_submit_rsvp(event_id, answers, expected_updated_at)` writes it, derives the Guest from `auth.uid()` and the Event, and a pgTAP test proves a direct `INSERT` or `UPDATE` is denied and that passing another Guest's id has no effect (AD-2, AD-19).
+
+**Given** a Guest of another Event, a Role-holder, an anonymous caller and a Guest after removal
+**When** each calls the function
+**Then** each is refused with a message that does not reveal whether the Event exists, and pgTAP proves one allow and these denies
+**And** a cancelled or ended Event refuses writes with the read-only page of the epic conventions.
+
+**Given** a double click, a retry, or the same answers submitted from two tabs
+**When** the function runs twice
+**Then** one row results and nothing changes the second time, and answers that differ from a stale `expected_updated_at` return `concurrent_edit` with "Your answer was changed on another device. See changes." (AD-17)
+**And** a failure on a weak connection keeps my input on screen with *Retry*, and nothing is queued offline.
+
+**Given** a long name, emoji, right-to-left text or control characters
+**When** I submit
+**Then** Zod trims and bounds the text, control characters are rejected, and the stored text renders as plain text everywhere, so a stored `<script>` does nothing (Story 2.9 rules)
+**And** errors are inline with `aria-invalid` and `aria-describedby`.
+
+**Given** a successful *Yes*
+**When** the answers are saved
+**Then** the confirmation says "You're on the list, {name}! We'll send the details closer to the day." and the Organizer sees the answer on the Guests tab in the same session, with no delay (FR15, UX-DR20)
+**And** the RSVP due date is a soft date: answering or changing after it works and nothing blocks it.
+
+### Story 7.4: Allergies, food and hotel with consent
+
+As a Guest,
+I want to tell the people planning the food and the hotel what I need, and decide whether to share it,
+So that my needs are handled without my giving up control of my health data.
+
+**Acceptance Criteria:**
+
+**Given** I answered *Yes* in Story 7.3
+**When** the allergies and food step opens
+**Then** it starts with an unticked checkbox "I agree that the people planning food can see this. It's deleted 15 days after the event." with a link to the Privacy notice, the food fields stay disabled until it is ticked, and I can skip the step without ticking (UX-DR20, NFR2)
+**And** the consent covers my plus-one's details too, and the text says so.
+
+**Given** I tick consent
+**When** I choose allergies
+**Then** I see the 14 EU allergens as checkboxes plus "Other" with up to 300 characters, and food preferences as vegetarian, vegan, halal, kosher and a free field of up to 300 characters, for me and, when I have a plus-one, a second set for them
+**And** the lists are localised and defined in one place with a Vitest test.
+
+**Given** the migration
+**When** it is applied
+**Then** `guest_food` has `guest_id` (`ON DELETE CASCADE`), `person ∈ {guest, plus_one}`, `allergens`, `allergen_other`, `preferences`, `preference_other`, `consent_at`, `consent_text_version` and `updated_at`, unique on `(guest_id, person)`, with a CHECK that `consent_at` is not null (AD-11, AD-19)
+**And** a pgTAP test proves a row without consent is rejected and that no direct write is allowed.
+
+**Given** I untick consent later, or answer *No* to coming
+**When** I save
+**Then** my `guest_food` rows are deleted in the same transaction, not hidden, and the Guests tab shows "No food information given"
+**And** a Guest who skipped the step and one who withdrew consent look the same to the Organizer.
+
+**Given** the hotel step
+**When** I answer
+**Then** `guest_hotel` stores `needed` (yes or no) and a note of up to 300 characters, one row per guest, with no consent tick because it is not health data, deleted when I answer *No* to coming
+**And** a pgTAP test proves the hotel row is readable only by the rules of Story 7.7.
+
+**Given** the function `guests_submit_rsvp`
+**When** it receives food data
+**Then** it stores it only with consent in the same call, and a call with food data and no consent is refused as a whole, so a half-saved answer cannot exist (AD-2, NFR2)
+**And** the stored consent text version lets a later change of wording be traced.
+
+**Given** the Server Action and its logs
+**When** food, allergy, hotel or "other" text is handled
+**Then** none of it is logged, put in a URL or query string, or returned in an error message, and a Vitest test asserts a validation error for a food field names the field but never echoes its value (AD-11)
+**And** a pgTAP test proves a holder of another Role, an Organizer of another Event and an anonymous caller cannot read `guest_food` or `guest_hotel`.
+
+**Given** the whole RSVP
+**When** a Playwright test runs at 375px with only the keyboard
+**Then** a Guest can answer yes, add a plus-one, tick consent, choose an allergen and a hotel need, and reach the confirmation without creating an account (SM-4, UJ-3, NFR12)
+**And** the same test as a screen-reader pass is a manual item in `docs/testplan.md`.
+
+### Story 7.5: Guest Dashboard
+
+As a Guest,
+I want one page that shows my answer and lets me change it,
+So that I can come back later without hunting for the link.
+
+**Acceptance Criteria:**
+
+**Given** a Guest session
+**When** I open the Guest Dashboard
+**Then** it shows the Event's name, date and time in its time zone, "My RSVP" with my answers in words, a *Change my answer* button that reopens the RSVP at the right step with my answers filled in, and *Delete my data*, in a single scroll with no sidebar (FR18, UX-DR21, UX-DR27)
+**And** sections for results, requests and the Landing page do not exist in Core and show no placeholder, and each Target story adds its own section.
+
+**Given** I change my answer
+**When** I save
+**Then** `guests_submit_rsvp` runs as in Story 7.3, the page shows the new answer, and a change after the RSVP due date works and causes no notification in Core (FR15)
+**And** a change after the Event ended is refused with the read-only page.
+
+**Given** the Event is cancelled or has ended
+**When** I open the page
+**Then** I see "This event has been cancelled." with the Organizer's note, or "Thanks for coming!", my answers stay visible, and *Change my answer* is absent (UX State Patterns)
+**And** *Delete my data* stays available in both states.
+
+**Given** my link or session is no longer valid
+**When** I open any guest page
+**Then** I see "This link has expired. Ask {Organizer} for a new one." with no email field and no fresh-link form, because Core has no emailed fresh link, and the Organizer's name is shown only when the session or token proves I belonged to the Event (FR3, UX-DR21)
+**And** the copy for the emailed fresh link is Target 3.
+
+**Given** I have no answer yet
+**When** I open the page
+**Then** it leads with "Will you be there?" and starts the RSVP, and I can leave and return without losing what I saved
+**And** the page works with cookies blocked only by explaining "Your browser blocks cookies. Open the link in your usual browser." instead of looping.
+
+**Given** loading and failure
+**When** the page loads
+**Then** a final-shape `Skeleton` shows, a failure shows the *Retry* card, and tap targets are at least 44×44px (UX-DR24, NFR5)
+**And** pgTAP proves a Guest reads only their own `rsvps`, `guest_food` and `guest_hotel` rows.
+
+### Story 7.6: Optional account for a Guest
+
+As a Guest,
+I want to keep my answers under an account if I choose,
+So that I can see my events without needing my link.
+
+**Acceptance Criteria:**
+
+**Given** I have just answered and my email has no password or OAuth identity
+**When** the confirmation shows
+**Then** it offers *Create an Arrangly account* and *Not now*, and *Not now* leaves me exactly as I was, with access by my link (FR3, UX-DR21)
+**And** the offer does not appear to a person who already has an account.
+
+**Given** I choose a password
+**When** I continue
+**Then** a one-time code is first sent to my email by Supabase Auth and I must enter it before any password can be set, because a leaked link must not let someone put their own password on my email (AD-4, Story 3.7)
+**And** the password follows the Epic 1 rules and is set with `updateUser`.
+
+**Given** I choose *Continue with Google* or *Continue with GitHub*
+**When** the provider returns
+**Then** `linkIdentity` attaches it to my current guest user, the result is an ordinary account, and a provider error such as an identity already used by another account shows a clear message and changes nothing (AD-6)
+**And** the Playwright test for this upgrade reuses the OAuth test method of Story 1.6 (NFR9).
+
+**Given** a password or an identity is added by any path, including password recovery
+**When** the change commits
+**Then** a trigger on `auth.users` and `auth.identities` calls `invite_tokens_revoke_for_user(user_id)` in the same transaction, so no route can forget it, and the old personal link now sends the person to sign in (AD-4, Story 3.5)
+**And** a pgTAP test proves the revocation for a password update and for a new identity and that a guest-only user's tokens survive an unrelated update.
+
+**Given** a person who is a Guest of several Events
+**When** they have an account and open *All events*
+**Then** each Event they are a Guest of shows a card with their RSVP state ("You're coming", "You said no", "Waiting for your answer") in place of counts, opening the Guest Dashboard, and past Events sit under *Past events* (FR18, UX-DR6)
+**And** the card's accessible name includes the Event, the date and the RSVP state.
+
+**Given** a person who is both a Guest and a Role-holder or Organizer of the same Event
+**When** they open *All events*
+**Then** they see one card that opens the team experience, and the Dashboard shows a "Your invitation" card with *Answer* until they answer, which replaces "N guests added" for them only until answered (UX-DR27, Epic 5 carry-forward)
+**And** a pgTAP test proves the card reads their own guest row only.
