@@ -330,6 +330,11 @@ So that every later story builds on the same foundation.
 **Then** ESLint, a Prettier check and a secret scan run alongside the tests, and any failure fails the build
 **And** `pnpm lint` and `pnpm format:check` run the same checks locally.
 
+**Given** a fresh clone
+**When** someone runs `pnpm install`
+**Then** a `prepare` script sets `git config core.hooksPath .githooks`, so the commit-msg and pre-push hooks are active without a manual step
+**And** CI runs `.githooks/test.sh` next to the Process check, so a broken hook fails the build.
+
 ### Story 1.2: Design system and language foundation
 
 As any user,
