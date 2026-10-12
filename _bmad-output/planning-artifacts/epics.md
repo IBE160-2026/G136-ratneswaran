@@ -2430,3 +2430,116 @@ So that I can trust it and demonstrate it without spending money.
 - Epic 8: `route-request` is a system call after `guests_submit_request`, with no user session; decide in that epic how `ai_reserve` authorises a system caller (a definer wrapper called from the function itself), without widening the Guest's privileges.
 - Epic 9: `landing-about:draft` and `:rewrite` use the same gateway, caps (1 and 5 per Event) and fallback (empty editor with a short note).
 - Epic 11: record the one live production call and its cost in `docs/testplan.md`; check the USD 5 ceiling and the fixtures in the launch run.
+
+## Epic 7: Guests: invitation, RSVP and Guest Dashboard
+
+**Tier:** Core, except the manual reminder (FR17), which is Target 3 — see Release tiers.
+
+A Guest opens a personal link, answers the RSVP without an account, and finds their answers and information on a Guest Dashboard. The Organizer sees RSVPs, food and hotel data on the Guests tab, and Guest data is deleted on request or 15 days after the Event. Guests are invited by a personal link the Organizer copies, or by the shared Event link with the email verified by a Supabase Auth one-time code.
+
+**Epic-wide conventions (apply to every story below):**
+
+- Core sends no application email. A personal link is shown to the Organizer to share; the only email a Guest receives is Supabase Auth's one-time code (AD-4, AD-10, `sprint-change-proposal-2026-10-12.md`).
+- A Guest session is a Supabase session of a guest-only, passwordless user (AD-4). Every guest policy uses `is_guest_of(guest_id)` or `is_guest_self(guest_id)`, never an email match (AD-3).
+- A guest function never takes a guest id from the client. It takes the Event id and derives the Guest from `auth.uid()`, so one Guest can never write another's answers (AD-2, AD-19).
+- Only functions write RSVP, food and hotel rows; `authenticated` has `SELECT` as RLS allows and no direct `INSERT`, `UPDATE` or `DELETE` (AD-19).
+- Allergy, food, hotel and "other needs" text never appear in a prompt, a notification payload, a log line, a URL or an analytics call; guest pages load no third-party scripts and send `Cache-Control: no-store` and `Referrer-Policy: no-referrer` (AD-11, NFR2).
+- Guest pages work at 375px and reflow at 320 CSS px, are a single scroll with no sidebar, move focus to the `h1` on every step, and use the warm voice of UX-DR26 (UX-DR20, UX-DR21, UX-DR27, NFR5, NFR6).
+- A cancelled Event shows Guests "This event has been cancelled." with the Organizer's note, read-only; an ended Event shows "Thanks for coming!", read-only. For `guest` and `shared_event` tokens this replaces Story 3.5's "rejected if the Event is cancelled", which stays for `role_holder` (UX State Patterns).
+- Accepted risks, written down so they are not rediscovered: a personal link is a bearer credential, so whoever holds it acts as that Guest until the Organizer issues a *New link*; and one guest-only user can be a Guest of several Events, so a leaked link also exposes that person's other Guest rows. Both are limited by revocation, short sessions and the rules below.
+- Shared limits: 5 requests per minute per IP and 3 per hour per email or token on every public route here, through the Epic 1 limiter (AD-21, NFR10).
+
+### Story 7.1: Personal guest link
+
+As an Organizer,
+I want to copy a personal link for each guest and share it myself,
+So that each guest can open their own invitation without an account or an email from Arrangly.
+
+**Acceptance Criteria:**
+
+**Given** the Guests list (Story 2.9)
+**When** I choose *Copy link* on a guest
+**Then** a passwordless guest-only Supabase user is created or found for that email (secret key, AD-5), `guests.user_id` is set, a `guest` token is created in `invite_tokens` (256-bit, only its SHA-256 stored, AD-4), and the link is copied once, with the row changing from "Not invited yet" to "Link copied · not opened" (FR5, FR3)
+**And** two clicks at once, or a user that already exists, give one user and one active token, never an error.
+
+**Given** the copy menu
+**When** I choose *Copy invitation text*
+**Then** a short message in the Event's language with the guest's first name, the Event's name and date and the link is copied, ready to paste into a chat or mail, so I do not write 80 messages from scratch (AD-14)
+**And** *Copy all links* copies one line per guest (name, email, link), is limited to 500 guests, runs creation in small parallel batches with a progress line, and can be repeated safely after a failure.
+
+**Given** the guest's email already belongs to a Role-holder or Organizer
+**When** I copy the link
+**Then** the existing user is attached to the guest row and the link is created, and when it is opened that person is sent to sign in, because they are not guest-only (AD-4, UX-DR27)
+**And** the comparison happens once in the function, never in a policy.
+
+**Given** I choose *New link* for a guest
+**When** I confirm
+**Then** every earlier token of that guest is revoked, that user's sessions are ended in the same transaction, and the old link shows "This link is no longer active. Ask {Organizer} for a new one." (AD-4)
+**And** an access token already issued stays valid for its lifetime of at most one hour, which is stated in the story's code comment.
+
+**Given** I open `/api/invite/[token]` with a `guest` token
+**When** the request is a `GET`
+**Then** no session is created, so link previews and scanners cannot spend or mint anything, the token moves to a short-lived `httpOnly` cookie, the URL is cleaned, and the page says "Hi {first name}, this is your invitation to {Event}." with *Continue* and "Not {first name}? Ask {Organizer} for your own link."
+**And** *Continue* is a `POST` that issues the session only when the user is guest-only (no password, no OAuth identity, no `role_members` row, organizes no Event), otherwise it sends the person to sign in with the email prefilled, and the response never reveals whether the email has an account.
+
+**Given** a revoked, unknown, malformed or expired token, or one for another Event or kind
+**When** it is opened
+**Then** the page says "This link has expired. Ask the person who invited you for a new one." without naming an Event or an email, except that a valid but revoked or expired token may name the Organizer (UX State Patterns, AD-4)
+**And** limits of 5 per minute per IP and 3 per hour per token apply, and a Vitest test covers each rejection with the same copy.
+
+**Given** an Event that is cancelled, deleted or ended
+**When** a valid token is opened
+**Then** a cancelled Event shows the cancelled page and an ended one "Thanks for coming!", both read-only, and a deleted Event shows "This event is no longer available."
+**And** the token is valid until `events.ends_at` read at use, so editing the Event's dates changes validity without a migration (Story 2.6).
+
+**Given** the migration
+**When** it is applied
+**Then** `guests` gains `user_id` (`ON DELETE SET NULL`) and `first_opened_at`, the helpers `is_guest_of` and `is_guest_self` are `STABLE` with `search_path = ''`, and a pgTAP test covers true and false for each (AD-3)
+**And** a pgTAP test proves a guest session cannot read another guest's row, another Event's rows or the `invite_tokens` table, and that `authenticated` still cannot write `guests` directly.
+
+### Story 7.2: Shared Event link with email code
+
+As an Organizer,
+I want one link I can post to everyone,
+So that I do not have to copy 80 personal links.
+
+**Acceptance Criteria:**
+
+**Given** the Guests page
+**When** I choose *Share one link for everyone*
+**Then** a `shared_event` token is created once per Event and shown with *Copy link*, *Turn off* and *New link*, and turning it off or replacing it revokes the old one at once (AD-4)
+**And** a pgTAP test proves only the Organizer can create or revoke it.
+
+**Given** a person opens the shared link
+**When** the page loads
+**Then** it shows the Event's name and a form for name and email, with the Zod rules of Story 2.9 (no control characters, length limits) and no other Event data, and a `GET` changes nothing (FR5)
+**And** a revoked, unknown or ended link gives the same expired copy as Story 7.1.
+
+**Given** I submit a valid name and email
+**When** the server accepts it
+**Then** the same neutral answer "We sent a code to that address" is shown whether or not the email is known, a Supabase Auth email one-time code is requested (never a magic link), and my name and email wait in an encrypted `httpOnly` cookie for 15 minutes, with no `guests` row and no `auth.users` row for a guest-only Event visitor beyond what Supabase Auth creates for the code (FR3, AD-4)
+**And** no row is written to `guests` before the code is verified, so a stranger cannot reserve my place or put a name on my email.
+
+**Given** I enter the correct code
+**When** it is verified
+**Then** a `guests` row is created for this Event, or the existing row with that email (case-insensitive) is bound to me, a personal `guest` token is issued, and a guest session starts, all in one function, so I never get a duplicate (FR5)
+**And** the session created by the code check is used only to prove the email: if the user is not guest-only, it is ended and I am sent to sign in (AD-4).
+
+**Given** a wrong, expired or reused code
+**When** I submit it
+**Then** I see "That code didn't work. Check it or ask for a new one." and a new code can be requested after 60 seconds, with at most 5 attempts per code and 3 codes per hour per email (AD-21)
+**And** `config.toml` sets the code to 6 digits with a 10-minute expiry, and a test asserts it.
+
+**Given** an attacker with the link
+**When** they submit many emails
+**Then** the per-IP and per-email limits apply, and one Event can cause at most 100 code requests a day, so the shared link cannot use up the Auth email quota that role-holder sign-up and password reset depend on (NFR10)
+**And** past that limit the form says "We couldn't send the code right now. Ask {Organizer} for your own link." and the Organizer sees "Shared link paused today" on the Guests page.
+
+**Given** the Event already has 500 guests
+**When** another person verifies
+**Then** they see the same "ask the Organizer" message and no row is created
+**And** an auth user created for a code that is never verified, with no guest, Role or Event, is removed by Story 7.9's cleanup after 7 days.
+
+**Given** the flow
+**When** tests run
+**Then** pgTAP proves the binding function's allow and deny (Event, kind, existing email, non-guest-only user), and a Playwright test covers link → name and email → code (read from the local Supabase mail inbox) → RSVP start (UJ-3).
