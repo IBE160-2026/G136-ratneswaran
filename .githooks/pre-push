@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# pre-push: never push main; branch names follow AGENTS.md › Traceability.
+while read -r local_ref _ remote_ref _; do
+  [ "$remote_ref" = refs/heads/main ] && { echo "Push rejected: never push to main; open a PR." >&2; exit 1; }
+  branch=${local_ref#refs/heads/}
+  case $branch in
+    feat/epics-and-stories) ;;  # ponytail: planning branch created before the rule; drop once PR #2 merges
+    *) [[ $branch =~ ^(feat|fix)/[0-9]+\.[0-9]+-[a-z0-9-]+$ || $branch =~ ^(plan|docs|chore|ci)/[a-z0-9-]+$ ]] \
+         || { echo "Push rejected: branch '$branch' must be feat/<story-id>-<slug>, fix/<story-id>-<slug> or plan|docs|chore|ci/<slug>." >&2; exit 1; } ;;
+  esac
+done
+exit 0

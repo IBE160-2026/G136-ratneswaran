@@ -47,7 +47,8 @@ Event-planning web app (weddings, parties) for the solo IBE160 course project, d
 ## Traceability (sensor criteria, see `docs/sensor-criteria.md`)
 
 - One GitHub issue per story. Branch `feat/<story-id>-<slug>` (e.g. `feat/4.3-task-status`), PR title starts with the story id and the PR body says `Closes #<issue>`.
-- Commit messages: `<story-id>: <what changed and why>`. Small commits, one concern each; never a catch-all commit.
+- Commit messages: `<story-id>: <what changed and why>` on story branches; elsewhere `plan:`, `docs:`, `chore:`, `ci:` or `fix:`. At least four words after the prefix. Non-story branches are `plan|docs|chore|ci/<slug>`. Small commits, one concern each; never a catch-all commit.
 - Every story PR adds an entry to `docs/ki-logg.md`: key prompts, what the AI proposed, what the owner accepted, corrected or rejected and why, linked to the commit or PR.
 - Review findings on AI-written code are posted as PR comments, not only fixed silently.
 - Definition of Done: lint and format pass, no commented-out code, no unused files, no debug leftovers.
+- Enforcement: `.githooks/` (commit-msg, pre-push; activate once per clone with `git config core.hooksPath .githooks`), `.claude/hooks/` (Claude only) and `.github/workflows/process.yml` (every PR). Self-test: `.githooks/test.sh`. Never skip the hooks.
