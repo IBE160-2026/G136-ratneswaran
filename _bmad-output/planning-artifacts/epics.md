@@ -2715,3 +2715,169 @@ So that I can see my events without needing my link.
 **When** they open *All events*
 **Then** they see one card that opens the team experience, and the Dashboard shows a "Your invitation" card with *Answer* until they answer, which replaces "N guests added" for them only until answered (UX-DR27, Epic 5 carry-forward)
 **And** a pgTAP test proves the card reads their own guest row only.
+
+### Story 7.7: Guests tab and RSVP summary
+
+As an Organizer,
+I want to see who is coming and what they need, and each Role to see only its part,
+So that I can state the Event's guest status and the right people can act on it.
+
+**Acceptance Criteria:**
+
+**Given** the Guests tab
+**When** the Organizer opens it
+**Then** summary tiles show Guests, Coming, Not coming, Not answered, Food and Hotel as toggle buttons with `aria-pressed` that filter the list and announce "Showing 16 guests who have not answered", and the list shows each guest's state ("Not invited yet", "Link copied · not opened", "Opened", "Coming", "Not coming") with the actions of Stories 7.1 and 2.10 (FR19, UX-DR16)
+**And** *Remind* and the unanswered-request tile do not exist in Core and show no placeholder (FR17 is Target 3).
+
+**Given** the guest-data ownership convention
+**When** a holder of the Guests Role opens the tab
+**Then** they see names, RSVP state, plus-ones and "other needs", a holder of Food & Beverage sees names with allergies and food, a holder of Travel & Logistics sees names with hotel needs, and each sees nothing outside their part, which the page does not render and the database does not return (PRD §4.9, AD-3)
+**And** when the owning Role is inactive only the Organizer sees that field (Story 2.5).
+
+**Given** a guest's email
+**When** any holder of a Role reads guest rows
+**Then** the email is never returned, because it lives in a Organizer-only `guest_contacts` table (name stays in `guests`), a pgTAP test proves `select email` is denied for each Role and allowed for the Organizer, and this changes Story 2.9, which is not built yet and adopts the split, while Story 3.10's "no Role-holder reads `guests`" becomes "no Role-holder reads contacts, and only the three owning Roles read the guest fields above"
+**And** this is recorded as a change to be settled with `bmad-correct-course` before Story 2.9 is built.
+
+**Given** RLS on `rsvps`, `guest_food` and `guest_hotel`
+**When** the Organizer, a holder of the owning Role, a holder of another Role, another Event's Organizer, the Guest and an anonymous caller each read a row
+**Then** only the first, second and the Guest's own row are allowed, and pgTAP proves one allow and one deny per table and per Role (AD-3, NFR1)
+**And** a holder of another Role sees only the questionnaire's expected guest count on the Dashboard, never a figure computed from guest rows.
+
+**Given** the Dashboard *On track* section
+**When** the viewer may read RSVPs
+**Then** "N guests added" is replaced by the RSVP summary (invited, coming, not coming, not answered) as a pie chart with an accompanying table, never colour alone, with an accessible name that states the numbers, and the plus-ones add to the headcount shown (Epic 5 carry-forward, UX-DR8)
+**And** a Vitest test covers zero guests, all answered and a plus-one on a *No*.
+
+**Given** a guest answers while the tab is open
+**When** the Organizer reloads or navigates
+**Then** the answer appears in the same session, and the page does not poll, because Realtime is Target 3 (FR15)
+**And** an empty list says "No guests yet. Add them by name and email, or share an invite link." with both actions, and a filter with no match says "No guests match this filter." with *Clear filter* (UX State Patterns).
+
+**Given** 500 guests
+**When** the tab loads
+**Then** it makes a fixed number of queries and renders the first 100 rows with a *Show more* button, not infinite scroll, and the page reflows at 320px (UX-DR23, NFR6)
+**And** food and allergy text is rendered as plain text and is never placed in a URL or log.
+
+### Story 7.8: Delete guest data
+
+As a Guest,
+I want to delete everything Arrangly holds about me,
+So that I stay in control of my data.
+
+**Acceptance Criteria:**
+
+**Given** *Delete my data* on the Guest Dashboard
+**When** I choose it and confirm in a dialog that says what is removed
+**Then** `guests_delete_guest_data` removes my `guests` row, contact, RSVP, food, hotel, tokens and AI usage link, in one transaction, calling the purge hooks that exist and not failing for hooks a later epic adds (AD-11)
+**And** the page then shows "Your data has been deleted." and my session ends.
+
+**Given** the function
+**When** it is created
+**Then** it is `security definer` with `search_path = ''` and revoked from `public`, `anon` and `authenticated`, is called by the Server Action, which derives the guest id from `auth.getClaims()` and never from input, and a pgTAP test proves a direct call is denied and a call for another guest id does nothing (AD-5)
+**And** the mechanism by which the Server Action may call a function revoked from `authenticated`, and whether the secret key is used for it, is settled with `bmad-correct-course` before this story is built, as are the other privilege points.
+
+**Given** my user is guest-only (no password, identity, Role or Event of my own) and a Guest of no other Event
+**When** the function commits
+**Then** my auth user is deleted in the same transaction by the function itself, so there is no moment with data gone and the user left, or the reverse (AD-11)
+**And** deleting an `auth.users` row from a function is checked by a pgTAP test, and if it cannot be done there the story uses the secret key for this step and adds a repeat-safe cleanup, which is recorded as the open choice.
+
+**Given** I am also a Guest of another Event, or hold an account, a Role or an Event
+**When** I delete
+**Then** only this guest's data in this Event is removed and my user stays
+**And** the confirmation says which Event it applies to.
+
+**Given** the Organizer removes a guest (Story 2.10), or deletes or cancels the Event
+**When** the action commits
+**Then** removal calls the same function, and deleting the Event removes guest-only auth users of that Event's guests in the same transaction, which Story 2.7 prepared by routing deletion through one function (AD-11)
+**And** a pgTAP test proves that after Event deletion no `guests`, `rsvps`, `guest_food`, `guest_hotel` or `invite_tokens` row remains and a user who is a guest of another Event survives.
+
+**Given** the same Guest presses *Delete* twice, or the Organizer removes them at the same moment
+**When** the function runs the second time
+**Then** it returns success without error and without changing anything, and the guest's open pages show "Your data is already deleted."
+**And** a foreign-key pgTAP test asserts no key to `guests` or `auth.users` is `NO ACTION` (AD-11).
+
+**Given** the Event's team and logs
+**When** a guest is deleted
+**Then** free text a Role-holder wrote about them in a Task is outside what the function can find in Core, which the Privacy notice states in one sentence, and `tasks_purge_guest` arrives with Epic 8
+**And** server logs carry only Event id and user id.
+
+### Story 7.9: Automatic deletion 15 days after the Event
+
+As an Organizer,
+I want guest data to disappear on its own after the Event,
+So that Arrangly never keeps health data longer than it should.
+
+**Acceptance Criteria:**
+
+**Given** the retention job
+**When** `pg_cron` runs it nightly
+**Then** for each Event whose retention date has passed it writes anonymised counts (invited, coming, not coming, no answer, plus-ones, number who gave food data, number who needed a hotel) to `event_guest_stats` and then runs the deletion of Story 7.8 for each guest, in one transaction per Event, so counts and deletion never disagree (AD-11)
+**And** a pgTAP test proves counts are written first and a failure rolls both back.
+
+**Given** the retention date
+**When** it is computed
+**Then** it is the earlier of `ends_at` and `cancelled_at`, plus 15 days, read at run time, so moving the Event's dates changes it, and a cancelled Event does not keep guest data for a date that will never come (AD-11, Story 2.6)
+**And** a draft Event untouched for 90 days has its guest rows removed by the same job, so names and emails typed in and abandoned do not live forever.
+
+**Given** the project was paused or a run failed
+**When** the job runs again
+**Then** it catches up on every Event that is due, is idempotent, and a second run changes nothing (AD-11)
+**And** a pgTAP test runs it twice and asserts equal results.
+
+**Given** the job runs
+**When** it removes users
+**Then** guest-only users with no remaining Guest row are deleted, a user with a password, identity, Role or Event is never deleted, and an Auth user created for a one-time code that was never verified and has no guest, Role or Event is removed after 7 days (Story 7.2)
+**And** a pgTAP test covers each of these users.
+
+**Given** the job's privileges
+**When** it is created
+**Then** it runs as a function with `search_path = ''`, revoked from `authenticated`, and it needs no `pg_net`, Vault or secret key in Core (AD-5)
+**And** the choice between deleting auth users in SQL and calling the Admin API is the open point of Story 7.8.
+
+**Given** the flagship Event in `supabase/seed.sql`
+**When** the job runs on the grading date
+**Then** its dates are fixed after 2026-12-31, and a test asserts its retention date is in the future, so the demo's guests are not deleted before grading (NFR11, NFR15)
+**And** the Privacy notice states "deleted 15 days after the event" in nb and en, matching the job (Story 1.7).
+
+**Given** the Organizer
+**When** they open an Event after retention
+**Then** the Guests tab shows the counts from `event_guest_stats` and "Guest details were deleted on {date}", and no personal data
+**And** a cancelled or past Event stays read-only.
+
+### Story 7.10: Guest flow check
+
+As the owner of the project,
+I want the whole Guest side proven on the flagship Event,
+So that SM-4 and UJ-3's Core path hold before the freeze.
+
+**Acceptance Criteria:**
+
+**Given** `supabase/seed.sql`
+**When** it is loaded
+**Then** the flagship Event holds 80 fictional guests in every state (not invited, link copied, opened, coming with and without plus-one, not coming, food with consent, hotel needed, deleted) and nothing in it names a real person (AD-15)
+**And** pgTAP runs against it in CI.
+
+**Given** the seeded Event
+**When** a Playwright test runs the Guest path at 375px
+**Then** a Guest opens a personal link, continues, answers yes with a plus-one, ticks consent, chooses an allergen, says a hotel is needed, sees the confirmation, opens the Guest Dashboard, changes the answer and deletes their data, with no account created (SM-4, UJ-3 Core path, NFR12)
+**And** a second test uses the shared link with a code from the local mail inbox, and a third upgrades a Guest to an account with Google through the Story 1.6 method.
+
+**Given** the same Event
+**When** a test signs in as the Organizer, a Food & Beverage holder, a Travel & Logistics holder and a holder of another Role
+**Then** each sees exactly the guest fields their Role owns, nobody but the Organizer sees an email, and the Dashboard summary matches the seeded counts (NFR1, SM-2)
+**And** a Playwright assertion fails if an allergy string appears on any page outside the Guest, Organizer and owning-Role views.
+
+**Given** CI
+**When** a change breaks consent, a deny rule, the token rules or the retention counts
+**Then** the pgTAP, Vitest or Playwright test fails, with no AI and no application email involved (NFR9)
+**And** the epic summary lists FR3, FR5, FR15, FR18 and FR19 (Guests) covered, FR17 deferred to Target 3, and the carry-forwards below.
+
+### Carry-forwards from Epic 7
+
+- Epic 8 (Target 4): add `guest_requests` and `guest_results` with `ON DELETE CASCADE` and no `NO ACTION` key, the Guest Dashboard's "Resolved for you" and "My requests" sections, `tasks_purge_guest` in `guests_delete_guest_data`, and the late-change notifications. A Proposed Task from "other needs" must never put that text in an AI prompt, because it can hold health details.
+- Epic 6: when it ships, add `ai_purge_user` to `guests_delete_guest_data`.
+- Epic 9 (Target 4): the Guest Dashboard gains the Landing page link; guests see only the published snapshot.
+- Epic 10 and Target 3: *Remind*, the emailed fresh link and the emailed personal link arrive with the outbox; the Guests page then shows "Couldn't deliver" and the shared-link quota note can be removed.
+- Epic 11: README demo users include a Guest with a copied link; `docs/testplan.md` gets the screen-reader pass of the RSVP, a real one-time-code email through Gmail, a Safari and an in-app browser (Messenger or Instagram) open of a personal link, and the retention job observed once on a test Event.
+- Open points to settle with `bmad-correct-course` before building: the `guests`/`guest_contacts` split (Stories 7.7 and 2.9), how Server Actions call functions revoked from `authenticated` (Stories 7.8 and the Epic 4 and 6 points), and whether auth users are deleted in SQL or through the Admin API (Stories 7.8 and 7.9).
