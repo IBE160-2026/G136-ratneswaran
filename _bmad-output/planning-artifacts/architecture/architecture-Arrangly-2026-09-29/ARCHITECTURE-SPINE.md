@@ -106,6 +106,7 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
   - **Revocation:** adding a password or an identity, or being added to a Role, revokes that user's guest tokens in the same transaction.
   - **Fresh links:** a fresh link can always be requested by email. The response is identical whether or not the email exists.
   - **Never Supabase magic links:** Supabase's own magic links (valid at most one day) are never used as invite links.
+  - **Delivery in Core:** invitation links are shown to the inviter to share; there is no application email. A `shared_event` Guest verifies their email with a Supabase Auth one-time code (email OTP) before a personal guest token is issued. Fresh links in Core come from the inviter; the emailed fresh link above is Target 3 (`sprint-change-proposal-2026-10-12.md`).
 
 ### AD-5 — Elevated privilege is confined
 
@@ -115,12 +116,12 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
   - **Secret key, in TS:** the Supabase secret key (`sb_secret_…`, which replaces the legacy service_role key) is used only in these places:
     - the invite exchange route
     - invitee user creation
-    - the notification delivery route
+    - the notification delivery route (Target 3)
     - deleting an auth user on *Delete my data*
   - **Secret key, never:** it is never imported into a client component.
   - **Client key:** clients use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
   - **`security definer` functions** are allowed only for these:
-    - `notifications_emit`
+    - `notifications_emit` (Target 3)
     - `ai_reserve`
     - `guests_delete_guest_data` and its purge hooks
     - the retention job
@@ -143,7 +144,7 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
   - **What the UI shows:** never derive the user's providers from `raw_app_meta_data` (Supabase auth bug #2472).
   - **Test:** a Playwright test covers upgrading a Guest to an account with Google.
 
-### AD-7 — Notifications through a transactional outbox [ADOPTED]
+### AD-7 — Notifications through a transactional outbox [ADOPTED] — Target 3
 
 - **Binds:** FR-16, FR-17, FR-21, FR-23, all notification producers
 - **Prevents:** lost, forged or duplicate notifications, and producers that disagree on who the recipients are.
@@ -164,7 +165,7 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
   - **Payloads:** they hold IDs and an i18n key only, never names or health data. Names are resolved when the notification is read.
   - **Announcements:** sending one requires a confirmation dialog.
 
-### AD-8 — Delivery and live updates [ADOPTED]
+### AD-8 — Delivery and live updates [ADOPTED] — Target 3
 
 - **Binds:** FR-17, FR-19, FR-21, FR-23
 - **Prevents:** double sends, unauthenticated delivery, environment-specific URLs in migrations, and Realtime used everywhere.
@@ -207,11 +208,12 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
   - **Fixtures:** fixture mode (recorded responses in `supabase/fixtures/ai`) is the default unless `NODE_ENV === 'production'` and `AI_LIVE=1`, and it is always used in tests and previews.
   - **No health data:** allergy, food and hotel data are never part of a prompt.
 
-### AD-10 — All email is an outbox row [ADOPTED]
+### AD-10 — All email is an outbox row [ADOPTED] — Target 3
 
 - **Binds:** FR-1, FR-3, FR-5, FR-17, FR-23
 - **Prevents:** Server Actions sending 80 emails in one request, and several email senders with different setups.
 - **Rule:**
+  - **In Core:** only Supabase Auth emails (one-time codes, confirmations, resets) are sent; Server Actions never send email. The rules below apply from Target 3.
   - **One path:** every application email (invites, reminders, notifications) is an outbox row (AD-7), sent by the delivery route through `src/modules/notifications/email` using nodemailer over SMTP.
   - **Exception:** Supabase Auth's own emails (confirmations, password resets) are the only ones that don't go through the outbox.
   - **Provider is configuration only.** For v1 it is a personal Gmail account with an app password. Gmail also serves as Supabase Auth's custom SMTP, with the Auth email rate limit raised from 30 per hour as an environment setup step.
@@ -485,17 +487,17 @@ arrangly/
 | FR-1 accounts, FR-3 guest identity | events, `api/invite` | AD-4, AD-5, AD-6, AD-21 |
 | FR-2 Roles + RBAC | events | AD-3, AD-18, AD-19 |
 | FR-4 questionnaire, FR-5 guest list | events, guests | AD-2, AD-4, AD-10, AD-14 |
-| FR-6 AI task list, status-note proposals | tasks → ai | AD-9, AD-18 |
-| FR-7–FR-9, FR-12 Tasks, status, accept, delegation | tasks | AD-2, AD-18, AD-19, Task state |
-| FR-10/11 decisions, obsolete-marking | tasks | AD-2, AD-16 |
+| FR-6 AI task list, status-note proposals (Target 1) | tasks → ai | AD-9, AD-18 |
+| FR-7–FR-9, FR-12 Tasks, status, accept (Target 2), delegation | tasks | AD-2, AD-18, AD-19, Task state |
+| FR-10/11 decisions, obsolete-marking (Target 2) | tasks | AD-2, AD-16 |
 | FR-13 venue options (Target AI search) | tasks (→ ai in Target) | AD-9 |
-| FR-14 drafted email | tasks → ai | AD-9 |
-| FR-15–FR-18 RSVP, needs, reminders, Guest Dashboard | guests | AD-2, AD-3, AD-7, AD-10, AD-11, AD-18 |
+| FR-14 drafted email (Target 4) | tasks → ai | AD-9 |
+| FR-15–FR-18 RSVP, needs (FR-16 Target 4), reminders (FR-17 Target 3), Guest Dashboard | guests | AD-2, AD-3, AD-7, AD-10, AD-11, AD-18 |
 | FR-19 Dashboard | tasks, guests (reads) | AD-3, AD-8 |
 | FR-20 Timeline | tasks | AD-13 |
-| FR-21 announcements, volunteers | notifications | AD-7, AD-8 |
-| FR-22 Landing page, Run of Show | guests → ai | AD-12, AD-9, AD-14 |
-| FR-23 channels | notifications | AD-7, AD-8, AD-10 |
+| FR-21 announcements, volunteers (Target 3) | notifications | AD-7, AD-8 |
+| FR-22 Landing page, Run of Show (Target 4) | guests → ai | AD-12, AD-9, AD-14 |
+| FR-23 channels (Target 3) | notifications | AD-7, AD-8, AD-10 |
 | §4.9 privacy, localisation, cost | cross-cutting | AD-11, AD-14, AD-9 |
 | SM-2 RBAC holds | supabase/tests | AD-3, AD-16, AD-19 |
 

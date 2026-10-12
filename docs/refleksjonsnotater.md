@@ -38,3 +38,15 @@ Løpende notater om valg og avveininger, til refleksjonsrapporten (30 %). Én op
 **Hvorfor:** Allergier og matbehov er helseopplysninger, en særlig kategori i GDPR (art. 9). Opprinnelig sa PRD-en at formell GDPR-håndtering var utenfor omfanget av v1. Under arkitekturarbeidet så jeg at det ikke er forsvarlig å behandle helsedata uten samtykke og sletting. Hver del er liten og kan testes, og passer med det som allerede var valgt (pg_cron, RLS, KI-gatewayen, pgTAP).
 
 **Avveining:** Hvis Arrangly var et ekte produkt, ville jeg valgt full etterlevelse: protokoll over behandlingsaktiviteter, databehandleravtaler med Supabase, Vercel, Anthropic og Google, risikovurdering (DPIA) og logg over samtykker. Det er mest arbeid utenfor koden og ville truet fristen. 15 dager etter arrangementet gir arrangøren tid til takkemeldinger før dataene slettes.
+
+## 2026-10-12 — Core redusert til det én utvikler kan fullføre
+
+**Valg:** Core er kuttet fra rundt 90 til rundt 52 stories. Med i Core: konto, arrangement og gjesteliste, team med invitasjon via lenke, oppgaver med eier, frist, status og enkle avhengigheter, dashbord og tidslinje, RSVP og gjestesiden. Til Target, i fast rekkefølge: KI-forslag til oppgaver, godta-trinn og beslutningsoppgaver, all app-e-post med varsler og kunngjøringer, og til sist gjesteforespørsler, landingsside og KI-utkast til e-post. Funksjonsstopp er 2026-12-15.
+
+**Hvorfor:**
+- Faglærer skrev 2026-10-06 at Core var for stor for én person, og at punkter burde flyttes «nå, ikke først når det haster».
+- Regnestykket bekreftet det: rundt 90 stories mot et realistisk tempo på 4–6 i uka gir plass til omtrent halvparten før funksjonsstopp.
+- Sensor gir best karakter for en kjerne som er «komplett og stabil», ikke for flest mulig funksjoner.
+- E-post-outboxen var den tyngste infrastrukturen (trigger, Vault, kø, retry). Uten den deles invitasjoner som lenke, og bare Supabase Auth sender e-post (engangskoder). Det fjerner fire stories og mye risiko.
+
+**Avveining:** Et mindre imponerende produkt i Core mot et som faktisk blir ferdig og testet. Det som mest skiller Arrangly fra en vanlig oppgaveliste (KI-forslag, beslutningsoppgaver som styrer oppfølgingsoppgaver) er nå Target, men fullt spesifisert og bygges først når Core er stabil. Funksjonsstopp 15. desember gir bare fem dager til README-test og stabilisering, så README-testen kjøres også før stoppen.

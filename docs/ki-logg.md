@@ -66,3 +66,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** Den første versjonen markerte hvert krav som dekket, delvis dekket eller ikke dekket.
 **Min vurdering:** Rettet. En binær status skjulte at prosessporet bare holdt nivå C og README nivå D. Etter nivåvurderingen ble tiltakene prioritert: denne KI-loggen, sporbarhetsregler i AGENTS.md, rydding i repoet, og README-krav i Story 1.1 og Epic 11.
 **Spor:** `docs/sensor-criteria.md`, PR for `chore/sensor-criteria`
+
+## 2026-10-12 — Prosess: Core redusert med bmad-correct-course
+
+**Prompt:** «Jeg sier meg enig i forslaget» (Core = Epic 1, 2, 3, 4 trimmet, 5, 7, 11; Target i rekkefølge), deretter `bmad-correct-course` med valg av e-post, tidslinje og funksjonsstopp.
+**KI foreslo:** Kuttliste og Target-rekkefølge basert på faglærerens tilbakemelding. Under analysen fant KI fem avhengigheter forslaget ikke hadde sett: invitasjon og engangskode gikk via e-post-outboxen (3.6, 3.7), varsler ved avlysning og delegering (3.10, 4.5), og at ingen kunne godta en delegert oppgave når godta-trinnet (4.6) flyttes ut, slik at eieren aldri kunne endre status (4.4, 4.9). KI anbefalte funksjonsstopp 8. desember med buffer til 13.
+**Min vurdering:** Godtatt med egne valg. E-post ut av Core, tidslinjen beholdes. Jeg valgte funksjonsstopp 15. desember i stedet for KI-ens anbefaling, med README-test før stoppen som risikodemping.
+**Spor:** `_bmad-output/planning-artifacts/sprint-change-proposal-2026-10-12.md`, PR for `plan/core-scope`
