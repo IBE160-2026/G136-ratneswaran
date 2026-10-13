@@ -178,7 +178,7 @@ UX-DR18: Build Announcements: flat feed, composer with recipient picker scoped b
 
 UX-DR19: Build the Landing page editor (✦ About drafted on first open, *Rewrite* with tone hint, *Write it myself*, Program drafted from guest-program Tasks, Location, Menu, Practical info, *Preview as guest*, *Publish*, "Unpublished changes" banner with *Publish update*) and the Guest-facing Landing page (hero plus About, Program, Location, Menu, Practical info; readable after the event; "The program will appear here closer to the day." before first publish).
 
-UX-DR20: Build the Guest RSVP flow: one question per screen as a `fieldset` with the question as `h1` and focus moving there each step; progress "Question 2 of 4" counting only applicable steps; Back always available; *No* ends warmly ("Thanks for letting us know, Chris."); allergies as checkboxes plus "Other"; an unticked consent checkbox that enables food fields and may be skipped; inline errors with `aria-invalid` and `aria-describedby`; warm confirmation ("You're on the list, Chris!").
+UX-DR20: Build the Guest RSVP flow: one question per screen as a `fieldset` with the question as `h1` and focus moving there each step; progress "Question 2 of 3" counting only applicable steps; Back always available; *No* ends warmly ("Thanks for letting us know, Chris."); allergies as checkboxes plus "Other"; an unticked consent checkbox that enables food fields and may be skipped; inline errors with `aria-invalid` and `aria-describedby`; warm confirmation ("You're on the list, Chris!").
 
 UX-DR21: Build the Guest Dashboard (My RSVP with *Change*, Resolved for you, My requests with reply or "Waiting for an answer", *Send a request* as a sticky phone bar, *Delete my data* with confirmation), the shared-invite name+email form, the Account offer card (password, Google, GitHub or *Not now*), and the expired-link screen ("This link has expired. We can send you a fresh one.").
 
@@ -198,7 +198,7 @@ UX-DR27: Build the Guest-side layout: single scroll with no sidebar, Zola-style 
 
 FR1: Epic 1 - Account creation and login (email, Google, GitHub); Epic 3 - Role-holder invite link and account creation
 FR2: Epic 2 - Role activation from the Branch Pool and adjusting active Roles; Epic 3 - assign, Role lead, revoke, RBAC enforced in the database
-FR3: Epic 7 - Guest identity by Magic Link, optional account, fresh-link request
+FR3: Epic 7 - Guest identity by personal Magic Link (Core); shared link with email code and optional account (Target 3); fresh-link request (Target 3)
 FR4: Epic 2 - Branching event-creation questionnaire, Event language, RSVP due date
 FR5: Epic 2 - Guest list entry by hand; Epic 7 - sending Magic Links at publish, shared-link flow
 FR6: Epic 6 - AI task suggestion from the event description, status-note proposals
@@ -210,7 +210,7 @@ FR11: Epic 4 - Obsolete-marking of option-tied Tasks, idempotent reversal
 FR12: Epic 4 - Delegation tracker and *Not delegated* filter
 FR13: Epic 4 - Manual option entry on a Task
 FR14: Epic 6 - AI-drafted external email handed to the user's mail client
-FR15: Epic 7 - Guest RSVP flow with consent for food data
+FR15: Epic 7 - Guest RSVP flow: yes or no, plus-one, other needs (Core); consent, allergies, food and hotel (Target 2)
 FR16: Epic 8 - Guest needs and requests as Proposed Tasks, one reply, results on the Guest Dashboard, late-change notifications
 FR17: Epic 7 - Manual guest reminder
 FR18: Epic 7 - Guest Dashboard
@@ -260,7 +260,7 @@ An Organizer, or any Role-holder within their scope, can see the state of the Ev
 
 ### Epic 7: Guests: invitation, RSVP and Guest Dashboard
 
-A Guest opens a personal link, answers the RSVP without an account, and finds their answers and information on a Guest Dashboard. The Organizer sees RSVPs, food and hotel data on the Guests tab, and Guest data is deleted on request or 15 days after the Event. Guests are invited by a personal link the Organizer copies, or by the shared Event link with the email verified by a Supabase Auth one-time code. The manual reminder (FR17) is **Target 3**.
+A Guest opens a personal link, answers the RSVP without an account, and finds their answers and information on a Guest Dashboard. The Organizer sees RSVPs and other needs on the Guests tab, and Guest data is deleted on request. Guests are invited by a personal link the Organizer copies. The shared Event link with an email code and the optional account are **Target 3**, allergies, food and hotel with automatic deletion 15 days after the Event are **Target 2**, and the manual reminder (FR17) is **Target 3**.
 
 **FRs covered:** FR3, FR5 (sending), FR15, FR17, FR18, FR19 (Guests)
 
@@ -300,15 +300,15 @@ Set by `sprint-change-proposal-2026-10-12.md`. Feature freeze: **2026-12-15**. T
 | 4 Tasks and decisions | 4.1–4.5, 4.7, 4.9 | 4.6, 4.8, 4.10–4.12 → T2; 4.13–4.14 → T1 |
 | 5 Dashboard and Timeline | 5.1–5.9 (Core items only, see the Epic 5 note) | — |
 | 6 AI assistant | — | T1 |
-| 7 Guests | invitation by link, RSVP, Guest Dashboard, data deletion | FR17 reminder → T3 |
+| 7 Guests | 7.1, 7.3, 7.5, 7.7, 7.8, 7.10: invitation by personal link, RSVP (yes or no, plus-one, other needs), Guest Dashboard, data deletion | 7.4, 7.9 → T2; 7.2, 7.6, FR17 reminder → T3 |
 | 8 Guest requests | — | T4 |
 | 9 Landing page and Run of Show | — | T4 |
 | 10 Announcements and channels | — | T3 |
 | 11 Ready for launch | all | — |
 
 - **T1:** AI task suggestions (FR6) and Proposed Tasks from questionnaire gaps.
-- **T2:** Accept step and 48-hour rule, Problem flag, Decision Tasks and obsolete-marking.
-- **T3:** application email (outbox, delivery, pacing), notifications and channels, announcements, guest reminder, emailed invitations.
+- **T2:** Accept step and 48-hour rule, Problem flag, Decision Tasks and obsolete-marking, and guest allergies, food and hotel with consent and automatic deletion after 15 days (Stories 7.4, 7.9).
+- **T3:** application email (outbox, delivery, pacing), notifications and channels, announcements, guest reminder, emailed invitations, the shared Event link with email code and the optional Guest account (Stories 7.2, 7.6).
 - **T4:** guest requests, Landing page and Run of Show, AI-drafted external communication (FR14).
 
 ## Epic 1: Account and app shell
@@ -2433,19 +2433,19 @@ So that I can trust it and demonstrate it without spending money.
 
 ## Epic 7: Guests: invitation, RSVP and Guest Dashboard
 
-**Tier:** Core, except the manual reminder (FR17), which is Target 3 — see Release tiers.
+**Tier:** Core, except Stories 7.4 (allergies, food and hotel) and 7.9 (automatic deletion), which are Target 2, Stories 7.2 (shared link) and 7.6 (optional account), which are Target 3, and the manual reminder (FR17), which is Target 3 — see Release tiers. The four stories keep their full text below so they can be built unchanged once Core is stable.
 
-A Guest opens a personal link, answers the RSVP without an account, and finds their answers and information on a Guest Dashboard. The Organizer sees RSVPs, food and hotel data on the Guests tab, and Guest data is deleted on request or 15 days after the Event. Guests are invited by a personal link the Organizer copies, or by the shared Event link with the email verified by a Supabase Auth one-time code.
+A Guest opens a personal link, answers the RSVP without an account, and finds their answers and information on a Guest Dashboard. The Organizer sees RSVPs and other needs on the Guests tab, and Guest data is deleted on request. Guests are invited by a personal link the Organizer copies.
 
 **Epic-wide conventions (apply to every story below):**
 
-- Core sends no application email. A personal link is shown to the Organizer to share; the only email a Guest receives is Supabase Auth's one-time code (AD-4, AD-10, `sprint-change-proposal-2026-10-12.md`).
+- Core sends no application email. A personal link is shown to the Organizer to share; a Guest receives no email from Arrangly or Supabase Auth in Core (AD-4, AD-10, `sprint-change-proposal-2026-10-12.md`).
 - A Guest session is a Supabase session of a guest-only, passwordless user (AD-4). Every guest policy uses `is_guest_of(guest_id)` or `is_guest_self(guest_id)`, never an email match (AD-3).
 - A guest function never takes a guest id from the client. It takes the Event id and derives the Guest from `auth.uid()`, so one Guest can never write another's answers (AD-2, AD-19).
-- Only functions write RSVP, food and hotel rows; `authenticated` has `SELECT` as RLS allows and no direct `INSERT`, `UPDATE` or `DELETE` (AD-19).
+- Only functions write RSVP rows (and the food and hotel rows once Story 7.4 is built); `authenticated` has `SELECT` as RLS allows and no direct `INSERT`, `UPDATE` or `DELETE` (AD-19).
 - Allergy, food, hotel and "other needs" text never appear in a prompt, a notification payload, a log line, a URL or an analytics call; guest pages load no third-party scripts and send `Cache-Control: no-store` and `Referrer-Policy: no-referrer` (AD-11, NFR2).
 - Guest pages work at 375px and reflow at 320 CSS px, are a single scroll with no sidebar, move focus to the `h1` on every step, and use the warm voice of UX-DR26 (UX-DR20, UX-DR21, UX-DR27, NFR5, NFR6).
-- A cancelled Event shows Guests "This event has been cancelled." with the Organizer's note, read-only; an ended Event shows "Thanks for coming!", read-only. For `guest` and `shared_event` tokens this replaces Story 3.5's "rejected if the Event is cancelled", which stays for `role_holder` (UX State Patterns).
+- A cancelled Event shows Guests "This event has been cancelled." with the Organizer's note, read-only; an ended Event shows "Thanks for coming!", read-only. For `guest` tokens (and `shared_event` tokens once Story 7.2 is built) this replaces Story 3.5's "rejected if the Event is cancelled", which stays for `role_holder` (UX State Patterns).
 - Accepted risks, written down so they are not rediscovered: a personal link is a bearer credential, so whoever holds it acts as that Guest until the Organizer issues a *New link*; and one guest-only user can be a Guest of several Events, so a leaked link also exposes that person's other Guest rows. Both are limited by revocation, short sessions and the rules below.
 - Shared limits: 5 requests per minute per IP and 3 per hour per email or token on every public route here, through the Epic 1 limiter (AD-21, NFR10).
 
@@ -2498,6 +2498,8 @@ So that each guest can open their own invitation without an account or an email 
 **And** a pgTAP test proves a guest session cannot read another guest's row, another Event's rows or the `invite_tokens` table, and that `authenticated` still cannot write `guests` directly.
 
 ### Story 7.2: Shared Event link with email code
+
+**Tier:** Target 3 — see Release tiers. Not built in Core: the shared link and email code arrive with application email.
 
 As an Organizer,
 I want one link I can post to everyone,
@@ -2560,12 +2562,12 @@ So that the Organizer knows whether I am coming.
 **Given** I answer *No*
 **When** I submit
 **Then** the follow-ups are skipped, "Thanks for letting us know, {name}." is shown, and I can still open my Guest Dashboard and change my answer (FR15, UX-DR20)
-**And** a *No* after an earlier *Yes* deletes my plus-one, food and hotel rows in the same transaction.
+**And** a *No* after an earlier *Yes* deletes my plus-one in the same transaction (and my food and hotel rows once Story 7.4 exists).
 
 **Given** I answer *Yes*
 **When** I reach the plus-one step
 **Then** I choose none or one plus-one, with an optional name of up to 80 characters, and the headcount is me plus at most one (FR15)
-**And** *other needs* is a free-text field of up to 500 characters with the hint "Anything we should know? Please don't write health details here. There is a separate step for those." and is stored as written, never interpreted in Core.
+**And** *other needs* is a free-text field of up to 500 characters with the hint "Anything we should know? Please don't write health details here." and is stored as written, never interpreted in Core.
 
 **Given** the table
 **When** the migration is applied
@@ -2593,6 +2595,8 @@ So that the Organizer knows whether I am coming.
 **And** the RSVP due date is a soft date: answering or changing after it works and nothing blocks it.
 
 ### Story 7.4: Allergies, food and hotel with consent
+
+**Tier:** Target 2 — see Release tiers. Not built in Core: Core collects no health data; this story and Story 7.9 are built together.
 
 As a Guest,
 I want to tell the people planning the food and the hotel what I need, and decide whether to share it,
@@ -2676,9 +2680,11 @@ So that I can come back later without hunting for the link.
 **Given** loading and failure
 **When** the page loads
 **Then** a final-shape `Skeleton` shows, a failure shows the *Retry* card, and tap targets are at least 44×44px (UX-DR24, NFR5)
-**And** pgTAP proves a Guest reads only their own `rsvps`, `guest_food` and `guest_hotel` rows.
+**And** pgTAP proves a Guest reads only their own `rsvps` row.
 
 ### Story 7.6: Optional account for a Guest
+
+**Tier:** Target 3 — see Release tiers. Not built in Core: it needs the one-time code of Story 7.2.
 
 As a Guest,
 I want to keep my answers under an account if I choose,
@@ -2726,12 +2732,12 @@ So that I can state the Event's guest status and the right people can act on it.
 
 **Given** the Guests tab
 **When** the Organizer opens it
-**Then** summary tiles show Guests, Coming, Not coming, Not answered, Food and Hotel as toggle buttons with `aria-pressed` that filter the list and announce "Showing 16 guests who have not answered", and the list shows each guest's state ("Not invited yet", "Link copied · not opened", "Opened", "Coming", "Not coming") with the actions of Stories 7.1 and 2.10 (FR19, UX-DR16)
+**Then** summary tiles show Guests, Coming, Not coming, Not answered as toggle buttons with `aria-pressed` that filter the list and announce "Showing 16 guests who have not answered", and the list shows each guest's state ("Not invited yet", "Link copied · not opened", "Opened", "Coming", "Not coming") with the actions of Stories 7.1 and 2.10 (FR19, UX-DR16)
 **And** *Remind* and the unanswered-request tile do not exist in Core and show no placeholder (FR17 is Target 3).
 
 **Given** the guest-data ownership convention
 **When** a holder of the Guests Role opens the tab
-**Then** they see names, RSVP state, plus-ones and "other needs", a holder of Food & Beverage sees names with allergies and food, a holder of Travel & Logistics sees names with hotel needs, and each sees nothing outside their part, which the page does not render and the database does not return (PRD §4.9, AD-3)
+**Then** they see names, RSVP state, plus-ones and "other needs", a holder of any other Role sees no guest row, which the page does not render and the database does not return; the Food & Beverage and Travel & Logistics views arrive with Story 7.4 (PRD §4.9, AD-3)
 **And** when the owning Role is inactive only the Organizer sees that field (Story 2.5).
 
 **Given** a guest's email
@@ -2739,9 +2745,9 @@ So that I can state the Event's guest status and the right people can act on it.
 **Then** the email is never returned, because it lives in an Organizer-only `guest_contacts` table (name stays in `guests`), a pgTAP test proves `select email` is denied for each Role and allowed for the Organizer, and this changes Story 2.9, which is not built yet and adopts the split, while Story 3.10's "no Role-holder reads `guests`" becomes "no Role-holder reads contacts, and only the three owning Roles read the guest fields above"
 **And** this is recorded as a change to be settled with `bmad-correct-course` before Story 2.9 is built.
 
-**Given** RLS on `rsvps`, `guest_food` and `guest_hotel`
+**Given** RLS on `rsvps`
 **When** the Organizer, a holder of the owning Role, a holder of another Role, another Event's Organizer, the Guest and an anonymous caller each read a row
-**Then** only the first, second and the Guest's own row are allowed, and pgTAP proves one allow and one deny per table and per Role (AD-3, NFR1)
+**Then** only the Organizer, a holder of the Guests Role and the Guest's own row are allowed, and pgTAP proves one allow and one deny per Role (AD-3, NFR1)
 **And** a holder of another Role sees only the questionnaire's expected guest count on the Dashboard, never a figure computed from guest rows.
 
 **Given** the Dashboard *On track* section
@@ -2757,7 +2763,7 @@ So that I can state the Event's guest status and the right people can act on it.
 **Given** 500 guests
 **When** the tab loads
 **Then** it makes a fixed number of queries and renders the first 100 rows with a *Show more* button, not infinite scroll, and the page reflows at 320px (UX-DR23, NFR6)
-**And** food and allergy text is rendered as plain text and is never placed in a URL or log.
+**And** "other needs" text is rendered as plain text and is never placed in a URL or log.
 
 ### Story 7.8: Delete guest data
 
@@ -2769,7 +2775,7 @@ So that I stay in control of my data.
 
 **Given** *Delete my data* on the Guest Dashboard
 **When** I choose it and confirm in a dialog that says what is removed
-**Then** `guests_delete_guest_data` removes my `guests` row, contact, RSVP, food, hotel, tokens and AI usage link, in one transaction, calling the purge hooks that exist and not failing for hooks a later epic adds (AD-11)
+**Then** `guests_delete_guest_data` removes my `guests` row, contact, RSVP, tokens and AI usage link, in one transaction, calling the purge hooks that exist and not failing for hooks a later epic adds (AD-11)
 **And** the page then shows "Your data has been deleted." and my session ends.
 
 **Given** the function
@@ -2790,7 +2796,7 @@ So that I stay in control of my data.
 **Given** the Organizer removes a guest (Story 2.10), or deletes or cancels the Event
 **When** the action commits
 **Then** removal calls the same function, and deleting the Event removes guest-only auth users of that Event's guests in the same transaction, which Story 2.7 prepared by routing deletion through one function (AD-11)
-**And** a pgTAP test proves that after Event deletion no `guests`, `rsvps`, `guest_food`, `guest_hotel` or `invite_tokens` row remains and a user who is a guest of another Event survives.
+**And** a pgTAP test proves that after Event deletion no `guests`, `rsvps` or `invite_tokens` row remains and a user who is a guest of another Event survives.
 
 **Given** the same Guest presses *Delete* twice, or the Organizer removes them at the same moment
 **When** the function runs the second time
@@ -2803,6 +2809,8 @@ So that I stay in control of my data.
 **And** server logs carry only Event id and user id.
 
 ### Story 7.9: Automatic deletion 15 days after the Event
+
+**Tier:** Target 2 — see Release tiers. Not built in Core: built together with Story 7.4; Core deletes guest data on request and with the Event only.
 
 As an Organizer,
 I want guest data to disappear on its own after the Event,
@@ -2855,29 +2863,29 @@ So that SM-4 and UJ-3's Core path hold before the freeze.
 
 **Given** `supabase/seed.sql`
 **When** it is loaded
-**Then** the flagship Event holds 80 fictional guests in every state (not invited, link copied, opened, coming with and without plus-one, not coming, food with consent, hotel needed, deleted) and nothing in it names a real person (AD-15)
+**Then** the flagship Event holds 80 fictional guests in every state (not invited, link copied, opened, coming with and without plus-one, not coming, deleted) and nothing in it names a real person (AD-15)
 **And** pgTAP runs against it in CI.
 
 **Given** the seeded Event
 **When** a Playwright test runs the Guest path at 375px
-**Then** a Guest opens a personal link, continues, answers yes with a plus-one, ticks consent, chooses an allergen, says a hotel is needed, sees the confirmation, opens the Guest Dashboard, changes the answer and deletes their data, with no account created (SM-4, UJ-3 Core path, NFR12)
-**And** a second test uses the shared link with a code from the local mail inbox, and a third upgrades a Guest to an account with Google through the Story 1.6 method.
+**Then** a Guest opens a personal link, continues, answers yes with a plus-one and a line under other needs, sees the confirmation, opens the Guest Dashboard, changes the answer and deletes their data, with no account created (SM-4, UJ-3 Core path, NFR12)
+**And** a second test opens a link after *New link* was issued and sees the expired page, and Target Stories 7.2 and 7.6 add the shared-link and account-upgrade tests when they are built.
 
 **Given** the same Event
-**When** a test signs in as the Organizer, a Food & Beverage holder, a Travel & Logistics holder and a holder of another Role
-**Then** each sees exactly the guest fields their Role owns, nobody but the Organizer sees an email, and the Dashboard summary matches the seeded counts (NFR1, SM-2)
-**And** a Playwright assertion fails if an allergy string appears on any page outside the Guest, Organizer and owning-Role views.
+**When** a test signs in as the Organizer, a Guests-Role holder and a holder of another Role
+**Then** each sees exactly the guest fields their Role owns (the Guests Role: names, RSVP, plus-ones and other needs), nobody but the Organizer sees an email, and the Dashboard summary matches the seeded counts (NFR1, SM-2)
+**And** a Playwright assertion fails if an "other needs" string appears on any page outside the Guest, Organizer and Guests-Role views.
 
 **Given** CI
-**When** a change breaks consent, a deny rule, the token rules or the retention counts
+**When** a change breaks a deny rule, the token rules or the deletion counts
 **Then** the pgTAP, Vitest or Playwright test fails, with no AI and no application email involved (NFR9)
-**And** the epic summary lists FR3, FR5, FR15, FR18 and FR19 (Guests) covered, FR17 deferred to Target 3, and the carry-forwards below.
+**And** the epic summary lists FR3 (personal link), FR5, FR15 (without consent and food), FR18 and FR19 (Guests) covered, FR15's food, allergy and hotel part deferred to Target 2, the shared link and optional account to Target 3, and FR17 to Target 3, and the carry-forwards below.
 
 ### Carry-forwards from Epic 7
 
 - Epic 8 (Target 4): add `guest_requests` and `guest_results` with `ON DELETE CASCADE` and no `NO ACTION` key, the Guest Dashboard's "Resolved for you" and "My requests" sections, `tasks_purge_guest` in `guests_delete_guest_data`, and the late-change notifications. A Proposed Task from "other needs" must never put that text in an AI prompt, because it can hold health details.
 - Epic 6: when it ships, add `ai_purge_user` to `guests_delete_guest_data`.
 - Epic 9 (Target 4): the Guest Dashboard gains the Landing page link; guests see only the published snapshot.
-- Epic 10 and Target 3: *Remind*, the emailed fresh link and the emailed personal link arrive with the outbox; the Guests page then shows "Couldn't deliver" and the shared-link quota note can be removed.
-- Epic 11: README demo users include a Guest with a copied link; `docs/testplan.md` gets the screen-reader pass of the RSVP, a real one-time-code email through Gmail, a Safari and an in-app browser (Messenger or Instagram) open of a personal link, and the retention job observed once on a test Event.
+- Epic 10 and Target 3: *Remind*, the emailed fresh link and the emailed personal link arrive with the outbox; the Guests page then shows "Couldn't deliver" and the shared-link quota note can be removed once Story 7.2 exists.
+- Epic 11: README demo users include a Guest with a copied link; `docs/testplan.md` gets the screen-reader pass of the RSVP, a Safari and an in-app browser (Messenger or Instagram) open of a personal link.
 - Open points to settle with `bmad-correct-course` before building: the `guests`/`guest_contacts` split (Stories 7.7 and 2.9), how Server Actions call functions revoked from `authenticated` (Stories 7.8 and the Epic 4 and 6 points), and whether auth users are deleted in SQL or through the Admin API (Stories 7.8 and 7.9).
