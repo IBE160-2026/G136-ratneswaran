@@ -130,3 +130,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Min vurdering:** Godtatt. Rettelsen i 11.1 retter også «fire steder» til «tre» etter correct-course. Sprint planning kjøres i fersk kontekst.
 **Spor:** branch `plan/validate-epics`
 
+
+## 2026-10-13 — Sprint planning: sprint-status.yaml for alle 11 epics
+
+**Prompt:** «/bmad-sprint-planning» i fersk kontekst, etter at sluttvalideringen av epics var merget.
+**KI foreslo:** Klarhetssjekken fikk PASS uten ny gjennomgang, fordi sluttvalideringen samme dag allerede hadde dekket FR1–FR23, fremoverreferanser og Core/Target-avhengigheter. Skriptet genererte `sprint-status.yaml` fra `epics.md`: 11 epics og 98 stories som `backlog`, og 11 retrospektiver som `optional`. Ti overskrifter ble ikke tolket (dokumenttittel, «Epic List» og «Carry-forwards from Epic N»); KI vurderte dem som ikke-stories og lot dem stå. Filen ble lagt på en egen `plan/`-gren fra `main`, siden `main` ikke skal endres direkte.
+**Min vurdering:** Godtatt. Jeg ba KI pushe grenen og åpne en PR som jeg gjennomgår og merger selv. Neste steg er Story 1.1 med egen issue og `feat/1.1-…`-gren.
+**Spor:** `_bmad-output/implementation-artifacts/sprint-status.yaml`, commit 2ed8833, branch `plan/sprint-status`
