@@ -3108,3 +3108,186 @@ So that FR16 holds before the freeze.
 - Epic 9: no dependency; the Landing page and this epic's Guest Dashboard sections are independent additions to the same page.
 - Epic 11: the flagship seed's replied request, routed need and published result (Story 8.7) are part of the launch run; `docs/testplan.md` gets a manual check that the word-list fallback still holds with a real model call.
 - Open point to settle with `bmad-correct-course` before building: the system-caller wrapper for `ai_reserve` that `route-request` needs (Story 8.3), the same family of question Epic 6's Story 6.1 and Epic 7's Story 7.8 already raised and left open.
+
+## Epic 9: Landing page and Run of Show
+
+**Tier:** Target 4 — see Release tiers.
+
+An Organizer drafts, edits and publishes the Event's Landing page, with an AI-drafted About and a Program built from the Tasks marked for guests. Guests see only the published version.
+
+**Epic-wide conventions (apply to every story below):**
+
+- `landing_pages` (the Organizer's draft) is owned by the events module; `landing_snapshots` (the immutable, Guest-visible copy) is owned by the guests module and written only by `guests_publish_landing`, matching AD-1 and AD-12.
+- The Program is never a stored order. `guests_publish_landing` reads only Tasks with `show_on_guest_program = true` (Story 4.2's field) at publish time and writes their guest label, time of day and deadline date into the snapshot as plain values, so a later Task edit never changes an already-published Program (AD-12, AD-13).
+- A Guest reads only `landing_snapshots`, never `landing_pages`, enforced by RLS; `authenticated` has no direct write to either table (AD-3, AD-19).
+- Before the Event's first publish of a Landing page, the Guest-facing route shows RSVP and the Guest Dashboard only, exactly as FR22 requires, and this is unchanged by whether the Event itself is published (Story 2.8).
+
+### Story 9.1: Landing page editor shell
+
+As an Organizer,
+I want a page where I write the Location, Menu and practical information,
+So that everything a guest needs lives in one place before I publish it.
+
+**Acceptance Criteria:**
+
+**Given** the migration
+**When** it is applied
+**Then** `landing_pages` exists (events module) with `event_id` (unique, `ON DELETE CASCADE`), `about`, `about_source ∈ {ai_draft, ai_rewrite, manual}`, `location`, `menu`, `practical_info` (each a bounded free-text field) and `updated_at`, created once per Event alongside the Event itself so the editor never has to handle "no row yet" (AD-19)
+**And** `authenticated` has no direct write; only `events_update_landing(event_id, fields)` writes it, Organizer-only, proven by pgTAP.
+
+**Given** *Landing page* in the sidebar
+**When** the Organizer opens it
+**Then** Location, Menu and Practical info are plain text fields with autosave on blur, following Story 2.3's draft-never-lost pattern, and *Preview as guest* opens the Guest-facing route in the same state a Guest would see after publish (UX-DR19)
+**And** the editor is reachable from any Event state, including a draft Event, because writing About or Location does not require being published.
+
+**Given** a Role-holder
+**When** they open the Landing page route
+**Then** they see the published Program and a read-only copy of Location, Menu and Practical info, because a Role-holder may need this for their own planning, but no *Publish*, *Rewrite* or edit control (FR22, AD-3)
+**And** pgTAP proves a Role-holder's call to `events_update_landing` is denied.
+
+**Given** a save fails or the browser goes offline
+**When** that happens
+**Then** the field keeps my text and a toast offers *Retry*, matching UX-DR24, and nothing about Location, Menu or Practical info reaches a log line.
+
+### Story 9.2: ✦ AI-drafted About
+
+As an Organizer,
+I want a first draft of the About text when I first open the Landing page,
+So that I start from something instead of a blank field.
+
+**Acceptance Criteria:**
+
+**Given** `landing_pages.about` is empty and the Event has a description (Story 2.8)
+**When** I first open the Landing page
+**Then** the editor reserves `landing-about:draft` (1 per Event) and calls the model with the Event's name, date, type, guest count and description, in the Event's language, and shows the draft with `about_source = 'ai_draft'` (FR22, AD-9)
+**And** the prompt contains no guest data, and a Vitest test asserts the exact field list, reusing Story 6.2's builder pattern.
+
+**Given** a draft already shown
+**When** I choose *Rewrite* with a tone hint (up to 50 characters, e.g. "more playful")
+**Then** the editor reserves `landing-about:rewrite` (5 per Event) and calls the model with the current About text, the tone hint and the same Event facts, replacing the text and setting `about_source = 'ai_rewrite'` (AD-9)
+**And** the fifth rewrite in an Event shows "You've used your rewrites for this event. You can still edit the text yourself."
+
+**Given** I edit the text by hand, at any point
+**When** I save
+**Then** `about_source` becomes `manual`, and editing after an AI draft or rewrite never calls the model again on its own
+**And** *Write it myself* is offered from the first open too, skipping the draft call entirely (UX-DR19).
+
+**Given** the draft call cannot run (cap, budget, timeout or invalid output)
+**When** I first open the page
+**Then** the editor opens with an empty About field and "Couldn't draft this right now. Write it yourself." exactly as FR22 and AD-9's fallback require, and the field is otherwise usable at once (NFR4)
+**And** a Playwright test in fixture mode covers first open → draft appears → *Rewrite* → replaced text.
+
+**Given** the output
+**When** it is parsed
+**Then** it is plain text, length-bounded, and rendered with no markup interpreted, and a Vitest test feeds a hostile draft (markup, an instruction to guests) and asserts it renders as inert text (AD-9).
+
+### Story 9.3: Program from guest-program Tasks
+
+As an Organizer,
+I want the Run of Show to build itself from the Tasks I marked for guests,
+So that I never retype a schedule I already have in Tasks.
+
+**Acceptance Criteria:**
+
+**Given** Tasks with `show_on_guest_program = true` in a published Event
+**When** the Landing page editor's Program section renders
+**Then** it lists each one by guest label and time of day, ordered by time of day and, for ties, by the Task's own Timeline order (AD-13, FR22)
+**And** a Task without a time of day sits in an "Also happening" group below the timed ones, never mixed in by guess.
+
+**Given** no Task is marked for the guest program
+**When** the section renders
+**Then** it says "Nothing marked for the guest program yet. Mark a task's 'Show on guest program' to add it here." with a link to Tasks (UX-DR19, UX State Patterns)
+**And** this is read-only here; marking a Task stays on the Task itself (Story 4.2).
+
+**Given** *Preview as guest*
+**When** I open it before ever publishing
+**Then** it shows exactly what `guests_publish_landing` would snapshot right now, computed live and never stored, so the preview can never drift from a real publish (AD-12, AD-13)
+**And** a Vitest test computes the Program for a fixed set of Tasks and asserts the same order the preview and the publish function both produce.
+
+**Given** a guest label or time of day changes on a Task after publish
+**When** I look at the published Guest-facing Program
+**Then** it still shows the snapshot from the last publish, unchanged, until I publish again (FR22)
+**And** the editor's own Program section always shows the live, unpublished state, with the "Unpublished changes" banner from Story 9.4 explaining the difference.
+
+### Story 9.4: Publish the Landing page
+
+As an Organizer,
+I want to publish the Landing page when it is ready, and update it later,
+So that guests always see a version I chose, never a half-written one.
+
+**Acceptance Criteria:**
+
+**Given** a Landing page with at least an About text
+**When** I choose *Publish* and confirm
+**Then** `guests_publish_landing(event_id)` copies About, Location, Menu, Practical info and the computed Program into one new `landing_snapshots` row, replacing the Guest-facing content immediately, idempotently, so a double click publishes the same snapshot once (UX-DR23, AD-12)
+**And** `landing_snapshots` keeps every past row (`published_at`, never updated or deleted), so a later correct-course review can see what guests actually saw at each date.
+
+**Given** a first publish with an empty About
+**When** I try to publish
+**Then** it is refused with "Add an About text before publishing." and nothing changes
+**And** Location, Menu and Practical info are optional and may stay empty.
+
+**Given** I edit the Landing page after the first publish
+**When** I save any field
+**Then** an "Unpublished changes" banner appears with *Publish update*, exactly as the Core Event-settings pattern already uses elsewhere, and the Guest-facing page keeps showing the older snapshot until I publish again (FR22)
+**And** the banner disappears the moment a new snapshot is published.
+
+**Given** a non-Organizer
+**When** they call `guests_publish_landing` directly
+**Then** it is denied (pgTAP, FR22)
+**And** an Event that is cancelled keeps its last snapshot visible, read-only, matching Epic 7's cancelled-Event convention.
+
+### Story 9.5: Guest-facing Landing page
+
+As a Guest,
+I want to see what the day will look like,
+So that I know where to be and what to expect.
+
+**Acceptance Criteria:**
+
+**Given** a Guest session and an Event with at least one published snapshot
+**When** I open the Landing page from the Guest Dashboard's new link
+**Then** I see a single-scroll page with a hero (Event name and date), About, Program (grouped by time of day, "Also happening" last), Location, Menu and Practical info, built only from the latest `landing_snapshots` row (FR22, UX-DR19, UX-DR27)
+**And** the page is readable after the Event has ended, matching FR22's "Guests see only the last published version" with no expiry.
+
+**Given** no snapshot has ever been published
+**When** I open the link
+**Then** I see "The program will appear here closer to the day." and the RSVP and Guest Dashboard sections stay fully usable, unaffected (FR22, UX State Patterns)
+**And** the link itself is always present on the Guest Dashboard, never hidden before first publish.
+
+**Given** the Event is cancelled
+**When** I open the Landing page
+**Then** I see the cancelled notice ahead of the snapshot content, consistent with Epic 7's cancelled-Event convention, with the last snapshot still visible below it.
+
+**Given** the page
+**When** it loads
+**Then** it sends `Cache-Control: no-store` and loads no third-party scripts, matching the Guest-page conventions of Epic 7, even though this page holds no health data, for one consistent rule across every Guest route (AD-11)
+**And** it reflows at 320 CSS px and works at 375px with no sidebar (NFR5, NFR6).
+
+### Story 9.6: Landing page flow check
+
+As the owner of the project,
+I want the Landing page proven end to end on the flagship Event,
+So that FR22 holds before the freeze.
+
+**Acceptance Criteria:**
+
+**Given** `supabase/seed.sql`
+**When** it is loaded
+**Then** the flagship Event has a published Landing page with an AI-drafted About (from the `landing-about:draft` fixture), a Program built from its guest-program Tasks (dinner, speeches, quiz, DJ with times), Location, Menu and Practical info, and nothing in it names a real person (AD-15)
+**And** pgTAP runs against it in CI.
+
+**Given** the seeded Event
+**When** a Playwright test runs as the Organizer
+**Then** opening the Landing page for the first time shows the AI draft, *Rewrite* changes it, editing Location saves, and *Publish* makes the Guest-facing page show the new snapshot (UJ-1, NFR9)
+**And** a second test opens the Guest-facing Landing page at 375px and reads the Program in the right order with no sidebar.
+
+**Given** CI
+**When** a change breaks the publish idempotency, the Program ordering or the pre-publish Guest state
+**Then** the pgTAP, Vitest or Playwright test fails, with AI in fixture mode (NFR9)
+**And** the epic summary lists FR22 covered and the carry-forwards below.
+
+### Carry-forwards from Epic 9
+
+- Epic 10: notifications are not part of this epic; nothing here calls `notifications_emit`.
+- Epic 11: the flagship seed's published Landing page and its Playwright checks are part of the launch run; `docs/testplan.md` gets a manual check of the Guest-facing page on a real phone browser.
