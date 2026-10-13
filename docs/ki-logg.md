@@ -123,3 +123,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Min vurdering:** Godtatt. Jeg valgte 7.4 (allergi, mat og hotell), slik at Core ikke samler helsedata og ikke trenger noen retention-jobb. Kostnaden er at flaggskip-scenarioets allergi-steg blir Target 2 og at Core sletter gjestedata bare på forespørsel eller når Eventen slettes. `AGENTS.md` må oppdateres etterpå fordi den fortsatt sier fire steder for hemmelig nøkkel.
 **Spor:** `sprint-change-proposal-2026-10-13.md`, branches `plan/epic-7-guests` og `plan/correct-course-privilege-and-scope`
 
+## 2026-10-13 — Sluttvalidering av epics (steg 4)
+
+**Prompt:** «Start validering» og deretter «Kjør det øvrige, commit og push» (sprint planning venter til en fersk kontekst).
+**KI foreslo:** Skriptet sjekket FR1–FR23, NFR og UX-DR mot stories, fremoverreferanser og Core-stories som avhenger av Target-stories. Dekningen var komplett, men Story 11.1 (Core) forutsatte nodemailer, dagstak, varsellinje og Vault-verdier fra Story 3.2–3.4 (Target 3), som ikke finnes i Core. UX-DR17 og UX-DR18 var ikke sitert i noen story. KI foreslo å begrense 11.1 til SMTP i Supabase Auth og flytte resten til Target 3, og å tagge de to UX-DR-ene.
+**Min vurdering:** Godtatt. Rettelsen i 11.1 retter også «fire steder» til «tre» etter correct-course. Sprint planning kjøres i fersk kontekst.
+**Spor:** branch `plan/validate-epics`
+
