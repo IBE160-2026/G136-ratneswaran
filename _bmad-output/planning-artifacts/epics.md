@@ -2889,3 +2889,222 @@ So that SM-4 and UJ-3's Core path hold before the freeze.
 - Epic 10 and Target 3: *Remind*, the emailed fresh link and the emailed personal link arrive with the outbox; the Guests page then shows "Couldn't deliver" and the shared-link quota note can be removed once Story 7.2 exists.
 - Epic 11: README demo users include a Guest with a copied link; `docs/testplan.md` gets the screen-reader pass of the RSVP, a Safari and an in-app browser (Messenger or Instagram) open of a personal link.
 - Open points to settle with `bmad-correct-course` before building: the `guests`/`guest_contacts` split (Stories 7.7 and 2.9), how Server Actions call functions revoked from `authenticated` (Stories 7.8 and the Epic 4 and 6 points), and whether auth users are deleted in SQL or through the Admin API (Stories 7.8 and 7.9).
+
+## Epic 8: Guest requests and resolved needs
+
+**Tier:** Target 4 — see Release tiers.
+
+A Guest can describe a need or send a request at any time, and it reaches the Role that owns it as a Proposed Task. The Guest gets one reply, sees the result when the Task is done, and owning Roles are notified of late changes.
+
+**Epic-wide conventions (apply to every story below):**
+
+- A guest request or need becomes a Task with `lifecycle = 'proposed'` and `source ∈ {guest_need, guest_request}`, created only by `tasks_propose`, exactly as Epic 4 and 6 sources already behave (AD-18).
+- The request or "other needs" text itself is never sent to a model; only its routed Role, the Event's active Roles and the Event's language reach `route-request`'s prompt, and a documented word list stops even that call when the text contains allergy, food or hotel wording in `nb` or `en`, reusing Story 6.5's list (AD-9, AD-11, NFR2).
+- A Task whose `source_guest_request_id` is set, or whose source is `guest_need`, is excluded from Story 6.4's "already decided" re-run prompt and from Story 6.5's status-note AI call, exactly as the Epic 4 and 6 carry-forwards require.
+- `guests_submit_request` and `guests_reply_request` take the Guest or replier from `auth.getClaims()` and the Event id only, never a guest id from the client (AD-2, AD-19).
+- Every notification here (`guest_request_replied`, `guest_need_result`, `late_guest_change`) goes through `notifications_emit` from Epic 10's outbox; none is emitted in a draft Event (FR23, NFR7).
+
+### Story 8.1: Send a request from the Guest Dashboard
+
+As a Guest,
+I want to ask for something at any time, not just when I RSVP,
+So that a need that comes up later still reaches the right people.
+
+**Acceptance Criteria:**
+
+**Given** the migration
+**When** it is applied
+**Then** `guest_requests` exists (guests module) with `id`, `event_id` (`ON DELETE CASCADE`), `guest_id` (`ON DELETE CASCADE`), `body` (≤500 characters), `role_id` (`ON DELETE SET NULL`), `owner_user_id` (`ON DELETE SET NULL`), `reply`, `replied_by`, `replied_at` and `created_at`, and `guest_results` exists with `id`, `task_id` (`ON DELETE CASCADE`), `guest_request_id` (nullable, `ON DELETE CASCADE`), `guest_id` (`ON DELETE CASCADE`), `result_text` and `published_at` (AD-11, AD-19)
+**And** a pgTAP test enumerates every foreign key on both tables and fails if any is `NO ACTION`, matching the Epic 7 carry-forward.
+
+**Given** *Send a request* on the Guest Dashboard
+**When** I submit text up to 500 characters
+**Then** `guests_submit_request(event_id, body)` derives my guest id from `auth.uid()`, writes one `guest_requests` row, and in the same transaction calls `tasks_propose` for one Proposed Task with `source = 'guest_request'`, `source_guest_request_id` set, `role_id` the Branch Pool's `guests` Role and `owner_user_id` the Organizer, so it is never left ownerless (FR16, AD-18)
+**And** the Task title is a truncated form of my text with "Guest request: " prefixed, never my name or email.
+
+**Given** the Proposed Task
+**When** the Organizer or a Role-holder sees it
+**Then** it uses the Story 4.9/4.14 rows unchanged, with the source line "From a guest's request · {Role} · due {date}" and no guest name, because the Guest is identified only inside `guest_requests`, which only the Organizer and the owning Role may read (UX-DR9, AD-3)
+**And** a pgTAP test proves a holder of another Role and an anonymous caller cannot read `guest_requests` or `guest_results`.
+
+**Given** an Event that is a draft, cancelled or ended
+**When** I try to send a request
+**Then** `guests_submit_request` refuses it and the Dashboard explains why, matching the epic conventions used throughout Epic 7.
+
+**Given** a double click or a retry
+**When** the same text is submitted twice within a few seconds
+**Then** a `request_key` (a hash of the Guest id and the text) keeps one row and one Proposed Task, and `authenticated` cannot call `tasks_propose` or write `guest_requests` directly (pgTAP, as Story 4.13 already proved for the function).
+
+**Given** a very long or hostile string (control characters, markup)
+**When** I submit it
+**Then** Zod trims and bounds it before the database CHECK, and it renders as plain text everywhere it is shown (Story 2.9 rules).
+
+### Story 8.2: "Other needs" from the RSVP becomes a Proposed Task
+
+As a Guest,
+I want what I wrote in "Anything we should know?" to actually reach someone,
+So that a sentence I typed while answering does not sit unread.
+
+**Acceptance Criteria:**
+
+**Given** Story 7.3's `other_needs` field
+**When** `guests_submit_rsvp` saves a non-empty value for the first time
+**Then** the same transaction calls `tasks_propose` for one Proposed Task with `source = 'guest_need'`, no `guest_requests` row and no `source_guest_request_id`, `role_id` the `guests` Role and `owner_user_id` the Organizer, titled "Guest need: {Event guest-facing label}" with no guest name in the title (FR16, AD-18)
+**And** the source line on the row reads "From a guest's RSVP · {Role} · due {date}", never the Guest's name (UX-DR9).
+
+**Given** I change my answer and edit `other_needs` again
+**When** the new text differs from what already produced a Proposed Task
+**Then** at most one open Proposed Task from my `other_needs` exists at a time, and editing it while the Task is still `proposed` updates that Task's title instead of creating a second one
+**And** once the Task is confirmed `active` or dismissed, a further edit creates a new Proposed Task, because the earlier one is already someone's decision.
+
+**Given** I answer *No* after answering *Yes* with an `other_needs` value
+**When** `guests_submit_rsvp` deletes my RSVP details (Story 7.3)
+**Then** a Proposed Task still `proposed` from that text is dismissed with it, and one already `active` is left alone, because a Role may already be acting on it.
+
+**Given** the text I wrote
+**When** the Task is created or shown
+**Then** `other_needs` itself never appears on the Task, in a log, in a notification payload or in any AI prompt, only the fact that a need exists (AD-11, NFR2, Epic 7 carry-forward)
+**And** a Vitest test feeds an `other_needs` string containing an allergen word and asserts it never reaches the Task title or any builder in `src/modules/ai`.
+
+### Story 8.3: AI suggests the right Role, the Organizer can always re-route
+
+As an Organizer,
+I want Arrangly to guess which Role a guest need belongs to,
+So that it does not sit under me when Food & Beverage or Entertainment should see it.
+
+**Acceptance Criteria:**
+
+**Given** a Proposed Task created by Story 8.1 or 8.2 in a published Event
+**When** the commit finishes
+**Then** the server calls `route-request` once per request through `ai_reserve` (1 per request, per AD-9), with a prompt built only from the Event's active Role keys and names and the Event's language, never the request or "other needs" text itself, because routing is decided from a short category the function derives, not the raw text (AD-9, AD-11)
+**And** the word-list check of the epic conventions runs on the raw text before any derivation, and a match skips the call entirely, leaving the Task with the Organizer, exactly as Story 6.5 does for status notes.
+
+**Given** `route-request`'s authorisation
+**When** it runs with no Guest or Organizer session attached, because it fires as a follow-on step after `guests_submit_request` or `guests_submit_rsvp` already committed
+**Then** it is called only from inside those two functions' own transaction as a `security definer` wrapper that is never granted to `public`, `anon` or `authenticated`, so no new privilege reaches a Guest session (AD-5, AD-9)
+**And** whether this wrapper is a third case alongside Story 6.1's human-caller checks, or a distinct function altogether, is an open point for `bmad-correct-course` before this story is built, because it is the same family of question Epic 6 flagged and must not be decided by widening `ai_reserve`'s grants alone.
+
+**Given** a confident result
+**When** it names one of the Event's active Roles
+**Then** `route-request`'s result moves the Task's `role_id` to that Role and clears `owner_user_id` (Role-owned, pending a lead), and the source line updates to name the new Role
+**And** a pgTAP test proves only this flow, never a direct call, can move a Task that is not `proposed`.
+
+**Given** an unsure result, a timeout, a cap reached or invalid output
+**When** the call does not produce a confident Role
+**Then** the Task stays with the Organizer and nothing is shown as an error, matching AD-9's fallback rule (NFR4)
+**And** the Organizer can always move it to another active Role through Story 6.4's `tasks_recategorise_proposed`, confirmed or not.
+
+**Given** the flagship fixture
+**When** `supabase/fixtures/ai/route-request.json` is recorded
+**Then** it covers a confident match to Food & Beverage, a confident match to Entertainment and an unsure case that stays with the Organizer, with no guest text in the fixture (AD-15).
+
+### Story 8.4: One in-app reply
+
+As an Organizer or the Role that owns it,
+I want to answer a guest's request once, directly,
+So that the guest knows someone read it without the Task needing to be finished first.
+
+**Acceptance Criteria:**
+
+**Given** an open `guest_requests` row
+**When** the Organizer or a holder of its current owning Role writes a reply of up to 500 characters and sends it
+**Then** `guests_reply_request(request_id, reply)` saves `reply`, `replied_by` and `replied_at` only when `replied_at` is still null, and a second attempt by anyone is refused with "This request already has a reply." (FR16)
+**And** a pgTAP test proves the one-reply rule holds under two simultaneous replies, that it is denied for a holder of another Role, and that re-routing the request's Role (Story 8.3 or a manual move) does not reopen replying once answered.
+
+**Given** a saved reply
+**When** it commits
+**Then** `notifications_emit` queues one `guest_request_replied` to the Guest, and the Guest Dashboard shows the reply under "My requests" in the same session for anyone with the page open (FR16, FR23).
+
+**Given** the request's own Proposed or active Task
+**When** a reply is sent
+**Then** the Task is unaffected. Replying and finishing the Task are two different signals to the Guest, and this story adds no change to `tasks_set_status`
+**And** a Task dismissed before anyone replies leaves the request open for a reply regardless.
+
+**Given** a cancelled or ended Event
+**When** anyone tries to reply
+**Then** it is refused with the same read-only page used everywhere else in Epic 7's conventions.
+
+### Story 8.5: Completing the Task tells the Guest
+
+As a Guest,
+I want to see what happened once my need is taken care of,
+So that I know it was not forgotten even without a reply.
+
+**Acceptance Criteria:**
+
+**Given** a Task with `source ∈ {guest_need, guest_request}` and `lifecycle = 'active'`
+**When** its owner sets its status to `done` through `tasks_set_status`
+**Then** the owner is first asked for a short result text (≤300 characters, "What should the guest know?"), and on confirm `tasks_set_status` calls `guests_publish_result(task_id, result_text)` in the same transaction, writing one `guest_results` row with `guest_id` taken from the Task's `source_guest_request_id` (via `guest_requests.guest_id`) or, for `guest_need`, from the RSVP that created it (AD-18)
+**And** skipping the result text is not offered for these two sources, because FR16 requires the Guest to see something.
+
+**Given** the result
+**When** it is saved
+**Then** `notifications_emit` queues one `guest_need_result` to the Guest, and the Guest Dashboard's "Resolved for you" shows it with the Role's name and the date, never the Task's internal title or any other Role's content (FR16, UX-DR9)
+**And** a pgTAP test proves `guests_publish_result` is reachable only from `tasks_set_status` and that a direct call or a call naming another guest's Task is denied.
+
+**Given** the Task is later reopened (status moved off `done`)
+**When** that happens
+**Then** the published result stays visible to the Guest exactly as it was, because `guest_results` is never deleted or edited after publish, only ever written once per Task (`UNIQUE (task_id)`)
+**And** a second `done` transition on the same Task, after being reopened, asks again and publishes a second, separate result row that the Guest sees as a second entry.
+
+**Given** a Task made obsolete by Story 4.11's decision logic
+**When** that happens before it reaches `done`
+**Then** no result is published and the request, if any, can still be replied to under Story 8.4
+**And** the Guest Dashboard shows nothing for an obsolete source Task, because FR16 only promises a result for a finished one.
+
+### Story 8.6: Guest Dashboard sections and data deletion
+
+As a Guest,
+I want my requests, their replies and their results in one place, and all of it gone when I delete my data,
+So that this Epic's additions follow the same rules as the rest of my Guest data.
+
+**Acceptance Criteria:**
+
+**Given** the Guest Dashboard
+**When** I open it
+**Then** "My requests" lists each request I sent with its reply or "Waiting for an answer", in order, and "Resolved for you" lists each published result with its Role and date, both sections replacing the Story 7.5 note that they "do not exist in Core" (FR16, FR18, UX-DR21)
+**And** an empty state for each says "Nothing yet. Use *Send a request* if you need something." and "Nothing resolved yet."
+
+**Given** *Send a request*
+**When** it is shown
+**Then** it is the sticky phone bar Story 7.5 reserved space for, open at any point in the Guest's journey, including before answering the RSVP and after the Event has ended, because a request may be about something that happened at the Event (FR16)
+**And** a cancelled Event still allows a request, read-only otherwise, because a guest may need to ask something about the cancellation.
+
+**Given** `guests_delete_guest_data`
+**When** it runs
+**Then** it calls a new purge hook `tasks_purge_guest(guest_id)` that detaches `guest_requests` and `guest_results` rows from any Task they reference by clearing `source_guest_request_id` and setting the Task's `lifecycle` untouched, so a Role's work Task is not deleted just because its source Guest is, while the `guest_requests` and `guest_results` rows themselves are removed by their own `ON DELETE CASCADE` on `guest_id` (AD-11, Epic 7 carry-forward)
+**And** a pgTAP test proves a Task survives its source Guest's deletion with `source_guest_request_id` null and `source` unchanged, so history is not rewritten.
+
+**Given** the retention job (Story 7.9)
+**When** it runs 15 days after the Event
+**Then** it removes this epic's rows exactly as it already removes RSVP, food and hotel rows, through the same per-Event transaction, with no separate job
+**And** a pgTAP test extends Story 7.9's foreign-key sweep to `guest_requests` and `guest_results`.
+
+### Story 8.7: Guest requests flow check
+
+As the owner of the project,
+I want a request, a need, a reply and a result proven end to end,
+So that FR16 holds before the freeze.
+
+**Acceptance Criteria:**
+
+**Given** `supabase/seed.sql`
+**When** it is loaded
+**Then** the flagship Event holds one guest request already replied, one guest need routed to Food & Beverage by the fixture, and one Task with a published result, and nothing in it names a real person (AD-15)
+**And** pgTAP runs against it in CI.
+
+**Given** the seeded Event
+**When** a Playwright test runs the Guest path
+**Then** a Guest sends a request, sees "Waiting for an answer", a Role-holder replies, the Guest sees the reply, the Role-holder finishes the backing Task with a result text, and the Guest sees it under "Resolved for you", all in fixture mode for the AI step (FR16, NFR9)
+**And** a second test confirms a holder of another Role never sees the request's text or the reply.
+
+**Given** CI
+**When** a change breaks the one-reply rule, the routing fallback, the word-list check or the purge hook
+**Then** the pgTAP or Vitest test fails, with AI in fixture mode throughout (NFR9)
+**And** the epic summary lists FR16 covered and the carry-forwards below.
+
+### Carry-forwards from Epic 8
+
+- Epic 9: no dependency; the Landing page and this epic's Guest Dashboard sections are independent additions to the same page.
+- Epic 11: the flagship seed's replied request, routed need and published result (Story 8.7) are part of the launch run; `docs/testplan.md` gets a manual check that the word-list fallback still holds with a real model call.
+- Open point to settle with `bmad-correct-course` before building: the system-caller wrapper for `ai_reserve` that `route-request` needs (Story 8.3), the same family of question Epic 6's Story 6.1 and Epic 7's Story 7.8 already raised and left open.
