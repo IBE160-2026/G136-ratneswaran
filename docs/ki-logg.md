@@ -78,5 +78,5 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 
 **Prompt:** «Target epicsene kan du i første omgang kjøre uten Elicitation og ta utgangspunkt i at jeg støtter anbefalingene som gis.» (Kjørt over natten mens jeg sov.)
 **KI foreslo:** Sju stories: bruksregister og `ai_reserve`, gateway i TypeScript med fixtures og fallback, forslag fra beskrivelse, gjennomgang og ny kjøring, forslag fra statusnotat, ✦ utkast til e-post (Target 4) og en AI-sjekk i CI. KI fant at AD-9 (`ai_reserve` må se `auth.uid()`) og AD-5 (revoke fra `authenticated`) motsier hverandre, og satte det opp som et åpent `bmad-correct-course`-punkt i stedet for å la en story omgå reglene. Forslag fra statusnotat fikk i tillegg en ordliste som stopper kall når notatet nevner allergi, mat eller hotell.
-**Min vurdering:** Ikke vurdert ennå; anbefalingene er lagt inn som standardvalg og må gjennomgås av meg i PR-en. Jeg bekrefter eller endrer: språk på forslag (Event-språket), `status-note` som Target 1 og ordlisten som sikkerhetsnett.
+**Min vurdering:** Vurdert 2026-10-13. Alle anbefalte standardvalg bekreftet: språk på forslag følger Event-språket, `status-note` er Target 1 og ordlisten er sikkerhetsnett. AD-9/AD-5-motsigelsen om `ai_reserve` avgjøres i `bmad-correct-course`-PR-en.
 **Spor:** `epics.md` › Epic 6, branch `plan/epic-6-ai-assistant`
