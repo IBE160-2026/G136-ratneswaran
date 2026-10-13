@@ -1,5 +1,5 @@
 <!-- bmad:context -->
-<!-- Verified 2026-10-03 against 430de9c. Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
+<!-- Verified 2026-10-13 against 121d130. Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
 
 ## Arrangly
 
@@ -11,7 +11,7 @@ Event-planning web app (weddings, parties) for the solo IBE160 course project, d
 - Keep the `Co-Authored-By` trailer on every commit you author; it is the course's evidence of how AI was used.
 - During implementation, never edit `_bmad/` or the planning documents in `_bmad-output/planning-artifacts/`. If code must contradict a planning document, stop and propose `bmad-correct-course`.
 - `docs/refleksjonsnotater.md` is append-only: when a story forces a choice the reflection report must explain, offer a new entry in the existing format. Never rewrite existing entries.
-- Never use `SUPABASE_SECRET_KEY` outside the four places in AD-5 (invite exchange, invitee creation, notification delivery, auth-user deletion), and never import it into a client component.
+- Never use `SUPABASE_SECRET_KEY` outside the three places in AD-5 (invite exchange, invitee creation, notification delivery), and never import it into a client component.
 - Never change the Supabase cloud project directly (dashboard or CLI). Every schema, policy, grant, function, trigger and cron change is a new file in `supabase/migrations/`; the cloud receives it only via CI from `main`.
 - Never hand-edit `src/types/database.ts`; regenerate it with `supabase gen types` after every migration.
 - Never put allergy, food or hotel data in an AI prompt, a notification payload or a log line (GDPR, AD-11).
@@ -33,8 +33,8 @@ Event-planning web app (weddings, parties) for the solo IBE160 course project, d
 
 - Only the owning module writes its tables. A multi-step change is one Postgres function called from a Server Action; direct updates only on columns the migration grants (AD-1, AD-2, AD-19).
 - Every table has RLS. Policies use `is_organizer`/`holds_role`/`is_guest_of`/`is_guest_self`, never an email match. Every policy, grant and SQL function gets a pgTAP test proving one allow and one deny (AD-3, AD-16).
-- `security definer` only for the functions AD-5 lists, always with `search_path = ''` and `REVOKE EXECUTE … FROM public, anon, authenticated`.
-- Notifications and all app email are created only through `notifications_emit` (outbox); never send email or push from a Server Action (AD-7, AD-10).
+- `security definer` only for the two kinds AD-5 lists, always with `search_path = ''`: mutation functions (the AD-2 functions, including `ai_reserve` and `guests_delete_guest_data`) are granted to `authenticated` and authorise from `auth.uid()` and the AD-3 helpers, never from an id the caller passes; system functions (`notifications_emit`, purge hooks, retention job, token exchange) are `REVOKE EXECUTE … FROM public, anon, authenticated`. Auth users are deleted in SQL, not with the Admin API.
+- Notifications and all app email are created only through `notifications_emit` (outbox); never send email or push from a Server Action (AD-7, AD-10). Until Story 3.1 (Target 3) builds the outbox, `notifications_emit` is a no-op stub with the final signature, and Core sends no app email.
 - Only `src/modules/ai` imports `@anthropic-ai/sdk`; every call goes through `ai_reserve` with a feature key. Dev and tests use fixtures in `supabase/fixtures/ai` (AD-9).
 - Session refresh lives in `proxy.ts` (Next 16), not `middleware.ts`. Server code checks users with `auth.getClaims()`, never `getSession()`.
 - Supabase env names are `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`, never the legacy `ANON_KEY`/`SERVICE_ROLE_KEY`.
