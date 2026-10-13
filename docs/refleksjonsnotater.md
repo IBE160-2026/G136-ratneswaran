@@ -50,3 +50,15 @@ Løpende notater om valg og avveininger, til refleksjonsrapporten (30 %). Én op
 - E-post-outboxen var den tyngste infrastrukturen (trigger, Vault, kø, retry). Uten den deles invitasjoner som lenke, og bare Supabase Auth sender e-post (engangskoder). Det fjerner fire stories og mye risiko.
 
 **Avveining:** Et mindre imponerende produkt i Core mot et som faktisk blir ferdig og testet. Det som mest skiller Arrangly fra en vanlig oppgaveliste (KI-forslag, beslutningsoppgaver som styrer oppfølgingsoppgaver) er nå Target, men fullt spesifisert og bygges først når Core er stabil. Funksjonsstopp 15. desember gir bare fem dager til README-test og stabilisering, så README-testen kjøres også før stoppen.
+
+## 2026-10-13 — Én rettighetsmodell og ingen helsedata i Core
+
+**Valg:** Alle funksjoner som skriver data er `security definer` og gitt til `authenticated`, men hver av dem sjekker `auth.uid()` selv. Bare systemfunksjoner (utsending, opprydding, retention, token-bytte) er stengt for innloggede brukere. I tillegg er allergi, mat, hotell og automatisk sletting flyttet ut av Core til Target 2.
+
+**Hvorfor:**
+- Åtte åpne `bmad-correct-course`-punkter i fem epics var samme spørsmål: hvordan skriver en funksjon til tabeller brukeren ikke kan skrive til? Én modell gir én regel å teste, ikke åtte unntak.
+- Helsedata krever samtykke, rolle-synlighet og sletting etter 15 dager. Uten dem trenger Core verken tabellene, retention-jobben eller samtykkeskjermen.
+- Færre steder med hemmelig nøkkel (tre i stedet for fire) gir mindre sårbar flate for én utvikler å holde oversikt over.
+
+**Avveining:** Et Core uten allergi-steget er svakere som demo av en festplanlegger, og sensor ser ikke samtykkehåndteringen før Target 2 er bygget. Til gjengjeld er Core enklere å teste og lettere å få ferdig før funksjonsstopp 15. desember.
+

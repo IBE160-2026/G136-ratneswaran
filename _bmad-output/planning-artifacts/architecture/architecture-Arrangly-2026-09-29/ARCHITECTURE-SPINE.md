@@ -29,7 +29,7 @@ companions:
 | --- | --- | --- |
 | **events** (Event & Team) | events, roles, role_members, invite_tokens, event_guest_stats | `src/modules/events` |
 | **tasks** | tasks, task_dependencies, decision_options, problems, status_history | `src/modules/tasks` |
-| **guests** | guests, rsvps, guest_food, guest_hotel, guest_requests, guest_results, landing_pages, landing_snapshots | `src/modules/guests` |
+| **guests** | guests, guest_contacts, rsvps, guest_food, guest_hotel, guest_requests, guest_results, landing_pages, landing_snapshots | `src/modules/guests` |
 | **notifications** | notification_outbox, notifications, announcements, announcement_groups, announcement_group_members, volunteer_offers, channel_prefs, push_subscriptions | `src/modules/notifications` |
 | **ai** (AI gateway) | ai_usage | `src/modules/ai` |
 
@@ -69,7 +69,7 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
 - **Rule:**
   - **Direct edits** are allowed only on columns granted per AD-19, from a Server Action under the user's session. For example: a Task title or description, the text of an RSVP answer, or a Landing page draft.
   - **Everything else is one Postgres function** called from a Server Action, which either commits fully or not at all. That includes all of these:
-    - `tasks_set_status` (writes `status_history` and may publish a guest result)
+    - `tasks_create`, `tasks_set_status` (writes `status_history` and may publish a guest result)
     - `tasks_delegate`, `tasks_accept`, `tasks_resolve_decision`, `tasks_propose`, `tasks_confirm_proposed`
     - `guests_submit_rsvp`, `guests_submit_request`, `guests_reply_request`
     - `guests_publish_landing`, `guests_delete_guest_data`
@@ -117,19 +117,14 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
     - the invite exchange route
     - invitee user creation
     - the notification delivery route (Target 3)
-    - deleting an auth user on *Delete my data*
   - **Secret key, never:** it is never imported into a client component.
   - **Client key:** clients use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-  - **`security definer` functions** are allowed only for these:
-    - `notifications_emit` (Target 3)
-    - `ai_reserve`
-    - `guests_delete_guest_data` and its purge hooks
-    - the retention job
-    - token exchange
+  - **`security definer` functions** are of two kinds, and no other function is `security definer`:
+    - **Mutation functions** are the AD-2 functions, including `guests_delete_guest_data` and `ai_reserve`. They are granted to `authenticated` and revoked from `public` and `anon`. Each one authorises first, from `auth.uid()` and the AD-3 helpers (`is_organizer`, `holds_role`, `is_guest_of`, `is_guest_self`), and refuses everyone else. None takes a user id from its caller. This is how a function writes tables that `authenticated` cannot write (AD-19), and a Server Action calls it under the user's session without the secret key.
+    - **System functions** are `notifications_emit` (Target 3), the purge hooks `tasks_purge_guest`, `notifications_purge_user_event` and `ai_purge_user`, the retention job (Target 2) and token exchange. They are `REVOKE EXECUTE … FROM public, anon, authenticated`, so they are called only from other SQL functions, the scheduler or a server route that holds the secret key, never through PostgREST.
   - **Rules for every definer function:**
     - it sets `search_path = ''`
-    - it is `REVOKE EXECUTE … FROM public, anon, authenticated`, so it can be called only from other SQL functions or the server, never through PostgREST
-    - it has a pgTAP test
+    - it has a pgTAP test with one allow and one deny (a direct call by the wrong caller for a system function)
 
 ### AD-6 — Sign-in providers [ADOPTED]
 
@@ -198,10 +193,10 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
   | `task-list` | `claude-sonnet-5` | 3 per Event | Organizer | Organizer adds Tasks manually |
   | `status-note` | `claude-haiku-4-5` | 20 per Event per day | Task owner | No proposal shown |
   | `draft-email` | `claude-sonnet-5` | 20 per user per day | Task owner | Empty draft prefilled with Event facts |
-  | `route-request` | `claude-haiku-4-5` | 1 per request | system, after `guests_submit_request` | Stays with the Organizer |
+  | `route-request` | `claude-haiku-4-5` | 1 per request | the Guest who submitted the request, from the Server Action step after `guests_submit_request` | Stays with the Organizer |
   | `landing-about:draft` / `:rewrite` | `claude-sonnet-5` | 1 / 5 per Event | Organizer | Empty editor with a short note |
 
-  - **Reserving:** before a call, `ai_reserve(feature, event_id)` checks that the caller is authorized and atomically inserts a reservation if it is under the cap. It is a definer function and is not exposed through PostgREST. A failed or unavailable call removes its reservation.
+  - **Reserving:** before a call, `ai_reserve(feature, event_id, subject_id, request_key, worst_case_microusd)` authorises the caller for that feature key from `auth.uid()` and atomically inserts a reservation if it is under the cap. It is a mutation function (AD-5), so a Server Action calls it under the user's session, and no AI call uses the secret key. A failed or unavailable call removes its reservation.
   - **Monthly ceiling:** USD 5 a month. The worst-case cost (`max_tokens` × price) is reserved before the call and settled to the actual tokens afterwards.
   - **Never an error page:** hitting a cap returns `unavailable`, and each feature falls back as listed above.
   - **Timeouts:** Server Actions that call AI export `maxDuration = 60` and treat a timeout as `unavailable`.
@@ -231,8 +226,8 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
     - `notifications_purge_user_event`
     - `ai_purge_user`
   - **Foreign keys:** every foreign key to `guests`, `guest_requests` or `auth.users` declares `ON DELETE SET NULL` or `CASCADE`. A pgTAP test asserts there is no `NO ACTION`.
-  - **The auth user:** it is deleted only if the person is guest-only (AD-4) and is a guest of no other Event.
-  - **Automatic retention:** a pg_cron job runs this deletion for every Guest 15 days after `events.ends_at`. Anonymised counts are first written to `event_guest_stats`. The job is idempotent and catches up after the project has been paused.
+  - **The auth user:** it is deleted only if the person is guest-only (AD-4) and is a guest of no other Event. It is deleted in SQL inside `guests_delete_guest_data`, in the same transaction, so there is no moment with data gone and the user left.
+  - **Automatic retention (Target 2, with Story 7.4):** a pg_cron job runs this deletion for every Guest 15 days after `events.ends_at`. Anonymised counts are first written to `event_guest_stats`. The job is idempotent and catches up after the project has been paused.
   - **Delete my data:** this action on the Guest Dashboard runs the same function for one Guest.
   - **Privacy notice:** a static page lists the processors: Supabase, Vercel, Anthropic and Google.
 

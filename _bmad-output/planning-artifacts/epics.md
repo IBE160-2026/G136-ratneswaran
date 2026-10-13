@@ -111,11 +111,11 @@ Starter and tooling
 Data and security architecture
 
 - AD-1 module ownership: only the owning module writes its tables; cross-module writes call the owner's SQL function along an allowed arrow in the module graph. Five modules: events, tasks, guests, notifications, ai.
-- AD-2 two mutation paths: direct edits only on granted columns; everything else is one Postgres function called from a Server Action (`tasks_set_status`, `tasks_delegate`, `tasks_accept`, `tasks_resolve_decision`, `tasks_propose`, `tasks_confirm_proposed`, `guests_submit_rsvp`, `guests_submit_request`, `guests_reply_request`, `guests_publish_landing`, `guests_delete_guest_data`, `events_set_role_lead`, `events_revoke_role`). `tasks_resolve_decision` locks the Decision Task `FOR UPDATE`; follow-up Tasks record `spawned_by_option_id`.
+- AD-2 two mutation paths: direct edits only on granted columns; everything else is one Postgres function called from a Server Action (`tasks_create`, `tasks_set_status`, `tasks_delegate`, `tasks_accept`, `tasks_resolve_decision`, `tasks_propose`, `tasks_confirm_proposed`, `guests_submit_rsvp`, `guests_submit_request`, `guests_reply_request`, `guests_publish_landing`, `guests_delete_guest_data`, `events_set_role_lead`, `events_revoke_role`). `tasks_resolve_decision` locks the Decision Task `FOR UPDATE`; follow-up Tasks record `spawned_by_option_id`.
 - AD-3 RLS: every table has RLS; policies use only `events.organizer_id`, `role_members`, `tasks.owner_user_id`, `guests.user_id` through the helpers `is_organizer`, `holds_role`, `is_guest_of`, `is_guest_self`; never email matching; views are `security_invoker`; Guests see only their own rows plus the latest published `landing_snapshots`; `guest_food` and `guest_hotel` are readable only by the Organizer, the Guest and holders of the owning Role.
 - AD-19 database as boundary: `authenticated` gets SELECT per RLS and `UPDATE (col,…)` only on listed direct-edit columns; all other INSERT/UPDATE/DELETE revoked; invariants as constraints or triggers (one lead per Role via partial unique index, dependencies and parents in the same Role via trigger, consent CHECK on food data, Role deactivation as `roles.active=false`, never a delete).
 - AD-4 one invite system: table `invite_tokens` with `kind ∈ {guest, role_holder, shared_event}`, one exchange route `app/api/invite/[token]`; a guest-only user gets a session, anyone else is sent to sign-in; invitees are passwordless Supabase Auth users; adding a password, identity or Role revokes that user's guest tokens in the same transaction; fresh-link responses are identical whether or not the email exists; Supabase's own magic links are never used for invites.
-- AD-5 elevated privilege: `SUPABASE_SECRET_KEY` only in the invite exchange, invitee creation, notification delivery and auth-user deletion, never in a client component; `security definer` only for `notifications_emit`, `ai_reserve`, `guests_delete_guest_data` and its purge hooks, the retention job and token exchange, each with `search_path = ''`, `REVOKE EXECUTE … FROM public, anon, authenticated` and a pgTAP test.
+- AD-5 elevated privilege: `SUPABASE_SECRET_KEY` only in the invite exchange, invitee creation, and notification delivery, never in a client component; `security definer` only for mutation functions (the AD-2 functions, including `ai_reserve` and `guests_delete_guest_data`, granted to `authenticated` and authorising from `auth.uid()`) and system functions (`notifications_emit`, purge hooks, retention job, token exchange, revoked from `authenticated`), each with `search_path = ''` and a pgTAP test.
 - AD-6 providers: email+password, Google and GitHub through Supabase Auth; automatic linking on verified email; `updateUser` to add a password; `linkIdentity` with manual linking enabled in `config.toml` and the cloud project; never derive providers from `raw_app_meta_data`; Playwright test for Guest-to-account upgrade with Google.
 - AD-7/AD-8 outbox: `notifications_emit(event_id, kind, subject_ref, recipients[])` is the only writer to notification tables; recipient specs `user, role, role_lead, organizer, team, group, guest, data_owner`; rows unique on `(txid, recipient_id)` with merged `kinds[]`; a trigger on `notification_outbox` calls `net.http_post` to `/api/notifications/deliver` (URL and `DELIVERY_SECRET` from Vault); the route requires `Authorization: Bearer`, claims rows with `claimed_until`, tracks `email_sent_at` and `push_sent_at` per channel, deletes push subscriptions on 404/410, and a pg_cron job retries; Realtime publication contains only `notifications` and `announcements`; announcements require a confirmation dialog.
 - AD-9 AI gateway: only `src/modules/ai` imports `@anthropic-ai/sdk`; `ai_reserve(feature, event_id)` reserves before each call. Feature keys and caps: `task-list` 3 per Event (Organizer); `status-note` 20 per Event per day (Task owner); `draft-email` 20 per user per day (Task owner); `route-request` 1 per request (system); `landing-about:draft` 1 and `:rewrite` 5 per Event (Organizer). Worst-case cost is reserved then settled; Server Actions calling AI export `maxDuration = 60` and treat timeouts as `unavailable`; fixtures in `supabase/fixtures/ai`; `AI_LIVE=1` and production required for live calls.
@@ -135,7 +135,7 @@ Data and security architecture
 - Server auth: `proxy.ts` refreshes the session only (`@supabase/ssr`); server code uses `auth.getClaims()`, never `getSession()`.
 - Env: Zod-validated at startup; client `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`; production-only server `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, `SMTP_*`, `VAPID_PRIVATE_KEY`, `DELIVERY_SECRET`, `AI_LIVE`; CI `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID`; Vault holds the deliver URL and `DELIVERY_SECRET`.
 - Logging: server logs carry event id and user id only, never names, health data or prompt bodies.
-- Core entities: events, roles, role_members, invite_tokens, event_guest_stats, tasks, task_dependencies, decision_options, problems, status_history, guests, rsvps, guest_food, guest_hotel, guest_requests, guest_results, landing_pages, landing_snapshots, notification_outbox, notifications, announcements, announcement_groups, announcement_group_members, volunteer_offers, channel_prefs, push_subscriptions, ai_usage. Exact columns and indexes are fixed by each module's first story.
+- Core entities: events, roles, role_members, invite_tokens, event_guest_stats, tasks, task_dependencies, decision_options, problems, status_history, guests, guest_contacts, rsvps, guest_food, guest_hotel, guest_requests, guest_results, landing_pages, landing_snapshots, notification_outbox, notifications, announcements, announcement_groups, announcement_group_members, volunteer_offers, channel_prefs, push_subscriptions, ai_usage. Exact columns and indexes are fixed by each module's first story.
 - Repository policy (AGENTS.md): work on `feat/…` or `fix/…` branches and open PRs, never commit to `main`; keep the `Co-Authored-By` trailer; never hand-edit `src/types/database.ts`.
 
 ### UX Design Requirements
@@ -524,7 +524,7 @@ So that I always know where I am and how to get around.
 
 **Given** any page
 **When** I scroll to the footer
-**Then** a *Privacy notice* link opens a static page, in nb and en, listing the processors (Supabase, Vercel, Anthropic, Google), what is stored and the 15-day Guest-data retention (UX-DR22, NFR2).
+**Then** a *Privacy notice* link opens a static page, in nb and en, listing the processors (Supabase, Vercel, Anthropic, Google), what is stored and how a Guest deletes their data; the 15-day automatic deletion is added with Story 7.9 (Target 2) (UX-DR22, NFR2).
 
 ### Story 1.8: Feedback and state primitives
 
@@ -831,7 +831,7 @@ So that my guest list exists before invitations go out.
 **Given** the Guests step and page
 **When** I paste or type rows of name and email
 **Then** each row is validated inline for email format and duplicates within the input and against the Event's list, case-insensitively (FR5, UX-DR7)
-**And** the database holds a unique `(event_id, lower(email))` constraint, so a race cannot create duplicates.
+**And** the email is stored in `guest_contacts` (`guest_id` unique, `event_id`, `email`, `ON DELETE CASCADE`), readable only by the Organizer, while the name stays in `guests`, and the database holds a unique `(event_id, lower(email))` constraint on `guest_contacts`, so a race cannot create duplicates (split settled in `sprint-change-proposal-2026-10-13.md`, used by Story 7.7).
 
 **Given** a name or email containing a line break or other control character
 **When** I submit
@@ -1250,7 +1250,7 @@ So that the Team's work is trustworthy and nobody sees what is not theirs.
 **Given** how `tasks_*` functions write to tables that `authenticated` cannot write
 **When** this story is built
 **Then** it states and tests the single privilege model every `tasks_*` function uses, and its pgTAP tests show a direct PostgREST call is denied while the function succeeds
-**And** this is an open point against AD-2 and AD-5 (`security definer` is allowed only for the listed functions) that is settled with `bmad-correct-course` before this story is built, as it is for every module's first story.
+**And** the model is the one settled in `sprint-change-proposal-2026-10-13.md`: every `tasks_*` function is a mutation function under AD-5 (`security definer`, `search_path = ''`, granted to `authenticated`, authorising from `auth.uid()` and the AD-3 helpers before any write), and `tasks_create` joins the AD-2 list.
 
 **Given** the generated types
 **When** the migration lands
@@ -1417,6 +1417,7 @@ So that someone specific is responsible for it.
 **Given** (**Target 3**) a delegation to someone else in a published Event
 **When** it commits
 **Then** `notifications_emit` queues one `task_assigned` to the new owner in the same transaction, excluding the sender, and none is emitted in a draft Event (FR23, S7)
+**And** until Story 3.1 (Target 3) builds the outbox, `notifications_emit` is a no-op stub created by this story with the final signature, which Story 3.1 replaces, so Stories 4.5, 4.8, 4.10 and 4.11 never change when the outbox arrives (gate settled in `sprint-change-proposal-2026-10-13.md`).
 **And** a double click delegates once and notifies once.
 
 **Given** a delegation in Core
@@ -1604,7 +1605,7 @@ So that choices such as the venue reach the right person with the context they n
 
 **Given** a sent Decision Task in a published Event
 **When** it commits
-**Then** one `decision_requested` is emitted to the recipient in the same transaction, none in a draft
+**Then** one `decision_requested` is emitted to the recipient in the same transaction through `notifications_emit`, none in a draft, and until Story 3.1 (Target 3) replaces the no-op stub that Story 4.5 creates, the call writes nothing (gate settled in `sprint-change-proposal-2026-10-13.md`)
 **And** the recipient sees the options through the Decision Task even if they hold no Role in the source Task's Role, and a holder of a third Role sees neither (pgTAP, NFR1).
 
 **Given** a Decision Task
@@ -1644,7 +1645,7 @@ So that the decision turns into work immediately.
 
 **Given** the source Task depends on the Decision Task
 **When** the decision commits
-**Then** the source Task is unblocked and its owner (or the Role lead if it is Role-owned) and the person who sent it for decision each get one `decision_resolved`, merged into one when the same person, excluding the decider
+**Then** the source Task is unblocked and its owner (or the Role lead if it is Role-owned) and the person who sent it for decision each get one `decision_resolved` through `notifications_emit`, merged into one when the same person, excluding the decider, and the same no-op stub applies until Story 3.1 (Target 3) exists
 **And** no notification is sent in a draft.
 
 **Given** the recipient and the Organizer resolve at the same moment, or a double click
@@ -1774,7 +1775,7 @@ So that no suggestion becomes work unless I say so.
 - Epic 6: AI-sourced Proposed Tasks call `tasks_propose` and reuse the *Review ✦* step; `status-note` must skip Tasks and notes that came from guest needs, and no allergy, food or hotel text may reach a prompt (AD-11).
 - Epic 8: add `source_guest_request_id` to `tasks` with its `ON DELETE SET NULL`, route `tasks_set_status(done)` to `guests_publish_result`, and add `tasks_purge_guest`.
 - Epic 7: Event deletion and guest removal keep going through `guests_delete_guest_data`; every FK added here is `ON DELETE CASCADE` or `SET NULL`.
-- Open against AD-2 and AD-5: how `tasks_*` functions write tables `authenticated` cannot write, and whether `tasks_create` joins the AD-2 list; settle with `bmad-correct-course` before Story 4.1 is built.
+- Settled in `sprint-change-proposal-2026-10-13.md`: `tasks_*` functions are mutation functions under AD-5 and `tasks_create` joins the AD-2 list; Story 4.1 states and tests that model.
 
 ## Epic 5: Dashboard and Timeline
 
@@ -2108,7 +2109,7 @@ So that I know I can state its status without asking anyone.
 - Epic 7 and 8: guest-card state on *All events* stays Epic 7; nothing in Epic 5 reads Guest data.
 - Epic 10: notification links and badges must open the Dashboard or the relevant Task.
 - Epic 11: the flagship seed and the Dashboard/Timeline Playwright tests are part of the launch run; a performance check with 300 Tasks is recorded.
-- Out of this epic, noted for later: letting every Role-holder read other Roles' Tasks, which the Organizer asked about and which would change FR2, NFR1 and AD-3, is a `bmad-correct-course` item, not a story here.
+- Decided in `sprint-change-proposal-2026-10-13.md`: Role-holders do not read other Roles' Tasks in Core or Target; FR2, NFR1 and AD-3 stand unchanged.
 
 ### Carry-forwards from the release criteria (`docs/sensor-criteria.md`)
 
@@ -2152,7 +2153,7 @@ So that cost stays under USD 5 a month and nobody can use my quota.
 **Given** `ai_reserve(feature, event_id, subject_id, request_key, worst_case_microusd)`
 **When** an authorised caller is under the cap
 **Then** one `reserved` row is inserted atomically and its id is returned, and when the cap is reached it returns `unavailable` with the reason `cap_reached` (AD-9)
-**And** the function is `security definer` with `search_path = ''`, is revoked from `public` and `anon`, and is granted to `authenticated` only because it must see `auth.uid()` to authorise; this widens AD-5's "REVOKE … FROM authenticated" and is settled with `bmad-correct-course` before this story is built (the extra arguments beyond AD-9's `(feature, event_id)` are part of the same note).
+**And** the function is `security definer` with `search_path = ''`, is revoked from `public` and `anon` and is granted to `authenticated` as a mutation function under AD-5 (settled in `sprint-change-proposal-2026-10-13.md`): it reads `auth.uid()` and the AD-3 helpers to authorise each feature key, takes the extra arguments beyond AD-9's `(feature, event_id)` that the ledger needs, and a pgTAP test proves one allow and one deny per feature key.
 
 **Given** the caller rules of AD-9
 **When** the feature is `task-list` the caller must be the Organizer, for `status-note` and `draft-email` the owner of the Task in `subject_id`, and an unknown feature key is refused
@@ -2425,7 +2426,7 @@ So that I can trust it and demonstrate it without spending money.
 
 ### Carry-forwards from Epic 6
 
-- Story 6.1 depends on a `bmad-correct-course` decision about `ai_reserve` being granted to `authenticated` (AD-5 wording) and about the extra arguments; it is the same family of question as the Epic 4 open point and should be settled together.
+- Story 6.1's `ai_reserve` is a mutation function granted to `authenticated` (settled in `sprint-change-proposal-2026-10-13.md`, together with the Epic 4, 7 and 8 points); no story in this epic needs the secret key.
 - Epic 7 (Core): `guests_delete_guest_data` calls only the purge hooks that exist; when Epic 6 ships, add `ai_purge_user` to it.
 - Epic 8: `route-request` is a system call after `guests_submit_request`, with no user session; decide in that epic how `ai_reserve` authorises a system caller (a definer wrapper called from the function itself), without widening the Guest's privileges.
 - Epic 9: `landing-about:draft` and `:rewrite` use the same gateway, caps (1 and 5 per Event) and fallback (empty editor with a short note).
@@ -2743,7 +2744,7 @@ So that I can state the Event's guest status and the right people can act on it.
 **Given** a guest's email
 **When** any holder of a Role reads guest rows
 **Then** the email is never returned, because it lives in an Organizer-only `guest_contacts` table (name stays in `guests`), a pgTAP test proves `select email` is denied for each Role and allowed for the Organizer, and this changes Story 2.9, which is not built yet and adopts the split, while Story 3.10's "no Role-holder reads `guests`" becomes "no Role-holder reads contacts, and only the three owning Roles read the guest fields above"
-**And** this is recorded as a change to be settled with `bmad-correct-course` before Story 2.9 is built.
+**And** the split is settled in `sprint-change-proposal-2026-10-13.md`: Story 2.9 stores the email in `guest_contacts` from the start.
 
 **Given** RLS on `rsvps`
 **When** the Organizer, a holder of the owning Role, a holder of another Role, another Event's Organizer, the Guest and an anonymous caller each read a row
@@ -2780,13 +2781,13 @@ So that I stay in control of my data.
 
 **Given** the function
 **When** it is created
-**Then** it is `security definer` with `search_path = ''` and revoked from `public`, `anon` and `authenticated`, is called by the Server Action, which derives the guest id from `auth.getClaims()` and never from input, and a pgTAP test proves a direct call is denied and a call for another guest id does nothing (AD-5)
-**And** the mechanism by which the Server Action may call a function revoked from `authenticated`, and whether the secret key is used for it, is settled with `bmad-correct-course` before this story is built, as are the other privilege points.
+**Then** it is `security definer` with `search_path = ''`, revoked from `public` and `anon` and granted to `authenticated` as a mutation function (AD-5), is called by the Server Action under the user's session, which derives the guest id from `auth.getClaims()` and never from input, and a pgTAP test proves a direct call is denied and a call for another guest id does nothing (AD-5)
+**And** this is settled in `sprint-change-proposal-2026-10-13.md`: the function is a mutation function under AD-5, granted to `authenticated`, authorising with `is_guest_self(guest_id)` for a Guest and `is_organizer(event_id)` for the Organizer, so the Server Action calls it under the user's session and the secret key is not used; its purge hooks stay revoked from `authenticated` and are called only from inside it.
 
 **Given** my user is guest-only (no password, identity, Role or Event of my own) and a Guest of no other Event
 **When** the function commits
 **Then** my auth user is deleted in the same transaction by the function itself, so there is no moment with data gone and the user left, or the reverse (AD-11)
-**And** deleting an `auth.users` row from a function is checked by a pgTAP test, and if it cannot be done there the story uses the secret key for this step and adds a repeat-safe cleanup, which is recorded as the open choice.
+**And** the deletion of the `auth.users` row is done in SQL and checked by a pgTAP test, with no secret key and no Admin API call, as settled in `sprint-change-proposal-2026-10-13.md`.
 
 **Given** I am also a Guest of another Event, or hold an account, a Role or an Event
 **When** I delete
@@ -2841,7 +2842,7 @@ So that Arrangly never keeps health data longer than it should.
 **Given** the job's privileges
 **When** it is created
 **Then** it runs as a function with `search_path = ''`, revoked from `authenticated`, and it needs no `pg_net`, Vault or secret key in Core (AD-5)
-**And** the choice between deleting auth users in SQL and calling the Admin API is the open point of Story 7.8.
+**And** auth users are deleted in SQL, as settled for Story 7.8 in `sprint-change-proposal-2026-10-13.md`.
 
 **Given** the flagship Event in `supabase/seed.sql`
 **When** the job runs on the grading date
@@ -2888,7 +2889,7 @@ So that SM-4 and UJ-3's Core path hold before the freeze.
 - Epic 9 (Target 4): the Guest Dashboard gains the Landing page link; guests see only the published snapshot.
 - Epic 10 and Target 3: *Remind*, the emailed fresh link and the emailed personal link arrive with the outbox; the Guests page then shows "Couldn't deliver" and the shared-link quota note can be removed once Story 7.2 exists.
 - Epic 11: README demo users include a Guest with a copied link; `docs/testplan.md` gets the screen-reader pass of the RSVP, a Safari and an in-app browser (Messenger or Instagram) open of a personal link.
-- Open points to settle with `bmad-correct-course` before building: the `guests`/`guest_contacts` split (Stories 7.7 and 2.9), how Server Actions call functions revoked from `authenticated` (Stories 7.8 and the Epic 4 and 6 points), and whether auth users are deleted in SQL or through the Admin API (Stories 7.8 and 7.9).
+- Settled in `sprint-change-proposal-2026-10-13.md`: the `guests`/`guest_contacts` split (Stories 7.7 and 2.9), how Server Actions call the deletion function (mutation function, no secret key) and auth users deleted in SQL (Story 7.8; Story 7.9 follows when built).
 
 ## Epic 8: Guest requests and resolved needs
 
@@ -2980,9 +2981,9 @@ So that it does not sit under me when Food & Beverage or Entertainment should se
 **And** the word-list check of the epic conventions runs on the raw text before any derivation, and a match skips the call entirely, leaving the Task with the Organizer, exactly as Story 6.5 does for status notes.
 
 **Given** `route-request`'s authorisation
-**When** it runs with no Guest or Organizer session attached, because it fires as a follow-on step after `guests_submit_request` or `guests_submit_rsvp` already committed
-**Then** it is called only from inside those two functions' own transaction as a `security definer` wrapper that is never granted to `public`, `anon` or `authenticated`, so no new privilege reaches a Guest session (AD-5, AD-9)
-**And** whether this wrapper is a third case alongside Story 6.1's human-caller checks, or a distinct function altogether, is an open point for `bmad-correct-course` before this story is built, because it is the same family of question Epic 6 flagged and must not be decided by widening `ai_reserve`'s grants alone.
+**When** it runs as the follow-on step after `guests_submit_request` or `guests_submit_rsvp` already committed
+**Then** it is called by the submitting Server Action under that Guest's own session through `ai_reserve`, which authorises the `route-request` key only for the Guest who owns the request, so no new privilege reaches a Guest session and no secret key is used (AD-5, AD-9)
+**And** this is settled in `sprint-change-proposal-2026-10-13.md`: there is no system caller and no wrapper. The call is a step of the submitting Server Action that runs after the commit under the submitting Guest's own session, and `ai_reserve` authorises the `route-request` key for the Guest who owns that request, once per request, charged to the Event's cap.
 
 **Given** a confident result
 **When** it names one of the Event's active Roles
@@ -3107,7 +3108,7 @@ So that FR16 holds before the freeze.
 
 - Epic 9: no dependency; the Landing page and this epic's Guest Dashboard sections are independent additions to the same page.
 - Epic 11: the flagship seed's replied request, routed need and published result (Story 8.7) are part of the launch run; `docs/testplan.md` gets a manual check that the word-list fallback still holds with a real model call.
-- Open point to settle with `bmad-correct-course` before building: the system-caller wrapper for `ai_reserve` that `route-request` needs (Story 8.3), the same family of question Epic 6's Story 6.1 and Epic 7's Story 7.8 already raised and left open.
+- Settled in `sprint-change-proposal-2026-10-13.md`: `route-request` runs under the submitting Guest's session through `ai_reserve` (Story 8.3); no system-caller wrapper is needed.
 
 ## Epic 9: Landing page and Run of Show
 
@@ -3381,7 +3382,7 @@ So that I do not have to keep checking the Dashboard by habit.
 **Given** Story 4.10's `decision_requested` and Story 4.11's `decision_resolved` ACs
 **When** they were written
 **Then** they, unlike Story 4.5's delegation notice, were not written with an explicit "(Target 3)" gate, so a build that ships Target 2 before this epic would call `notifications_emit` before the outbox tables exist
-**And** this is flagged here as a `bmad-correct-course` point for Epic 4 — add the same gate Story 4.5 uses — rather than silently patched in this document.
+**And** the gate is added in `sprint-change-proposal-2026-10-13.md`: Stories 4.10 and 4.11 now carry it (see their notification ACs).
 
 **Given** a decision's recipient
 **When** `decision_requested` or `decision_resolved` fires
@@ -3537,14 +3538,14 @@ So that FR21 and FR23 hold before the freeze.
 **Given** CI
 **When** a change breaks a channel toggle, the Role-scoped recipient picker, the one-offer-per-user rule or the reminder cooldown
 **Then** the pgTAP, Vitest or Playwright test fails, with no AI involved anywhere in this epic (NFR9)
-**And** the epic summary lists FR21 and FR23 covered, the Epic 4 `bmad-correct-course` flag from Story 10.3, and the carry-forwards below.
+**And** the epic summary lists FR21 and FR23 covered, the Epic 4 gate settled in `sprint-change-proposal-2026-10-13.md` (from Story 10.3),
 
 ### Carry-forwards from Epic 10
 
 - Epic 8: the `guest_request_replied` and `guest_need_result` kinds this epic's channel rules now apply to were written in Epic 8 assuming this epic's outbox and channels exist, consistent with the Target-3-before-Target-4 build order.
 - Epic 9: no dependency; nothing in the Landing page emits a notification.
 - Epic 11: push and email delivery, and the real VAPID/SMTP configuration, are manual checks in `docs/testplan.md`; the flagship seed's announcement and reminder are part of the launch run.
-- Open point to settle with `bmad-correct-course` before this epic is built: add the explicit "(Target 3)" gate to Stories 4.10 and 4.11's notification calls, matching Story 4.5's pattern, so Epic 4 never calls a function that does not exist yet when built before this epic.
+- Settled in `sprint-change-proposal-2026-10-13.md`: Stories 4.10 and 4.11's notification calls carry the explicit "(Target 3)" gate matching Story 4.5, so Epic 4 never calls a function that does not exist yet when built before this epic.
 
 ## Epic 11: Ready for launch
 
@@ -3710,7 +3711,7 @@ So that grading sees exactly what was verified and exactly what Core left out on
 
 **Given** `docs/testplan.md`
 **When** this story closes it out
-**Then** it holds one dated, ticked line for each manual check this project's epics already named: the RSVP screen-reader pass and a real one-time-code email through Gmail and a Safari/in-app-browser open of a personal link (Epic 7), the word-list fallback with a real model call (Epic 8), the Guest-facing Landing page on a real phone browser (Epic 9), real push and email delivery with the production VAPID/SMTP configuration (Epic 10), the retention job observed once on a test Event (Epic 7), keyboard and screen-reader passes and 320px reflow on the main flows, and invalid/repeated input on the main forms (Epic 5 carry-forward)
+**Then** it holds one dated, ticked line for each manual check this project's epics already named: the RSVP screen-reader pass and a Safari/in-app-browser open of a personal link (Epic 7), the word-list fallback with a real model call (Epic 8), the Guest-facing Landing page on a real phone browser (Epic 9), real push and email delivery with the production VAPID/SMTP configuration (Epic 10), the retention job observed once on a test Event (Epic 7), keyboard and screen-reader passes and 320px reflow on the main flows, and invalid/repeated input on the main forms (Epic 5 carry-forward)
 **And** no item is marked done without a date; an unticked item blocks this story, not a later one.
 
 **Given** the README
@@ -3718,10 +3719,10 @@ So that grading sees exactly what was verified and exactly what Core left out on
 **Then** it lists every Core epic and story as delivered, names Target 1–4 and Stretch as not delivered in this submission, and for every item `sprint-change-proposal-2026-10-12.md` or any later `bmad-correct-course` cut from Core, states the cut and links the PRD section it came from, so NFR13's scope decision is traceable from the README alone (NFR13)
 **And** this section is written from the actual state of `epics.md` and the sprint-planning tracker, never from memory of what was intended.
 
-**Given** the open `bmad-correct-course` points this planning phase has collected (Epics 4, 6, 7, 8 and 10)
+**Given** the `bmad-correct-course` points this planning phase collected (Epics 4, 6, 7, 8 and 10), all settled in `sprint-change-proposal-2026-10-13.md`
 **When** this story is written
-**Then** it lists them once, in one place, with a link to each epic's carry-forward note, so launch is not blocked by rediscovering them scattered across the document
-**And** this story resolves none of them itself; it only makes sure none was forgotten.
+**Then** it lists them once, in one place, with the decision taken for each and a link to each epic's carry-forward note, plus any point opened since, so launch is not blocked by rediscovering them scattered across the document
+**And** this story decides none of them itself; it only makes sure none was forgotten.
 
 ### Story 11.7: Launch check
 

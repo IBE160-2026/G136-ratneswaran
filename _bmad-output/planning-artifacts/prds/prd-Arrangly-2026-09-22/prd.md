@@ -61,7 +61,7 @@ Large-scale event producers and generic-PM-tool seekers — see §5 Non-Goals.
 - **Climax:** On submit, Arrangly confirms he's on the list and that details (location, timing) will follow — while behind the scenes, his freeform note becomes a proposed task on the dashboard of whoever owns guest welfare.
 - **Resolution:** Once that task is confirmed and later marked done, the resulting taxi info automatically appears on Chris's own guest dashboard — he never has to chase it. Later he sends a request ("Can we bring our baby?") and Leah's one reply appears under it.
 - **Edge case:** If Chris doesn't respond at all, the organizer can trigger a manual reminder from the guest list rather than the system nagging him automatically.
-- **Core path:** Chris opens the personal link the Organizer shared and RSVPs with plus-one and allergies; turning his note into a Task and the manual reminder arrive with Target 3–4.
+- **Core path:** Chris opens the personal link the Organizer shared and RSVPs with plus-one and a note; allergies and hotel arrive with Target 2; turning his note into a Task and the manual reminder arrive with Target 3–4.
 
 **Scope dial used:** Heavier — auth (three distinct identity models), multi-surface navigation (dashboard, timeline, task detail, guest view), and everything here feeds UX and architecture directly.
 
@@ -116,7 +116,7 @@ When an Event is created, Arrangly activates a relevant subset of Roles from the
 
 #### FR-3: Guest identity via Magic Link with optional account
 
-A Guest is identified by a Magic Link matched to the invited email, with no login required. After RSVP, a Guest whose email has no Arrangly account is offered an optional real account (password, Google or GitHub, same as FR-1) or *Not now*. There is no PIN. Realizes UJ-3.
+A Guest is identified by a Magic Link matched to the invited email, with no login required. In Core, a Guest opens the personal link the Organizer copies and shares. The shared Event link verified by an email code, and the optional account offered after RSVP (password, Google or GitHub, same as FR-1) or *Not now*, are Target 3 (`sprint-change-proposal-2026-10-13.md`). There is no PIN. Realizes UJ-3.
 
 **Consequences (testable):**
 - Opening a valid Magic Link pre-fills the Guest's name from the invite record, with no signup step.
@@ -246,7 +246,7 @@ From within a Task, a Role-holder can request an AI-drafted message (e.g. vendor
 
 #### FR-15: Guest RSVP flow
 
-A Guest opening their Magic Link is greeted by name and asked to RSVP yes/no, then (if yes) plus-one, allergies and food preferences, hotel need, and a freeform "other needs" field.
+A Guest opening their Magic Link is greeted by name and asked to RSVP yes/no, then (if yes) plus-one and a freeform "other needs" field. Allergies and food preferences (with explicit consent), hotel need and automatic deletion 15 days after the Event are Target 2 (`sprint-change-proposal-2026-10-13.md`).
 
 **Consequences (testable):**
 - Declining (RSVP no) skips the follow-up questions and ends the flow.
@@ -378,7 +378,7 @@ A full compliance program (records of processing, data processing agreements, DP
 - Event setup: FR-4, FR-5 (link/manual only). Tasks are created by hand; AI task suggestions (FR-6) are Target 1.
 - Team & tasks: FR-7, FR-8 (manual states, computed Blocked and Overdue), FR-9, FR-12 (delegation and its history)
 - Task execution support: FR-13 (manual venue-option entry)
-- Guest experience: FR-15, FR-18
+- Guest experience: FR-15 (without allergies, food and hotel), FR-18
 - Organizer dashboard & timeline (static, sequential, non-branching, horizontally scrollable): FR-19, FR-20
 - Norwegian + English localisation (§4.9)
 
@@ -390,8 +390,8 @@ Re-scoped 2026-10-12 (`sprint-change-proposal-2026-10-12.md`) to a Core one deve
 
 **Target, in build order:**
 1. AI task suggestions: FR-6, with Proposed Tasks from questionnaire gaps.
-2. Accept step and 48-hour rule (FR-8/FR-12), Problem flag (FR-8), Decision Tasks and obsolete-marking (FR-10, FR-11).
-3. Application email and notifications: the outbox, in-app/email/web push channels (FR-23), announcements with *Ask for volunteers* (FR-21), manual guest reminder (FR-17), and emailed invitations.
+2. Accept step and 48-hour rule (FR-8/FR-12), Problem flag (FR-8), Decision Tasks and obsolete-marking (FR-10, FR-11), and guest allergies, food and hotel with consent and automatic deletion after 15 days (FR-15).
+3. Application email and notifications: the outbox, in-app/email/web push channels (FR-23), announcements with *Ask for volunteers* (FR-21), manual guest reminder (FR-17), emailed invitations, the shared Event link with email code and the optional Guest account (FR-3).
 4. Guest requests with one reply (FR-16), Landing page with Run of Show and AI-drafted About (FR-22), AI-drafted external communication (FR-14).
 
 **Target — after step 4, build if Core is stable:**
@@ -421,7 +421,7 @@ Risk-triage history for the Core/Target boundary lives in `review-feasibility.md
 
 **Secondary**
 - **SM-3**: A first-time Role-holder finds their Tasks and understands what's expected within about a minute of registering. Validates FR-9.
-- **SM-4**: A Guest can RSVP, manage a plus-one, and register allergies without creating an account. Validates FR-3, FR-15.
+- **SM-4**: A Guest can RSVP and manage a plus-one without creating an account; registering allergies with consent is added with Target 2. Validates FR-3, FR-15.
 - **SM-5**: The Organizer can state the Event's current status (done/overdue/blocked/needs-decision) from the Dashboard alone, without contacting Team members. Validates FR-19.
 
 **Counter-metrics (do not optimize)**
