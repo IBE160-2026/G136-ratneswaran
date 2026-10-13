@@ -3447,12 +3447,12 @@ So that I can reach a group without a Task for every notice.
 
 **Given** the migration
 **When** it is applied
-**Then** `announcements` exists with `id`, `event_id` (`ON DELETE CASCADE`), `sender_id` (`ON DELETE SET NULL`), `body` (bounded), `ask_for_volunteers`, `created_at`; `announcement_groups` and `announcement_group_members` let a sender name a custom group of people for one send; and `authenticated` writes only through `notifications_send_announcement` (AD-19, pgTAP) (UX-DR18)
+**Then** `announcements` exists with `id`, `event_id` (`ON DELETE CASCADE`), `sender_id` (`ON DELETE SET NULL`), `body` (bounded), `ask_for_volunteers`, `created_at`; `announcement_groups` and `announcement_group_members` let a sender name a custom group of people for one send; and `authenticated` writes only through `notifications_send_announcement` (AD-19, pgTAP)
 **And** a pgTAP test enumerates every foreign key and fails on any `NO ACTION`.
 
 **Given** the composer
 **When** the Organizer, or a Role-holder scoped to their Role, writes a message and picks a recipient (one person, a Role, the whole Team or a custom group built for this send)
-**Then** a Role-holder's picker is scoped server-side to people and Roles they can see (their own Role's members and anyone in a Role they hold), never the full Team list, and the Organizer's picker is unrestricted (FR21, AD-3)
+**Then** a Role-holder's picker is scoped server-side to people and Roles they can see (their own Role's members and anyone in a Role they hold), never the full Team list, and the Organizer's picker is unrestricted (FR21, AD-3) (UX-DR18)
 **And** a pgTAP test proves a Role-holder cannot target a Role they do not hold.
 
 **Given** *Send*
