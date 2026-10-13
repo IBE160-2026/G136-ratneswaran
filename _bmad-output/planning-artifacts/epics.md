@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2]
+stepsCompleted: [1, 2, 3, 4]
 inputDocuments:
   - _bmad-output/planning-artifacts/prds/prd-Arrangly-2026-09-22/prd.md
   - _bmad-output/planning-artifacts/architecture/architecture-Arrangly-2026-09-29/ARCHITECTURE-SPINE.md
@@ -1174,7 +1174,7 @@ So that I can focus and the Organizer can trust the boundaries.
 
 **Given** a joined Role-holder
 **When** I open *All events*
-**Then** the Event shows with my Role label, and Team & Roles shows who is on the Team and who leads each Role (FR9 context)
+**Then** the Event shows with my Role label, and Team & Roles shows who is on the Team and who leads each Role (FR9 context) (UX-DR17)
 **And** the sidebar shows only items my Role can reach, and the rest are not rendered (UX-DR5).
 
 **Given** I open an Organizer-only page by URL (Event settings, Guests)
@@ -3447,7 +3447,7 @@ So that I can reach a group without a Task for every notice.
 
 **Given** the migration
 **When** it is applied
-**Then** `announcements` exists with `id`, `event_id` (`ON DELETE CASCADE`), `sender_id` (`ON DELETE SET NULL`), `body` (bounded), `ask_for_volunteers`, `created_at`; `announcement_groups` and `announcement_group_members` let a sender name a custom group of people for one send; and `authenticated` writes only through `notifications_send_announcement` (AD-19, pgTAP)
+**Then** `announcements` exists with `id`, `event_id` (`ON DELETE CASCADE`), `sender_id` (`ON DELETE SET NULL`), `body` (bounded), `ask_for_volunteers`, `created_at`; `announcement_groups` and `announcement_group_members` let a sender name a custom group of people for one send; and `authenticated` writes only through `notifications_send_announcement` (AD-19, pgTAP) (UX-DR18)
 **And** a pgTAP test enumerates every foreign key and fails on any `NO ACTION`.
 
 **Given** the composer
@@ -3559,7 +3559,7 @@ The product runs in production with its own environment, secrets and email provi
 
 - This epic is mostly a checklist with a few functions, not a new feature; no story here adds a table unless the checklist itself needs one to record state.
 - Every manual, one-time check this epic requires is written into `docs/testplan.md` with the date it was ticked, never only reported in a PR description, so grading can find it later.
-- Nothing in this epic widens who can reach `SUPABASE_SECRET_KEY`, the AI gateway or the delivery route beyond the four places AD-5 already lists.
+- Nothing in this epic widens who can reach `SUPABASE_SECRET_KEY`, the AI gateway or the delivery route beyond the three places AD-5 already lists.
 
 ### Story 11.1: Production environment and secrets
 
@@ -3577,20 +3577,20 @@ So that the app can run for real, not just locally and in CI.
 **Given** the Supabase cloud project
 **When** it is created
 **Then** it runs in `eu-north-1` (NFR2), and `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_ID` are added as CI secrets for the deploy job Story 1.3 already configured but left for the owner to supply
-**And** `ANTHROPIC_API_KEY`, `SMTP_*`, `VAPID_PRIVATE_KEY`, `DELIVERY_SECRET` and `AI_LIVE` are set only on the production Vercel environment, never on preview or development.
+**And** `SMTP_*` is set only in Supabase Auth, and `ANTHROPIC_API_KEY`, `VAPID_PRIVATE_KEY`, `DELIVERY_SECRET` and `AI_LIVE` are set on the production Vercel environment only when the Target story that uses them is built, never on preview or development.
 
 **Given** a personal Gmail account with an app password
 **When** SMTP is configured
-**Then** nodemailer sends through it as Story 3.3 expects, and Supabase Auth's email rate limit is raised from the default 30/hour, with the daily cap from Story 3.4 leaving documented headroom for Auth's own emails on the same account (AD-10)
-**And** Story 3.4's "three consecutive SMTP failures" log line is the owner's only alert that the account was suspended or flagged; this story relies on that existing signal rather than adding separate monitoring, and the owner checks it once as part of Story 11.7's final gate.
+**Then** Supabase Auth sends its one-time codes, confirmations and resets through it, its email rate limit is raised from the default 30/hour, and the Auth log is the owner's only signal that the account was suspended or flagged (AD-4). The nodemailer sender and the daily cap of Stories 3.3 and 3.4 are Target 3 and add their own checks when built
+**And** **And** the owner checks the Auth log once as part of Story 11.7's final gate, and this story adds no separate monitoring; the "three consecutive SMTP failures" line of Story 3.4 replaces it once Target 3 exists.
 
 **Given** `AI_LIVE`
 **When** it is left unset anywhere but production
 **Then** every environment except production keeps using fixtures, exactly as Story 6.2 already enforces in code; this story only supplies the variable where it belongs (AD-9, AD-20).
 
-**Given** the Vault-held delivery URL and `DELIVERY_SECRET` (Story 3.2)
-**When** this story is done
-**Then** both exist in the production project's Vault, never in a migration file, and the local/CI mechanism Story 3.2 built for reaching the route is confirmed to not apply in production, where the trigger reaches the real deployed URL.
+**Given** Story 3.2 (Target 3) is built later
+**When** it is built
+**Then** the Vault-held delivery URL and `DELIVERY_SECRET` are created in the production project's Vault, never in a migration file, and the local/CI mechanism Story 3.2 builds for reaching the route is confirmed to not apply in production, where the trigger reaches the real deployed URL
 
 ### Story 11.2: CI deploy pipeline to production
 
