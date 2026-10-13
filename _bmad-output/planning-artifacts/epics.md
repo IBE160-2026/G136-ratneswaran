@@ -3545,3 +3545,207 @@ So that FR21 and FR23 hold before the freeze.
 - Epic 9: no dependency; nothing in the Landing page emits a notification.
 - Epic 11: push and email delivery, and the real VAPID/SMTP configuration, are manual checks in `docs/testplan.md`; the flagship seed's announcement and reminder are part of the launch run.
 - Open point to settle with `bmad-correct-course` before this epic is built: add the explicit "(Target 3)" gate to Stories 4.10 and 4.11's notification calls, matching Story 4.5's pattern, so Epic 4 never calls a function that does not exist yet when built before this epic.
+
+## Epic 11: Ready for launch
+
+**Tier:** Core — see Release tiers.
+
+The product runs in production with its own environment, secrets and email provider, has a backup routine, the flagship 40th-birthday scenario seeded, and all three journeys passing end to end in a production smoke test. A stranger can run it locally from the README alone, and the release states what shipped against what was planned.
+
+**FRs covered:** none new; closes SM-1 and NFR9.
+
+**Epic-wide conventions (apply to every story below):**
+
+- This epic is mostly a checklist with a few functions, not a new feature; no story here adds a table unless the checklist itself needs one to record state.
+- Every manual, one-time check this epic requires is written into `docs/testplan.md` with the date it was ticked, never only reported in a PR description, so grading can find it later.
+- Nothing in this epic widens who can reach `SUPABASE_SECRET_KEY`, the AI gateway or the delivery route beyond the four places AD-5 already lists.
+
+### Story 11.1: Production environment and secrets
+
+As the owner of the project,
+I want a real production environment with its own secrets,
+So that the app can run for real, not just locally and in CI.
+
+**Acceptance Criteria:**
+
+**Given** the Vercel project
+**When** it is configured for production
+**Then** `vercel.json`'s `regions: ["arn1"]` (Story 1.1) applies to the live deployment, preview deployments are protected and receive only `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and the other client-safe variables, never `SUPABASE_SECRET_KEY` (NFR14, AD-20)
+**And** a checklist item confirms this by inspecting a preview deployment's environment variables once.
+
+**Given** the Supabase cloud project
+**When** it is created
+**Then** it runs in `eu-north-1` (NFR2), and `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_ID` are added as CI secrets for the deploy job Story 1.3 already configured but left for the owner to supply
+**And** `ANTHROPIC_API_KEY`, `SMTP_*`, `VAPID_PRIVATE_KEY`, `DELIVERY_SECRET` and `AI_LIVE` are set only on the production Vercel environment, never on preview or development.
+
+**Given** a personal Gmail account with an app password
+**When** SMTP is configured
+**Then** nodemailer sends through it as Story 3.3 expects, and Supabase Auth's email rate limit is raised from the default 30/hour, with the daily cap from Story 3.4 leaving documented headroom for Auth's own emails on the same account (AD-10)
+**And** Story 3.4's "three consecutive SMTP failures" log line is the owner's only alert that the account was suspended or flagged; this story relies on that existing signal rather than adding separate monitoring, and the owner checks it once as part of Story 11.7's final gate.
+
+**Given** `AI_LIVE`
+**When** it is left unset anywhere but production
+**Then** every environment except production keeps using fixtures, exactly as Story 6.2 already enforces in code; this story only supplies the variable where it belongs (AD-9, AD-20).
+
+**Given** the Vault-held delivery URL and `DELIVERY_SECRET` (Story 3.2)
+**When** this story is done
+**Then** both exist in the production project's Vault, never in a migration file, and the local/CI mechanism Story 3.2 built for reaching the route is confirmed to not apply in production, where the trigger reaches the real deployed URL.
+
+### Story 11.2: CI deploy pipeline to production
+
+As the owner of the project,
+I want `main` to be the only path to the cloud database,
+So that nobody, including me, can change production schema by hand.
+
+**Acceptance Criteria:**
+
+**Given** Story 1.3's deploy job, configured but inactive without secrets
+**When** this story supplies the three CI secrets from Story 11.1
+**Then** a merge to `main` runs `supabase db push`, and a pgTAP, Vitest or Playwright failure on `main` blocks the deploy job from running at all, because the same workflow run gates both (AD-15, NFR9)
+**And** a branch or PR run never sees these secrets, confirmed by inspecting the workflow's job-level secret scope once.
+
+**Given** a schema change
+**When** it reaches `main`
+**Then** `supabase gen types` regenerates `src/types/database.ts` against the cloud schema as part of the same job, and a mismatch with the committed file fails the deploy before it can drift from what the app expects (AD-15, Story 1.3).
+
+**Given** the cloud project
+**When** anyone opens its dashboard
+**Then** no story in this project, including this one, changes a table, policy, grant or function there directly; every change already exists as a file in `supabase/migrations` before it reaches `main` (AGENTS.md, AD-15).
+
+**Given** `supabase/seed.sql`
+**When** the deploy job runs on every merge to `main`
+**Then** it never runs the seed file, only `supabase db push`; seeding production is the separate, deliberate, manual step Story 11.4 documents, so a routine merge can never re-insert or duplicate the flagship Event
+**And** this distinction is stated once here so Story 11.4 does not need to repeat it.
+
+**Given** the pipeline
+**When** it has run at least once against the real cloud project
+**Then** the owner confirms in `docs/testplan.md` that a real migration reached production through CI and that `supabase db push` left no drift, dated once before launch.
+
+### Story 11.3: Backup routine and demo-project keep-alive
+
+As the owner of the project,
+I want a backup and a reason the demo project is never found paused on grading day,
+So that a Supabase free-plan quirk cannot cost the grade.
+
+**Acceptance Criteria:**
+
+**Given** a scheduled job outside the app (a GitHub Actions cron, not `pg_cron`, since it must run even if the app is quiet)
+**When** it fires weekly
+**Then** it runs `pg_dump` against the production project with `SUPABASE_DB_PASSWORD` and uploads the result as a private CI artifact, never committed to the repository, and a failed run is visible in the Actions tab (NFR15)
+**And** `docs/testplan.md` records the date of the first successful dump and the date it was last confirmed restorable.
+
+**Given** the Supabase free plan pauses a project after 7 idle days
+**When** grading is scheduled
+**Then** the weekly dump is itself the primary keep-alive, because `pg_dump` queries the database and so resets the idle clock every week on its own; the README's "Shipped vs planned" area (Story 11.6) still states the 7-day rule, and a dated checklist item in `docs/testplan.md` records that the project was also opened by hand the day before the scheduled grading date, as a second, independent safety net in case the scheduled job itself was skipped (NFR15).
+
+**Given** the weekly dump
+**When** it is stored
+**Then** it contains no secret beyond what a database dump always has (no `.env` value, no API key), and the artifact's retention is left at the CI provider's default, documented as a known limit rather than built around
+**And** because a dump is a full copy, a guest's data deleted by Story 7.8 or the Story 7.9 retention job can still sit inside an older dump after the live row is gone; this is accepted and written down as a bounded exception, since the artifact's own finite retention caps how long it lasts, rather than something this story builds an eraser for.
+
+### Story 11.4: Flagship scenario in production
+
+As the Organizer of the flagship Event,
+I want the 40th-birthday scenario seeded and proven in the real, deployed app,
+So that SM-1 is shown working, not just asserted by a test.
+
+**Acceptance Criteria:**
+
+**Given** `supabase/seed.sql`
+**When** it is run once against the production project, after the schema from Story 11.2 is in place
+**Then** the flagship Event exists there exactly as it does locally, with every epic's seeded rows (Tasks, guests, a decision, a Proposed Task, a guest request and result, a published Landing page, an announcement), and nothing in it names a real person (AD-15)
+**And** the script checks for its own flagship Event (by a fixed, documented id or name) before inserting, so running it again after a reset, or by mistake, never creates a second flagship Event or duplicate rows under it.
+
+**Given** the Guest demo link the README (Story 11.5) and this epic's final walk (Story 11.7) both rely on
+**When** an earlier manual pass (this story's own UJ-3 walk, or an earlier test) already opened or upgraded that Guest
+**Then** a fresh link is copied again through Story 7.1's *New link* immediately before the README is finalised and before Story 11.7's last walk, so neither ever hands out a link that was already consumed.
+
+**Given** the deployed app
+**When** someone walks UJ-1 (Organizer and Role-holder), UJ-2 and UJ-3 (Guest) by hand against the live URL, using the seeded flagship Event
+**Then** each step that the local Playwright suite already automates behaves the same in production, and any difference is logged as a bug before launch, not discovered during grading (NFR11, SM-1)
+**And** this walk is dated once in `docs/testplan.md`, separate from the automated suite's CI runs.
+
+**Given** AD-9's one permitted live call
+**When** the owner makes it in production with a real `ANTHROPIC_API_KEY`
+**Then** it is made deliberately once, reusing the same `request_key` if a retry is needed so a crash cannot silently spend it twice, and its feature, cost and the resulting month-to-date total against the USD 5 ceiling are written into `docs/testplan.md` with headroom left, not run up to the exact limit, and the fixtures used everywhere else are confirmed unaffected by this single live run (Epic 6 carry-forward, NFR4)
+**And** this check only applies once at least one Target AI feature (Epic 6) has actually been built and merged; if Core launches before any Target work starts, this AC is marked "not yet applicable" in `docs/testplan.md` rather than treated as a missing check, because Core's own freeze (NFR13) does not wait on Target.
+
+**Given** Epic 5's 300-Task performance note
+**When** this story runs a check with that many Tasks in one Event
+**Then** the Dashboard and Timeline's load time is recorded once in `docs/testplan.md`, with no target number invented here beyond "noticeably usable", because no NFR sets a stricter figure (Epic 5 carry-forward).
+
+### Story 11.5: README for a stranger
+
+As someone who has never seen this project,
+I want to go from a fresh clone to a running app using only the README,
+So that the course's evidence of a working product does not depend on asking the author.
+
+**Acceptance Criteria:**
+
+**Given** `README.md` as Story 1.1 left it
+**When** someone who has not touched this repository follows it on a clean machine with Docker, Node, pnpm and the Supabase CLI already installed
+**Then** every command from clone to a running app, to `supabase test db`, Vitest and Playwright, works exactly as written, and any step that failed during this walk-through is fixed in the README, not worked around only in conversation
+**And** the walk-through's date and outcome are recorded in `docs/testplan.md`.
+
+**Given** the seeded flagship Event
+**When** the README describes how to sign in
+**Then** it lists the Organizer's and a Role-holder's demo credentials from `seed.sql`, and a Guest's personal link copied from the same seed, so a reader can see all three journeys without inventing data (Epic 7 carry-forward).
+
+**Given** someone without Docker, or without time to run it locally
+**When** they read the README
+**Then** a clearly marked fallback links the deployed production URL from Story 11.1, with the same demo users, so the README works even for a reader who only wants to click around.
+
+**Given** the repository's layout
+**When** the README is read
+**Then** a short folder overview links `_bmad-output/planning-artifacts/`, `docs/ki-logg.md` and `docs/testplan.md`, so a reader lands on the right document instead of searching
+**And** screenshots of the Organizer Dashboard, a Task detail, the Guest RSVP and the Landing page are included, each captured from the seeded flagship Event.
+
+### Story 11.6: Manual test plan and the shipped-vs-planned record
+
+As the owner of the project,
+I want every check automation cannot make, and every cut from the plan, written down once,
+So that grading sees exactly what was verified and exactly what Core left out on purpose.
+
+**Acceptance Criteria:**
+
+**Given** `docs/testplan.md`
+**When** this story closes it out
+**Then** it holds one dated, ticked line for each manual check this project's epics already named: the RSVP screen-reader pass and a real one-time-code email through Gmail and a Safari/in-app-browser open of a personal link (Epic 7), the word-list fallback with a real model call (Epic 8), the Guest-facing Landing page on a real phone browser (Epic 9), real push and email delivery with the production VAPID/SMTP configuration (Epic 10), the retention job observed once on a test Event (Epic 7), keyboard and screen-reader passes and 320px reflow on the main flows, and invalid/repeated input on the main forms (Epic 5 carry-forward)
+**And** no item is marked done without a date; an unticked item blocks this story, not a later one.
+
+**Given** the README
+**When** this story adds its "Shipped vs planned" section
+**Then** it lists every Core epic and story as delivered, names Target 1–4 and Stretch as not delivered in this submission, and for every item `sprint-change-proposal-2026-10-12.md` or any later `bmad-correct-course` cut from Core, states the cut and links the PRD section it came from, so NFR13's scope decision is traceable from the README alone (NFR13)
+**And** this section is written from the actual state of `epics.md` and the sprint-planning tracker, never from memory of what was intended.
+
+**Given** the open `bmad-correct-course` points this planning phase has collected (Epics 4, 6, 7, 8 and 10)
+**When** this story is written
+**Then** it lists them once, in one place, with a link to each epic's carry-forward note, so launch is not blocked by rediscovering them scattered across the document
+**And** this story resolves none of them itself; it only makes sure none was forgotten.
+
+### Story 11.7: Launch check
+
+As the owner of the project,
+I want one final gate that everything above actually holds together,
+So that I can state the release is ready instead of assuming it from its parts.
+
+**Acceptance Criteria:**
+
+**Given** `main`
+**When** the full CI suite runs
+**Then** pgTAP, Vitest and Playwright are all green, closing NFR9, and the deploy job from Story 11.2 has run against production without drift (AD-15, NFR9)
+**And** this is the single gate; no story in this epic is "done" while CI is red.
+
+**Given** the flagship Event in production
+**When** the three journeys (Organizer, Role-holder, Guest) are walked once more after every story in this epic is merged
+**Then** they pass exactly as Story 11.4 recorded, with no regression introduced by this epic's own changes (environment variables, the backup job, the README), closing SM-1 and NFR11
+**And** the result, dated, is the last line added to `docs/testplan.md` before the feature freeze.
+
+**Given** the README's "Shipped vs planned" section
+**When** the project is handed in
+**Then** it is the single source that states what the submission actually contains, matching the real state of `main`, not an aspiration
+**And** a final read-through confirms every link in it (planning documents, `ki-logg.md`, `testplan.md`, the production URL) resolves.
+
+### Carry-forwards from Epic 11
+
+- None. This is the last epic in the plan; anything still open belongs to a future `bmad-correct-course` pass or a Target epic already written, not to a new epic.
