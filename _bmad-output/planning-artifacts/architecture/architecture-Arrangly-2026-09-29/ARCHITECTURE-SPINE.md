@@ -332,6 +332,7 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
   - 5 per minute per IP
   - 3 per hour per email or token
   - 10 guest requests per Guest per day
+  - Each public flow counts in its own bucket (`<flow>_ip`, `<flow>_email`), so one flow's traffic never spends another flow's budget.
 
 ## Consistency Conventions
 
