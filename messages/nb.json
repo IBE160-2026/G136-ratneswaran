@@ -1,0 +1,25 @@
+{
+  "shell": {
+    "skipToContent": "Hopp til innhold",
+    "navLabel": "Hovedmeny",
+    "home": "Hjem"
+  },
+  "home": {
+    "surface": "Hjem",
+    "title": "Arrangly",
+    "tagline": "Planlegg dagen. Vi holder styr på resten."
+  },
+  "status": {
+    "decision": "Trenger din beslutning",
+    "overdue": "Forfalt {days, plural, one {# dag} other {# dager}}",
+    "problem": "Problem meldt",
+    "waiting": "Venter på {party}",
+    "blocked": "Venter på: {task}",
+    "notAccepted": "Ikke akseptert ennå",
+    "inProgress": "Pågår",
+    "done": "Ferdig",
+    "obsolete": "Utgått",
+    "atRisk": "{count} i faresonen",
+    "newItem": "{count, plural, one {# ny sak} other {# nye saker}}"
+  }
+}
