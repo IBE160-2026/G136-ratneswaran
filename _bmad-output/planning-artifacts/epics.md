@@ -294,7 +294,7 @@ Set by `sprint-change-proposal-2026-10-12.md`. Feature freeze: **2026-12-15**. T
 
 | Epic | Core | Target |
 | --- | --- | --- |
-| 1 Account and app shell | 1.1–1.9 | — |
+| 1 Account and app shell | 1.1–1.10 | — |
 | 2 Event and guest list | 2.1–2.10 | — |
 | 3 Team and invitations | 3.5–3.10 | 3.1–3.4 → T3 |
 | 4 Tasks and decisions | 4.1–4.5, 4.7, 4.9 | 4.6, 4.8, 4.10–4.12 → T2; 4.13–4.14 → T1 |
@@ -579,6 +579,31 @@ So that the app suits me.
 **Given** notification preferences
 **When** this story is done
 **Then** they are not shown yet, because Epic 10 adds them.
+
+
+### Story 1.10: Per-flow abuse-limiter buckets
+
+As the owner,
+I want each public flow to count in its own limiter bucket,
+So that sign-up traffic cannot lock someone out of password recovery.
+
+**Acceptance Criteria:**
+
+**Given** `abuse_counters`
+**When** the migration runs
+**Then** the check that limits `bucket` to `signup_ip` and `signup_email` is replaced by a shape check (lowercase letters, digits and underscore, at most 32 characters), existing rows are kept, `src/types/database.ts` is regenerated, and a pgTAP test proves one accepted and one refused bucket name (AD-15, AD-16).
+
+**Given** sign-up, resend verification and forgot password
+**When** each calls the limiter
+**Then** it counts in its own `<flow>_ip` and `<flow>_email` buckets with the unchanged limits (5 per minute per IP, 3 per hour per email), and the shared `limit()` helper takes the flow name so later flows add their own (AD-21, NFR10).
+
+**Given** a person who signs up, resends the verification and asks for a reset within an hour
+**When** each request is made
+**Then** none is refused because of another flow's use, and a Vitest test asserts the bucket name each action sends.
+
+**Given** the limiter
+**When** this story is done
+**Then** login still has no app-level limiter (Auth throttles it) and purging old counter rows stays with the Target 2 retention job.
 
 
 ## Epic 2: Event and guest list
