@@ -160,3 +160,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** `checks`-jobben utvidet med `tsc --noEmit`, lokal Supabase i Docker, pgTAP, sjekk av genererte typer (regenerert fil mot `src/types/database.ts`, feiler med instruks) og Playwright med `.env.local` fra `.env.example` pluss hemmelig nøkkel fra `supabase status -o env`. En egen `deploy`-jobb (`needs: checks`, kun push til `main`) holder de tre skyhemmelighetene i `env`, hopper over med merknad når en mangler, og kjører ellers `supabase link` og `supabase db push`. `database.ts` er generert fra det tomme skjemaet og ignorert av Prettier og ESLint, slik at diffen sammenligner rå utdata.
 **Min vurdering:** NIL
 **Spor:** branch `feat/1.3-quality-gates-run-on-every-push`, issue #22
+
+## 2026-10-14 — Story 1.4: opprett konto med e-post
+
+**Prompt:** «/bmad-build på story 1.4», spec skrevet av KI og godkjent etter at jeg valgte alternativ C for limiteren.
+**KI foreslo:** Rate-limiteren som `security invoker`-funksjon `abuse_hit` med en tellertabell der `anon` bare har INSERT og UPDATE på `hits` (ingen definer, ingen hemmelig nøkkel, ingen AD-endring), passordregel på 8 tegn med bokstav og tall like i Zod, regelliste og `config.toml`, `proxy.ts` som bare fornyer cookien, og en `signUp`-action med `{ ok, data }`-svar. Underveis viste e2e at Auth svarer annerledes på en ny registrering av en ubekreftet e-post innen ett minutt (`over_email_send_rate_limit`); KI mappet den ene koden til suksess, så svaret fortsatt er likt (AD-4).
+**Min vurdering:** NIL
+**Spor:** branch `feat/1.4-create-an-account-with-email`
