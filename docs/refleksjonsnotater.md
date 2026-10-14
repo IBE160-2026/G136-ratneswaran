@@ -62,3 +62,15 @@ Løpende notater om valg og avveininger, til refleksjonsrapporten (30 %). Én op
 
 **Avveining:** Et Core uten allergi-steget er svakere som demo av en festplanlegger, og sensor ser ikke samtykkehåndteringen før Target 2 er bygget. Til gjengjeld er Core enklere å teste og lettere å få ferdig før funksjonsstopp 15. desember.
 
+
+## 2026-10-14 — Verktøyvalg i Story 1.1: ESLint 9, gitleaks-binær og pnpm-regler
+
+**Valg:** ESLint er låst til versjon 9, hemmelighetsskanningen i CI kjører gitleaks som binærfil med sjekksum (ikke GitHub-action), og `unrs-resolver` er eksplisitt nektet byggescript i `pnpm-workspace.yaml` (`allowBuilds: false`). Corepack må installeres og slås på for npm og yarn (`corepack enable npm yarn pnpm`) for at `packageManager` skal avvise dem.
+
+**Hvorfor:**
+- ESLint 10 feiler med `eslint-plugin-react` (som følger med `eslint-config-next`), så 9 er den siste versjonen som fungerer med Next 16.3.
+- gitleaks-action krever lisens for organisasjoner, og repoet ligger under en GitHub-organisasjon. Binæren er gratis, og sjekksummen gjør at en endret utgivelse ikke kjører i CI.
+- pnpm 12 stopper `pnpm add` med en feil når en pakke har uavklart byggescript. Det felte `shadcn init` til jeg tok stilling til `unrs-resolver`, som bare har et reserve-byggescript for en forhåndsbygd pakke.
+- Node 25 og nyere har fjernet Corepack, så uten `corepack enable` avvises ikke `npm install`. Det oppdaget jeg først da jeg prøvde.
+
+**Avveining:** Pinnet ESLint og en nektet byggescript-regel er gjeld som må følges opp ved oppgradering. Binær med sjekksum krever at jeg manuelt bytter versjon og verdi. Til gjengjeld får CI en secret scan uten lisens og uten en uverifisert nedlasting.

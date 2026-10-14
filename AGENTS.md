@@ -25,9 +25,9 @@ Event-planning web app (weddings, parties) for the solo IBE160 course project, d
 ## Running and verifying
 
 - Use pnpm (`pnpm install`, `pnpm dlx` instead of `npx`); never npm or yarn. A second lockfile breaks Vercel's install.
-- TODO at scaffold: add `"packageManager": "pnpm@<version>"` to `package.json` so Corepack rejects npm; a later refresh then drops the pnpm line above.
-- TODO (verify on first refresh after scaffold): test commands for pgTAP (`supabase test db`), Vitest and Playwright. All run against local Supabase (`supabase start`, needs Docker), never the cloud project.
-- TODO: Node version once `package.json` declares `engines`.
+- `package.json` pins `"packageManager": "pnpm@12.11.2"`, so Corepack rejects npm and yarn (Node 25+ no longer bundles Corepack: `brew install corepack && corepack enable npm yarn pnpm`).
+- Tests, all against local Supabase (`supabase start`, needs Docker), never the cloud project: `supabase test db` (pgTAP in `supabase/tests/`), `pnpm test` (Vitest), `pnpm test:e2e` (Playwright). Checks: `pnpm lint`, `pnpm format:check`, `.githooks/test.sh`.
+- Node `>=24` (`engines` in `package.json`).
 
 ## Conventions that differ from defaults
 
