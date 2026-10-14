@@ -2,7 +2,8 @@
   "shell": {
     "skipToContent": "Hopp til innhold",
     "navLabel": "Hovedmeny",
-    "home": "Hjem"
+    "home": "Hjem",
+    "signUp": "Registrer deg"
   },
   "home": {
     "surface": "Hjem",
@@ -21,5 +22,30 @@
     "obsolete": "Utgått",
     "atRisk": "{count} i faresonen",
     "newItem": "{count, plural, one {# ny sak} other {# nye saker}}"
+  },
+  "auth": {
+    "signUp": {
+      "surface": "Registrer deg",
+      "title": "Opprett konto",
+      "email": "E-post",
+      "password": "Passord",
+      "submit": "Opprett konto",
+      "rulesLabel": "Passordregler",
+      "rules": {
+        "length": "Minst 8 tegn",
+        "letter": "Minst én bokstav",
+        "digit": "Minst ett tall"
+      },
+      "ruleMet": "oppfylt",
+      "ruleUnmet": "ikke oppfylt",
+      "success": "Sjekk innboksen din for å bekrefte e-posten.",
+      "errors": {
+        "invalidInput": "Sjekk feltene under.",
+        "email": "Skriv inn en gyldig e-postadresse.",
+        "password": "Passordet oppfyller ikke reglene under.",
+        "rateLimited": "For mange forsøk. Vent litt og prøv igjen.",
+        "unavailable": "Vi kunne ikke opprette kontoen akkurat nå. Prøv igjen om litt."
+      }
+    }
   }
 }

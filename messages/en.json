@@ -2,7 +2,8 @@
   "shell": {
     "skipToContent": "Skip to content",
     "navLabel": "Main",
-    "home": "Home"
+    "home": "Home",
+    "signUp": "Sign up"
   },
   "home": {
     "surface": "Home",
@@ -21,5 +22,30 @@
     "obsolete": "Obsolete",
     "atRisk": "{count} at risk",
     "newItem": "{count, plural, one {# new item} other {# new items}}"
+  },
+  "auth": {
+    "signUp": {
+      "surface": "Sign up",
+      "title": "Create your account",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create account",
+      "rulesLabel": "Password rules",
+      "rules": {
+        "length": "At least 8 characters",
+        "letter": "At least one letter",
+        "digit": "At least one digit"
+      },
+      "ruleMet": "met",
+      "ruleUnmet": "not met",
+      "success": "Check your inbox to verify your email.",
+      "errors": {
+        "invalidInput": "Check the fields below.",
+        "email": "Enter a valid email address.",
+        "password": "The password does not meet the rules below.",
+        "rateLimited": "Too many attempts. Wait a little and try again.",
+        "unavailable": "Couldn't create the account right now. Try again shortly."
+      }
+    }
   }
 }
