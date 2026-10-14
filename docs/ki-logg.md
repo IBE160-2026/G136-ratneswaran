@@ -167,3 +167,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** Rate-limiteren som `security invoker`-funksjon `abuse_hit` med en tellertabell der `anon` bare har INSERT og UPDATE på `hits` (ingen definer, ingen hemmelig nøkkel, ingen AD-endring), passordregel på 8 tegn med bokstav og tall like i Zod, regelliste og `config.toml`, `proxy.ts` som bare fornyer cookien, og en `signUp`-action med `{ ok, data }`-svar. Underveis viste e2e at Auth svarer annerledes på en ny registrering av en ubekreftet e-post innen ett minutt (`over_email_send_rate_limit`); KI mappet den ene koden til suksess, så svaret fortsatt er likt (AD-4).
 **Min vurdering:** NIL
 **Spor:** branch `feat/1.4-create-an-account-with-email`
+
+## 2026-10-14 — Story 1.5: logg inn, logg ut og tilbakestill passord
+
+**Prompt:** «Implementer spec-1-5-log-in-log-out-and-reset-password.md», spec som eneste kilde.
+**KI foreslo:** `logIn`, `resendVerification`, `forgotPassword`, `updatePassword` og `logOut` i `src/modules/auth`, med én felles limiter-hjelper med `signUp`, `passwordSchema` og `safeNext` i schemas, `/auth/reset` som bytter PKCE-koden mot en sesjon, og beskyttet `/events` via `getClaims()`. Underveis viste e2e at `abuse_hit` bare godtar bøttene `signup_ip` og `signup_email` (check-constraint), og spec forbyr ny migrasjon; KI lot derfor alle flyter dele de to bøttene i stedet for å legge til nye. Oppsummeringen i Auth krever 60 sekunder mellom e-poster, så e2e for *Resend* venter ut vinduet.
+**Review:** Fire uavhengige review-lag ga 45 funn. KI rettet åtte (blant dem åpen redirect via kontrolltegn i `safeNext`, at et tilbakestilt passord ikke avsluttet andre økter, og at en Auth-feil felte hele layouten), utsatte to (delte limiter-bøtter og skyens redirect-liste) og avviste resten med begrunnelse i spec-ens triage-logg.
+**Min vurdering:** NIL
+**Spor:** branch `feat/1.5-log-in-log-out-and-reset-password`
