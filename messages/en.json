@@ -1,0 +1,25 @@
+{
+  "shell": {
+    "skipToContent": "Skip to content",
+    "navLabel": "Main",
+    "home": "Home"
+  },
+  "home": {
+    "surface": "Home",
+    "title": "Arrangly",
+    "tagline": "Plan the day. We keep track of the rest."
+  },
+  "status": {
+    "decision": "Needs your decision",
+    "overdue": "Overdue {days, plural, one {# day} other {# days}}",
+    "problem": "Problem reported",
+    "waiting": "Waiting on {party}",
+    "blocked": "Waits for: {task}",
+    "notAccepted": "Not yet accepted",
+    "inProgress": "In progress",
+    "done": "Done",
+    "obsolete": "Obsolete",
+    "atRisk": "{count} at risk",
+    "newItem": "{count, plural, one {# new item} other {# new items}}"
+  }
+}
