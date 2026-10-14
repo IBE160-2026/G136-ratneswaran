@@ -63,3 +63,7 @@ Thumbs.db
 # Local tool output and course material (not part of the app)
 .playwright-mcp/
 /Sensorveiledning*.pdf
+
+# Playwright
+test-results/
+playwright-report/
