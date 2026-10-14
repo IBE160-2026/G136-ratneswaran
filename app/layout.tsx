@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { getClaims } from "@/lib/supabase/server";
+import { logOut } from "@/modules/auth/actions";
 import { RouteFocus } from "@/components/route-focus";
 import "./globals.css";
 
@@ -11,6 +13,7 @@ export const metadata: Metadata = { title: "Arrangly" };
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const t = await getTranslations("shell");
+  const loggedIn = Boolean(await getClaims());
   return (
     <html lang={locale}>
       <body>
@@ -27,12 +30,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/" className="text-primary min-h-touch inline-flex items-center">
                 {t("home")}
               </Link>
-              <Link
-                href="/signup"
-                className="text-primary min-h-touch ml-4 inline-flex items-center"
-              >
-                {t("signUp")}
-              </Link>
+              {loggedIn ? (
+                <form action={logOut} className="ml-4 inline">
+                  <button type="submit" className="text-primary min-h-touch">
+                    {t("logOut")}
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-primary min-h-touch ml-4 inline-flex items-center"
+                  >
+                    {t("logIn")}
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="text-primary min-h-touch ml-4 inline-flex items-center"
+                  >
+                    {t("signUp")}
+                  </Link>
+                </>
+              )}
             </nav>
           </header>
           <RouteFocus />
