@@ -145,3 +145,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Tre uavhengige review-agenter ga 26 funn. KI rettet 9 (blant dem at AD-5-regelen slapp gjennom destrukturering, re-eksport og dynamisk import, og at den ikke hadde noen test), utsatte 2 og avviste resten med begrunnelse i spec-ens triage-logg.
 **Min vurdering:** Det var bra jeg fikk feilsøkt Corepack for å muliggjøre avvisning av npm og yarn. Det gjorde at resten av steget gikk greit.
 **Spor:** branch `feat/1.1-app-runs-locally`, issue #17
+
+## 2026-10-14 — Story 1.2: designsystem og språkgrunnlag
+
+**Prompt:** «/bmad-build på story 1.2», med spec `spec-1-2-design-system-and-language-foundation.md` godkjent uten endringer.
+**KI foreslo:** DESIGN.md-tokens som `light-dark()`-verdier, slik at mørkt tema følger OS uten duplisert blokk og `data-theme` er klar for Story 1.9; next-intl uten locale i URL, der første `Accept-Language`-tag gir `nb` for nb/nn/no og ellers `en`; hopp-lenke, landemerker, tittelmønster og fokus til `h1` ved rutebytte; én `StatusLabel` med de 11 statusene. Underveis feilet byggingen på at tittelmalen i layouten ikke gjelder rotsiden (hver side setter nå hele tittelen), og `next dev` la igjen nextjs-agent-rules-blokken i `AGENTS.md`, som KI rullet tilbake siden den allerede ligger i `deferred-work.md`.
+**Review:** Tre uavhengige review-agenter ga flere titalls funn. KI rettet 7 (blant dem at `main` ikke kunne få fokus fra hopp-lenken, at `muted` pekte på Blocked-fargen, og at statustestene bare sjekket én status), utsatte 2 (e2e i CI hører til Story 1.3, `RouteFocus`-test venter på rute nummer to) og avviste resten med begrunnelse i spec-ens triage-logg. Funnet om manglende ikon på `atRisk` og `newItem` ble avvist fordi DESIGN.md oppgir «none» for dem.
+**Min vurdering:** Vurderes ved PR-gjennomgang.
+**Spor:** branch `feat/1.2-design-system-and-language-foundation`, issue #20
