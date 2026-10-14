@@ -174,4 +174,4 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** `logIn`, `resendVerification`, `forgotPassword`, `updatePassword` og `logOut` i `src/modules/auth`, med én felles limiter-hjelper med `signUp`, `passwordSchema` og `safeNext` i schemas, `/auth/reset` som bytter PKCE-koden mot en sesjon, og beskyttet `/events` via `getClaims()`. Underveis viste e2e at `abuse_hit` bare godtar bøttene `signup_ip` og `signup_email` (check-constraint), og spec forbyr ny migrasjon; KI lot derfor alle flyter dele de to bøttene i stedet for å legge til nye. Oppsummeringen i Auth krever 60 sekunder mellom e-poster, så e2e for *Resend* venter ut vinduet.
 **Review:** Fire uavhengige review-lag ga 45 funn. KI rettet åtte (blant dem åpen redirect via kontrolltegn i `safeNext`, at et tilbakestilt passord ikke avsluttet andre økter, og at en Auth-feil felte hele layouten), utsatte to (delte limiter-bøtter og skyens redirect-liste) og avviste resten med begrunnelse i spec-ens triage-logg.
 **Min vurdering:** NIL
-**Spor:** branch `feat/1.5-log-in-log-out-and-reset-password`
+**Spor:** branch `feat/1.5-log-in-log-out-and-reset-password`, issue #26
