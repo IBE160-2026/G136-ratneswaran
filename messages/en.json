@@ -3,7 +3,9 @@
     "skipToContent": "Skip to content",
     "navLabel": "Main",
     "home": "Home",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "logIn": "Log in",
+    "logOut": "Log out"
   },
   "home": {
     "surface": "Home",
@@ -46,6 +48,54 @@
         "rateLimited": "Too many attempts. Wait a little and try again.",
         "unavailable": "Couldn't create the account right now. Try again shortly."
       }
+    },
+    "logIn": {
+      "surface": "Log in",
+      "title": "Log in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log in",
+      "forgot": "Forgot password?",
+      "resend": "Resend",
+      "resent": "Check your inbox to verify your email.",
+      "errors": {
+        "invalidInput": "Check the fields below.",
+        "email": "Enter a valid email address.",
+        "password": "Enter your password.",
+        "invalidCredentials": "Email or password doesn't match.",
+        "unverified": "Check your inbox to verify your email.",
+        "rateLimited": "Too many attempts. Wait a little and try again.",
+        "unavailable": "Couldn't log in right now. Try again shortly."
+      }
+    },
+    "forgot": {
+      "surface": "Forgot password",
+      "title": "Reset your password",
+      "email": "Email",
+      "submit": "Send reset link",
+      "success": "If an account exists for that email, a reset link is on its way.",
+      "expired": "That link has expired, was already used, or was opened in a different browser than the one that asked for it. Request a new one.",
+      "errors": {
+        "invalidInput": "Check the field below.",
+        "email": "Enter a valid email address.",
+        "rateLimited": "Too many attempts. Wait a little and try again.",
+        "unavailable": "Couldn't send the link right now. Try again shortly."
+      }
+    },
+    "reset": {
+      "surface": "New password",
+      "title": "Choose a new password",
+      "password": "New password",
+      "submit": "Save password",
+      "errors": {
+        "invalidInput": "Check the field below.",
+        "unavailable": "Couldn't save the password right now. Try again shortly.",
+        "samePassword": "Choose a password different from your current one."
+      }
     }
+  },
+  "events": {
+    "surface": "All events",
+    "title": "All events"
   }
 }

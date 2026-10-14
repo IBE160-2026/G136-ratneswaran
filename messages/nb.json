@@ -3,7 +3,9 @@
     "skipToContent": "Hopp til innhold",
     "navLabel": "Hovedmeny",
     "home": "Hjem",
-    "signUp": "Registrer deg"
+    "signUp": "Registrer deg",
+    "logIn": "Logg inn",
+    "logOut": "Logg ut"
   },
   "home": {
     "surface": "Hjem",
@@ -46,6 +48,54 @@
         "rateLimited": "For mange forsøk. Vent litt og prøv igjen.",
         "unavailable": "Vi kunne ikke opprette kontoen akkurat nå. Prøv igjen om litt."
       }
+    },
+    "logIn": {
+      "surface": "Logg inn",
+      "title": "Logg inn",
+      "email": "E-post",
+      "password": "Passord",
+      "submit": "Logg inn",
+      "forgot": "Glemt passord?",
+      "resend": "Send på nytt",
+      "resent": "Sjekk innboksen din for å bekrefte e-posten.",
+      "errors": {
+        "invalidInput": "Sjekk feltene under.",
+        "email": "Skriv inn en gyldig e-postadresse.",
+        "password": "Skriv inn passordet ditt.",
+        "invalidCredentials": "E-post eller passord stemmer ikke.",
+        "unverified": "Sjekk innboksen din for å bekrefte e-posten.",
+        "rateLimited": "For mange forsøk. Vent litt og prøv igjen.",
+        "unavailable": "Vi kunne ikke logge deg inn akkurat nå. Prøv igjen om litt."
+      }
+    },
+    "forgot": {
+      "surface": "Glemt passord",
+      "title": "Tilbakestill passordet",
+      "email": "E-post",
+      "submit": "Send lenke",
+      "success": "Hvis det finnes en konto for den e-posten, er en lenke på vei.",
+      "expired": "Lenken er utløpt, allerede brukt eller åpnet i en annen nettleser enn den som ba om den. Be om en ny.",
+      "errors": {
+        "invalidInput": "Sjekk feltet under.",
+        "email": "Skriv inn en gyldig e-postadresse.",
+        "rateLimited": "For mange forsøk. Vent litt og prøv igjen.",
+        "unavailable": "Vi kunne ikke sende lenken akkurat nå. Prøv igjen om litt."
+      }
+    },
+    "reset": {
+      "surface": "Nytt passord",
+      "title": "Velg nytt passord",
+      "password": "Nytt passord",
+      "submit": "Lagre passord",
+      "errors": {
+        "invalidInput": "Sjekk feltet under.",
+        "unavailable": "Vi kunne ikke lagre passordet akkurat nå. Prøv igjen om litt.",
+        "samePassword": "Velg et annet passord enn det du har nå."
+      }
     }
+  },
+  "events": {
+    "surface": "Alle arrangementer",
+    "title": "Alle arrangementer"
   }
 }

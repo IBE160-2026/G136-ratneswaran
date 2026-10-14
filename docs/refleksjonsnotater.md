@@ -74,3 +74,13 @@ Løpende notater om valg og avveininger, til refleksjonsrapporten (30 %). Én op
 - Node 25 og nyere har fjernet Corepack, så uten `corepack enable` avvises ikke `npm install`. Det oppdaget jeg først da jeg prøvde.
 
 **Avveining:** Pinnet ESLint og en nektet byggescript-regel er gjeld som må følges opp ved oppgradering. Binær med sjekksum krever at jeg manuelt bytter versjon og verdi. Til gjengjeld får CI en secret scan uten lisens og uten en uverifisert nedlasting.
+
+## 2026-10-15 — Story 1.5: alle kontoflyter deler samme limiter-bøtter
+
+**Valg:** Registrering, ny bekreftelses-e-post og glemt passord bruker de to eksisterende limiter-bøttene (`signup_ip`, `signup_email`) i stedet for egne bøtter per flyt. Innlogging har ingen egen limiter, siden Supabase Auth begrenser den selv. Jeg tar spørsmålet om egne bøtter som en `bmad-correct-course` etter Story 1.5.
+
+**Hvorfor:**
+- `abuse_counters` har en check-constraint som bare tillater de to bøttene fra Story 1.4, og spec for 1.5 utelukket ny migrasjon. KI oppdaget det først da e2e kjørte, ikke under planleggingen.
+- En ny migrasjon midt i en story som ellers ikke rører skjemaet ville ha blandet to hensyn i én PR. Planleggingsdokumentene skal ikke endres under implementering, og AD-21 sier ikke noe om bøtter per flyt.
+
+**Avveining:** Én person kan bruke opp tre e-poster per time ved å registrere seg, be om tilbakestilling og sende bekreftelsen på nytt, og en annen kan brenne budsjettet til en e-postadresse for tilbakestilling. Jeg godtok samme svakhet for registrering i Story 1.4 (alternativ C), men her rammer den en eksisterende bruker. Til gjengjeld ble storyen levert uten skjemaendring, og begrensningen er logget som utsatt funn.

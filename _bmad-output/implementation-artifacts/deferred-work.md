@@ -21,3 +21,10 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-4-create-an-account-with-email.md`
   summary: Verify cloud Auth has email confirmation on and test `refreshSession` cookie forwarding.
   evidence: Cloud Auth settings are outside migrations (Story 11.1 checklist); sessions first exist in Story 1.5.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-5-log-in-log-out-and-reset-password.md`
+  summary: Sign-up, resend and forgot-password share the `signup_ip` and `signup_email` limiter buckets.
+  evidence: The check constraint on `abuse_counters` allows only those buckets, so the 3-per-hour email budget is spent jointly and one person can burn another's budget for reset (medium). Owner routes it to `bmad-correct-course` after Story 1.5.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-5-log-in-log-out-and-reset-password.md`
+  summary: Cloud Auth `additional_redirect_urls` must list the production `/auth/reset` URL.
+  evidence: `forgotPassword` builds `redirectTo` from the request origin; only the local allow-list names `/auth/reset`. Owner takes it in Story 11.1's environment checklist.

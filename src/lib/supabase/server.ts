@@ -27,7 +27,12 @@ export async function createClient() {
 
 /** The signed-in user's claims, verified against the project's keys. */
 export async function getClaims() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  return data?.claims ?? null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getClaims();
+    return data?.claims ?? null;
+  } catch {
+    // An Auth outage must not take every page down (proxy.ts guards the same way).
+    return null;
+  }
 }
