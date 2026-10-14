@@ -5,3 +5,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-app-runs-locally-on-the-pinned-stack.md`
   summary: CI runs no type-check or `next build`, so a type or build error passes CI.
   evidence: `ci.yml` runs lint, format, Vitest, gitleaks and the hook test only; Story 1.3 (quality gates) is the place to add `tsc --noEmit` and `pnpm build`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-2-design-system-and-language-foundation.md`
+  summary: `pnpm test:e2e` is not run in CI, so the layout, skip link, `lang` and theme checks are not gated.
+  evidence: `ci.yml` has no Playwright step; Story 1.3 wires Playwright into CI.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-2-design-system-and-language-foundation.md`
+  summary: `RouteFocus` is untested and may miss an `h1` that renders after the pathname changes (Suspense).
+  evidence: Only one route exists; add a client-navigation e2e test when Story 1.4 adds a second route.
