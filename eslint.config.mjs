@@ -63,6 +63,7 @@ const eslintConfig = [
       "playwright-report/**",
       "test-results/**",
       ".playwright-mcp/**",
+      "src/types/database.ts",
     ],
   },
   ...nextVitals,
