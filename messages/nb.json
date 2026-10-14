@@ -90,7 +90,7 @@
       "errors": {
         "invalidInput": "Sjekk feltet under.",
         "unavailable": "Vi kunne ikke lagre passordet akkurat nå. Prøv igjen om litt.",
-        "samePassword": "Velg et passord du ikke har brukt nå."
+        "samePassword": "Velg et annet passord enn det du har nå."
       }
     }
   },
