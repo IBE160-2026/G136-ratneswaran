@@ -153,3 +153,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Tre uavhengige review-agenter ga flere titalls funn. KI rettet 7 (blant dem at `main` ikke kunne få fokus fra hopp-lenken, at `muted` pekte på Blocked-fargen, og at statustestene bare sjekket én status), utsatte 2 (e2e i CI hører til Story 1.3, `RouteFocus`-test venter på rute nummer to) og avviste resten med begrunnelse i spec-ens triage-logg. Funnet om manglende ikon på `atRisk` og `newItem` ble avvist fordi DESIGN.md oppgir «none» for dem.
 **Min vurdering:** Ingen merknader til selve storyen. Jeg vil sette VS Code i Bypass mode for å kunne jobbe parallelt med andre prosjekter. Det blir en egen innsats før neste story.
 **Spor:** branch `feat/1.2-design-system-and-language-foundation`, issue #20
+
+## 2026-10-14 — Story 1.3: kvalitetsportene kjører på hver push
+
+**Prompt:** «Implementer spec-1-3-quality-gates-run-on-every-push.md», spec som eneste kilde.
+**KI foreslo:** `checks`-jobben utvidet med `tsc --noEmit`, lokal Supabase i Docker, pgTAP, sjekk av genererte typer (regenerert fil mot `src/types/database.ts`, feiler med instruks) og Playwright med `.env.local` fra `.env.example` pluss hemmelig nøkkel fra `supabase status -o env`. En egen `deploy`-jobb (`needs: checks`, kun push til `main`) holder de tre skyhemmelighetene i `env`, hopper over med merknad når en mangler, og kjører ellers `supabase link` og `supabase db push`. `database.ts` er generert fra det tomme skjemaet og ignorert av Prettier og ESLint, slik at diffen sammenligner rå utdata.
+**Min vurdering:** (fylles ut av eier)
+**Spor:** branch `feat/1.3-quality-gates-run-on-every-push`, issue #22
