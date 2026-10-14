@@ -1,0 +1,12 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Supabase CLI's public local-demo keys"
+regexes = [
+  '''sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH''',
+]
+
+[[allowlists]]
+description = "File hashes in the BMad manifest"
+paths = ['''^_bmad/_config/files-manifest\.csv$''']
