@@ -27,6 +27,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/" className="text-primary min-h-touch inline-flex items-center">
                 {t("home")}
               </Link>
+              <Link
+                href="/signup"
+                className="text-primary min-h-touch ml-4 inline-flex items-center"
+              >
+                {t("signUp")}
+              </Link>
             </nav>
           </header>
           <RouteFocus />

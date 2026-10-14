@@ -23,13 +23,29 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            [_ in never]: never
+            "abuse_counters": {
+                  Row: {
+                    "bucket": string,"hits": number,"key_hash": string,"window_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bucket": string,"hits": number,"key_hash": string,"window_start": string
+                  }
+                  Update: {
+                    "bucket"?: string,"hits"?: number,"key_hash"?: string,"window_start"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "abuse_hit":
+{ Args: { "p_bucket": string,"p_key_hash": string,"p_max": number,"p_window_seconds": number }; Returns: boolean
+                           }
           }
           Enums: {
             [_ in never]: never
