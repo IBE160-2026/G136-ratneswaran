@@ -2,7 +2,8 @@
 title: 'Story 1.1: App runs locally on the pinned stack'
 type: 'feature'
 created: '2026-10-13'
-status: 'ready-for-dev'
+status: 'done'
+baseline_commit: '2e1a485ceb2b03f0607c5f273b346a633973629b'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -47,20 +48,20 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `package.json`, `pnpm-lock.yaml`, `next.config.ts`, `tsconfig.json`, `app/layout.tsx`, `app/page.tsx` -- scaffold with the pinned versions and a placeholder page -- AC 1, 2
-- [ ] `components.json`, `app/globals.css` -- shadcn init and Lucide with default tokens only -- AC 1
-- [ ] `src/modules/{events,tasks,guests,notifications,ai}/.gitkeep` -- empty module folders -- AC 1
-- [ ] `supabase/config.toml`, `supabase/{migrations,tests,fixtures/ai}/.gitkeep`, `supabase/seed.sql` -- `supabase init`, manual identity linking on -- AC 1
-- [ ] `src/lib/env.ts` -- Zod schemas split into client and server sections, rejecting legacy names -- AC 3
-- [ ] `src/lib/env.test.ts` -- Vitest cases for missing, legacy and valid env -- AC 3
-- [ ] `eslint.config.mjs` -- `no-restricted-imports` for the env server section and `SUPABASE_SECRET_KEY` in client components -- AC 4
-- [ ] `vercel.json` -- `regions: ["arn1"]` -- AC 4
-- [ ] `.env.example`, `README.md` -- prerequisites with versions and copy-paste commands from clone to pgTAP, Vitest and Playwright -- AC 5
-- [ ] `package.json` scripts -- `lint`, `format:check`, `prepare` -- AC 6, 7
-- [ ] `supabase/tests/smoke.test.sql`, `e2e/home.spec.ts`, `playwright.config.ts`, `vitest.config.ts` -- one minimal sample each for pgTAP, Playwright and Vitest -- AC 5
-- [ ] `.github/workflows/ci.yml` -- ESLint, Prettier check, secret scan (gitleaks binary), `.githooks/test.sh` -- AC 6, 7
-- [ ] `AGENTS.md` -- replace the TODO lines for packageManager, test commands and Node -- AC 2
-- [ ] `docs/ki-logg.md` -- append the Story 1.1 entry -- process rule
+- [x] `package.json`, `pnpm-lock.yaml`, `next.config.ts`, `tsconfig.json`, `app/layout.tsx`, `app/page.tsx` -- scaffold with the pinned versions and a placeholder page -- AC 1, 2
+- [x] `components.json`, `app/globals.css` -- shadcn init and Lucide with default tokens only -- AC 1
+- [x] `src/modules/{events,tasks,guests,notifications,ai}/.gitkeep` -- empty module folders -- AC 1
+- [x] `supabase/config.toml`, `supabase/{migrations,tests,fixtures/ai}/.gitkeep`, `supabase/seed.sql` -- `supabase init`, manual identity linking on -- AC 1
+- [x] `src/lib/env.ts` -- Zod schemas split into client and server sections, rejecting legacy names -- AC 3
+- [x] `src/lib/env.test.ts` -- Vitest cases for missing, legacy and valid env -- AC 3
+- [x] `eslint.config.mjs` -- `no-restricted-imports` for the env server section and `SUPABASE_SECRET_KEY` in client components -- AC 4
+- [x] `vercel.json` -- `regions: ["arn1"]` -- AC 4
+- [x] `.env.example`, `README.md` -- prerequisites with versions and copy-paste commands from clone to pgTAP, Vitest and Playwright -- AC 5
+- [x] `package.json` scripts -- `lint`, `format:check`, `prepare` -- AC 6, 7
+- [x] `supabase/tests/smoke.test.sql`, `e2e/home.spec.ts`, `playwright.config.ts`, `vitest.config.ts` -- one minimal sample each for pgTAP, Playwright and Vitest -- AC 5
+- [x] `.github/workflows/ci.yml` -- ESLint, Prettier check, secret scan (gitleaks binary), `.githooks/test.sh` -- AC 6, 7
+- [x] `AGENTS.md` -- replace the TODO lines for packageManager, test commands and Node -- AC 2
+- [x] `docs/ki-logg.md` -- append the Story 1.1 entry -- process rule
 
 **Acceptance Criteria:**
 - Given the story's seven Given/When/Then blocks in `epics.md` › Story 1.1, when each is run as written, then each passes.
@@ -71,6 +72,35 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Finding | Verdict | Route | Evidence |
+|---|---------|---------|-------|----------|
+| 1 | `prepare` fails outside a git repo | medium | patch | `git config` exits 128 with no `.git`; now `|| true`. |
+| 2 | AD-5 rule misses destructuring, re-export, dynamic import, `./env.ts` | high | patch | Reproduced by reading the old visitors; rule rewritten (Identifier, export-from, ImportExpression, extension-tolerant path). |
+| 3 | AD-5 rule has no test | high | patch | Nothing failed if the rule broke; `src/lib/lint-ad5.test.ts` covers 7 violations and 2 allowed cases. |
+| 4 | `getServerEnv`/`clientEnv` wiring untested | medium | patch | Tests only called the parsers; two `vi.stubEnv` cases added. |
+| 5 | ESLint lints `playwright-report/`, `test-results/` | medium | patch | Flat config ignores `.gitignore`; added to `ignores`. |
+| 6 | gitleaks allowlists all of `.env.example` | low | patch | A real secret pasted there was invisible; allowlist now the two demo values. |
+| 7 | gitleaks tarball not checksum-verified | low | patch | `sha256sum -c` added with the value from the release checksums. |
+| 8 | `components.json` `rsc: false` | medium | patch | `shadcn add` would omit `"use client"` handling for App Router; set `true`. |
+| 9 | `site_url` 127.0.0.1 vs README localhost | medium | patch | Auth redirects from localhost would be rejected from Story 1.4; set `localhost` and both redirect URLs. |
+| 10 | `next dev` appends a Next.js block to AGENTS.md | medium | defer | Real and recurs on every `pnpm dev`; fix edits an agent-context file. Reverted from this diff. |
+| 11 | CI has no `tsc`/`next build` | low | defer | Belongs to Story 1.3 quality gates (Design Notes). |
+| 12 | `AI_LIVE=` or `VAPID=` empty behaves inconsistently | low | rejected | Empty `AI_LIVE` fails loudly naming the variable; the example ships `false`. |
+| 13 | Empty issue path gives blank name | false | rejected | Source is always an object; no reachable empty path. |
+| 14 | `clientEnv` skips legacy check | false | rejected | `getServerEnv` runs at boot over all of `process.env`. |
+| 15 | e2e needs `.env.local`, timeout, `forbidOnly`, port reuse | low | rejected | README orders `cp .env.example .env.local` first; fixes add config for no observed harm. |
+| 16 | `instrumentation` has no runtime guard | low | rejected | No edge routes exist. |
+| 17 | `shadcn` in `dependencies` | false | rejected | `app/globals.css` imports `shadcn/tailwind.css` at build. |
+| 18 | `@types/node` 26 vs `engines >=24` | low | rejected | Cosmetic; no 25/26-only API used. |
+| 19 | `<html lang="en">` fixed | low | rejected | i18n is Story 1.2; the intent excludes it. |
+| 20 | CI runs twice on PR branches | low | rejected | The story's AC says "a push or PR". |
+| 21 | CI lacks pgTAP and Playwright | false | rejected | Story 1.3 owns it (spec Design Notes). |
+| 22 | `config.toml` references unset `OPENAI_API_KEY`, `S3_*` | false | rejected | `supabase start` ran clean with these defaults. |
+| 23 | Custom rule instead of `no-restricted-imports` | false | rejected | Required behaviour holds and is tested; `no-restricted-imports` cannot see `"use client"`. |
+| 24 | Template literal and `server-only` hardening | low | rejected | Adds a dependency and branches for no reachable case. |
+| 25 | Spec status vs sprint-status mismatch; ki-logg placeholder; reflection entry | false | rejected | Step 5 syncs status; the ki-logg gap is owner-filled and the reflection entry is offered in step 5. |
+| 26 | README clone URL hardcoded | low | rejected | It is the course repo URL. |
 
 ## Design Notes
 
