@@ -158,5 +158,5 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 
 **Prompt:** «Implementer spec-1-3-quality-gates-run-on-every-push.md», spec som eneste kilde.
 **KI foreslo:** `checks`-jobben utvidet med `tsc --noEmit`, lokal Supabase i Docker, pgTAP, sjekk av genererte typer (regenerert fil mot `src/types/database.ts`, feiler med instruks) og Playwright med `.env.local` fra `.env.example` pluss hemmelig nøkkel fra `supabase status -o env`. En egen `deploy`-jobb (`needs: checks`, kun push til `main`) holder de tre skyhemmelighetene i `env`, hopper over med merknad når en mangler, og kjører ellers `supabase link` og `supabase db push`. `database.ts` er generert fra det tomme skjemaet og ignorert av Prettier og ESLint, slik at diffen sammenligner rå utdata.
-**Min vurdering:** (fylles ut av eier)
+**Min vurdering:** NIL
 **Spor:** branch `feat/1.3-quality-gates-run-on-every-push`, issue #22
