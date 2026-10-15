@@ -5,6 +5,9 @@ import Link from "next/link";
 import { getClaims } from "@/lib/supabase/server";
 import { AppNav } from "@/components/app-nav";
 import { MobileMenu } from "@/components/mobile-menu";
+import { OfflineNotice } from "@/components/offline-notice";
+import { Toaster } from "@/components/ui/sonner";
+import { ToastHotkey } from "@/components/toast-hotkey";
 import { RouteFocus } from "@/components/route-focus";
 import "./globals.css";
 
@@ -49,7 +52,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </nav>
             )}
           </header>
+          <OfflineNotice />
           <RouteFocus />
+          <ToastHotkey />
           <div className="flex flex-1">
             {claims && (
               <div className="bg-sidebar w-sidebar hidden shrink-0 lg:block">
@@ -74,6 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {t("privacy")}
             </Link>
           </footer>
+          <Toaster />
         </NextIntlClientProvider>
       </body>
     </html>
