@@ -187,5 +187,5 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 
 **Prompt:** «Implementer spec-1-7-app-shell-and-all-events.md», spec som eneste kilde.
 **KI foreslo:** Rotlayouten som skall-bryter på `getClaims()`: sidemeny (`AppNav`, delt klientkomponent) fra 1024px, og under det en menyknapp etter `{children}` i `main` som åpner shadcn `Sheet` fra høyre. Tom tilstand «La oss planlegge noe.» på `/events`, personvernside på `/privacy` og bunntekst med lenke på alle sider. Underveis la shadcn-CLI-en til en feil `cn`-pakke og glemte `@base-ui/react`; KI rettet importen til `@/lib/utils` og la til base-ui. En lenke til samme side endrer ikke `pathname`, så Sheet lukkes også på klikk, og `RouteFocus` flytter da ikke fokus til `h1` i det tilfellet.
-**Min vurdering:** NIL
+**Min vurdering:** Jeg valgte `bmad-build-auto`, som gjennomfører spec, implementering og review i én kjøring per story. Det er nødvendig med tanke på behandlingstid per story og tiden jeg har til rådighet.
 **Spor:** branch `feat/1.7-app-shell-and-all-events`
