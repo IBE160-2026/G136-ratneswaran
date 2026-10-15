@@ -42,7 +42,7 @@ development_status:
   1-4-create-an-account-with-email: done
   1-5-log-in-log-out-and-reset-password: done
   1-6-sign-in-with-google-or-github: done
-  1-7-app-shell-and-all-events: backlog
+  1-7-app-shell-and-all-events: done
   1-8-feedback-and-state-primitives: backlog
   1-9-profile-and-settings: backlog
   1-10-per-flow-limiter-buckets: backlog
