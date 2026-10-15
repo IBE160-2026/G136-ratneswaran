@@ -9,6 +9,7 @@ import {
   emailSchema,
   logInSchema,
   passwordSchema,
+  providerSchema,
   safeNext,
   signUpSchema,
   type Result,
@@ -152,6 +153,24 @@ export async function forgotPassword(
     return refuse("unavailable", "auth.forgot.errors.unavailable");
   }
   return { ok: true, data: null };
+}
+
+/** Ends in `redirect()` to the provider; `/auth/callback` finishes the sign-in (AD-6). */
+export async function signInWithProvider(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = providerSchema.safeParse(formData.get("provider"));
+  if (!parsed.success) return refuse("invalid_input", "auth.oauth.errors.invalidInput");
+  const origin = (await headers()).get("origin");
+  if (!origin) return refuse("unavailable", "auth.oauth.errors.unavailable");
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: parsed.data,
+    options: { redirectTo: `${origin}/auth/callback`, skipBrowserRedirect: true },
+  });
+  if (error || !data.url) return refuse("unavailable", "auth.oauth.errors.unavailable");
+  redirect(data.url);
 }
 
 /** Needs the session `/auth/reset` set; ends in `redirect()` on success. */

@@ -92,6 +92,17 @@
         "unavailable": "Vi kunne ikke lagre passordet akkurat nå. Prøv igjen om litt.",
         "samePassword": "Velg et annet passord enn det du har nå."
       }
+    },
+    "oauth": {
+      "google": "Fortsett med Google",
+      "github": "Fortsett med GitHub",
+      "cancelled": "Du avbrøt innloggingen. Prøv igjen eller bruk e-posten din.",
+      "unverified": "E-posten din hos den leverandøren er ikke bekreftet. Bekreft den der, eller opprett konto med e-post.",
+      "failed": "Vi kunne ikke logge deg inn med den leverandøren. Prøv igjen eller bruk e-posten din.",
+      "errors": {
+        "invalidInput": "Velg Google eller GitHub.",
+        "unavailable": "Vi kunne ikke starte innloggingen akkurat nå. Prøv igjen om litt."
+      }
     }
   },
   "events": {

@@ -38,6 +38,8 @@ export const logInSchema = z.object({
   password: z.string().min(1, "auth.logIn.errors.password").max(1000, "auth.logIn.errors.password"),
 });
 
+export const providerSchema = z.enum(["google", "github"]);
+
 /** A return path is accepted only when it is a same-origin relative path (FR1). */
 export function safeNext(value: unknown): string {
   if (typeof value !== "string") return "/events";

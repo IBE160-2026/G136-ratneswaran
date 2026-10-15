@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { OAuthButtons } from "../oauth-buttons";
 import { SignUpForm } from "./form";
 
 export async function generateMetadata() {
@@ -12,6 +13,7 @@ export default async function SignUpPage() {
     <div className="flex max-w-md flex-col gap-4 py-12">
       <h1 className="text-large-title">{t("title")}</h1>
       <SignUpForm />
+      <OAuthButtons />
     </div>
   );
 }
