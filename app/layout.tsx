@@ -20,8 +20,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const claims = await getClaims();
   const profileLabel =
     [claims?.user_metadata?.name, claims?.email].find((v) => typeof v === "string" && v) ?? "";
+  const theme = claims?.user_metadata?.theme;
   return (
-    <html lang={locale}>
+    <html lang={locale} data-theme={theme === "light" || theme === "dark" ? theme : undefined}>
       <body className="flex min-h-dvh flex-col">
         <NextIntlClientProvider>
           <a
