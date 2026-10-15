@@ -145,5 +145,68 @@
     "undo": "Undo",
     "loadFailed": "Couldn't load this. Check your connection and try again.",
     "offline": "You're offline. Changes will save when you're back."
+  },
+  "profile": {
+    "surface": "Profile & Settings",
+    "title": "Profile & Settings",
+    "errors": {
+      "invalidInput": "That choice isn't available.",
+      "unavailable": "Couldn't save right now. Try again shortly."
+    },
+    "link": {
+      "failed": "Couldn't connect that account. Try again shortly.",
+      "cancelled": "You cancelled connecting the account."
+    },
+    "name": {
+      "title": "Name",
+      "label": "Display name",
+      "submit": "Save name",
+      "saved": "Name saved.",
+      "errors": {
+        "invalidInput": "Check the field below.",
+        "name": "Enter a name of 1 to 80 characters."
+      }
+    },
+    "email": {
+      "title": "Email",
+      "current": "Current email: {email}",
+      "label": "New email",
+      "submit": "Change email",
+      "sent": "Check your inbox to confirm the new email.",
+      "errors": {
+        "invalidInput": "Check the field below.",
+        "email": "Enter a valid email address."
+      }
+    },
+    "password": {
+      "title": "Password",
+      "label": "New password",
+      "set": "Save password",
+      "saved": "Password saved.",
+      "errors": {
+        "invalidInput": "Check the field below."
+      }
+    },
+    "accounts": {
+      "title": "Connected accounts",
+      "email": "Email",
+      "google": "Google",
+      "github": "GitHub",
+      "connected": "Connected",
+      "connect": {
+        "google": "Connect Google",
+        "github": "Connect GitHub"
+      }
+    },
+    "language": {
+      "title": "Language",
+      "auto": "Auto"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
   }
 }
