@@ -138,5 +138,12 @@
       "title": "Deleting your data as a Guest",
       "body": "On the Guest Dashboard, Delete my data removes your RSVP, food, hotel and requests."
     }
+  },
+  "feedback": {
+    "saveFailed": "Couldn't save. Trying again.",
+    "retry": "Retry",
+    "undo": "Undo",
+    "loadFailed": "Couldn't load this. Check your connection and try again.",
+    "offline": "You're offline. Changes will save when you're back."
   }
 }

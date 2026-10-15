@@ -138,5 +138,12 @@
       "title": "Slette dataene dine som gjest",
       "body": "På gjestesiden fjerner Slett mine data svaret ditt, mat, hotell og forespørsler."
     }
+  },
+  "feedback": {
+    "saveFailed": "Kunne ikke lagre. Prøver igjen.",
+    "retry": "Prøv igjen",
+    "undo": "Angre",
+    "loadFailed": "Kunne ikke laste dette. Sjekk tilkoblingen og prøv igjen.",
+    "offline": "Du er frakoblet. Endringer lagres når du er tilbake."
   }
 }
