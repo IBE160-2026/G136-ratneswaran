@@ -182,3 +182,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** `signInWithProvider` (Zod på leverandør, `Origin` som `redirectTo`, `skipBrowserRedirect` og `redirect(data.url)`), `/auth/callback` som bytter koden og mapper feil til `/login?oauth=…`, to knapper på logg inn og opprett konto, og en tilstandsløs mock-GitHub-server som lokal Auth peker på, styrt av en `mock_identity`-cookie. Underveis viste e2e to feil i mocken: id-en kollidert fordi en hash ble flyttall (alle brukere ble samme konto), og `/user` med `email` ble stolt på som verifisert. Auth sender også `access_denied` med «Unverified email» som beskrivelse, så callbacken sjekker beskrivelsen før feilkoden. Auth beholder en ubekreftet rad for uverifisert e-post, så testen krever at ingen er bekreftet i stedet for null rader. Google testes manuelt med ekte nøkler.
 **Min vurdering:** NIL
 **Spor:** branch `feat/1.6-sign-in-with-google-or-github`
+
+## 2026-10-15 — Story 1.7: app-skall og Alle arrangementer
+
+**Prompt:** «Implementer spec-1-7-app-shell-and-all-events.md», spec som eneste kilde.
+**KI foreslo:** Rotlayouten som skall-bryter på `getClaims()`: sidemeny (`AppNav`, delt klientkomponent) fra 1024px, og under det en menyknapp etter `{children}` i `main` som åpner shadcn `Sheet` fra høyre. Tom tilstand «La oss planlegge noe.» på `/events`, personvernside på `/privacy` og bunntekst med lenke på alle sider. Underveis la shadcn-CLI-en til en feil `cn`-pakke og glemte `@base-ui/react`; KI rettet importen til `@/lib/utils` og la til base-ui. En lenke til samme side endrer ikke `pathname`, så Sheet lukkes også på klikk, og `RouteFocus` flytter da ikke fokus til `h1` i det tilfellet.
+**Min vurdering:** NIL
+**Spor:** branch `feat/1.7-app-shell-and-all-events`
