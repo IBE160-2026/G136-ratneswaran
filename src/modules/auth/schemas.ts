@@ -40,6 +40,18 @@ export const logInSchema = z.object({
 
 export const providerSchema = z.enum(["google", "github"]);
 
+export const nameSchema = z.object({
+  name: z.string().trim().min(1, "profile.name.errors.name").max(80, "profile.name.errors.name"),
+});
+
+export const newEmailSchema = z.object({
+  email: z.email({ error: "profile.email.errors.email" }).max(254, "profile.email.errors.email"),
+});
+
+export const languageSchema = z.enum(["auto", "nb", "en"]);
+
+export const themeSchema = z.enum(["system", "light", "dark"]);
+
 /** A return path is accepted only when it is a same-origin relative path (FR1). */
 export function safeNext(value: unknown): string {
   if (typeof value !== "string") return "/events";

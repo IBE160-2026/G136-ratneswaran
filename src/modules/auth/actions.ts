@@ -1,17 +1,22 @@
 "use server";
 
 import { createHash } from "node:crypto";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ZodError } from "zod";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import {
   emailSchema,
+  languageSchema,
   logInSchema,
+  nameSchema,
+  newEmailSchema,
   passwordSchema,
   providerSchema,
   safeNext,
   signUpSchema,
+  themeSchema,
   type Result,
 } from "./schemas";
 
@@ -170,6 +175,8 @@ export async function signInWithProvider(
     options: { redirectTo: `${origin}/auth/callback`, skipBrowserRedirect: true },
   });
   if (error || !data.url) return refuse("unavailable", "auth.oauth.errors.unavailable");
+  // A link attempt that was abandoned must not turn this sign-in into a return to /profile.
+  (await cookies()).delete("oauth_next");
   redirect(data.url);
 }
 
@@ -209,4 +216,124 @@ export async function logOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+const unavailable = refuse("unavailable", "profile.errors.unavailable");
+
+/** Writes one user_metadata key; the token only carries it after a refresh, so refresh before revalidating. */
+async function saveMetadata(
+  key: "name" | "language" | "theme",
+  value: string,
+): Promise<Result<null>> {
+  if (!(await getClaims())) return unavailable;
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ data: { [key]: value } });
+  if (error) return unavailable;
+  const refreshed = await supabase.auth.refreshSession();
+  if (refreshed.error) return unavailable;
+  revalidatePath("/", "layout");
+  return { ok: true, data: null };
+}
+
+export async function updateName(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = nameSchema.safeParse({ name: formData.get("name") ?? "" });
+  if (!parsed.success) {
+    return refuse("invalid_input", "profile.name.errors.invalidInput", fieldErrors(parsed.error));
+  }
+  return saveMetadata("name", parsed.data.name);
+}
+
+export async function updateLanguage(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = languageSchema.safeParse(formData.get("language"));
+  if (!parsed.success) return refuse("invalid_input", "profile.errors.invalidInput");
+  return saveMetadata("language", parsed.data);
+}
+
+export async function updateAppearance(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = themeSchema.safeParse(formData.get("theme"));
+  if (!parsed.success) return refuse("invalid_input", "profile.errors.invalidInput");
+  return saveMetadata("theme", parsed.data);
+}
+
+/** Auth mails the new address; the same `{ ok: true }` for a taken or unchanged address (AD-4). */
+export async function updateEmail(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = newEmailSchema.safeParse({ email: formData.get("email") ?? "" });
+  if (!parsed.success) {
+    return refuse("invalid_input", "profile.email.errors.invalidInput", fieldErrors(parsed.error));
+  }
+  const claims = await getClaims();
+  if (!claims) return unavailable;
+  if (parsed.data.email.toLowerCase() === String(claims.email ?? "").toLowerCase()) {
+    return { ok: true, data: null };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ email: parsed.data.email });
+  if (error && error.code !== "email_exists") return unavailable;
+  return { ok: true, data: null };
+}
+
+/** Changes the password, or adds one to a provider-created account; other sessions stay signed in. */
+export async function setPassword(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = passwordSchema.safeParse(formData.get("password") ?? "");
+  if (!parsed.success) {
+    return refuse("invalid_input", "profile.password.errors.invalidInput", {
+      password: parsed.error.issues[0].message,
+    });
+  }
+  if (!(await getClaims())) return unavailable;
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: parsed.data });
+  if (error) {
+    if (error.code === "weak_password") {
+      return refuse("invalid_input", "profile.password.errors.invalidInput", {
+        password: "auth.signUp.errors.password",
+      });
+    }
+    if (error.code === "same_password") {
+      return refuse("invalid_input", "profile.password.errors.invalidInput", {
+        password: "auth.reset.errors.samePassword",
+      });
+    }
+    return unavailable;
+  }
+  return { ok: true, data: null };
+}
+
+/** Ends in `redirect()` to the provider; `/auth/callback` returns to `/profile` via `oauth_next` (AD-6). */
+export async function connectProvider(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = providerSchema.safeParse(formData.get("provider"));
+  if (!parsed.success) return refuse("invalid_input", "profile.errors.invalidInput");
+  const origin = (await headers()).get("origin");
+  if (!origin || !(await getClaims())) return unavailable;
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.linkIdentity({
+    provider: parsed.data,
+    options: { redirectTo: `${origin}/auth/callback`, skipBrowserRedirect: true },
+  });
+  if (error || !data.url) return unavailable;
+  (await cookies()).set("oauth_next", "/profile", {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 600,
+  });
+  redirect(data.url);
 }
