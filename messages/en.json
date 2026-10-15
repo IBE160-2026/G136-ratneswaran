@@ -5,7 +5,11 @@
     "home": "Home",
     "signUp": "Sign up",
     "logIn": "Log in",
-    "logOut": "Log out"
+    "logOut": "Log out",
+    "menu": "Menu",
+    "allEvents": "All events",
+    "privacy": "Privacy notice",
+    "closeMenu": "Close menu"
   },
   "home": {
     "surface": "Home",
@@ -107,6 +111,32 @@
   },
   "events": {
     "surface": "All events",
-    "title": "All events"
+    "title": "All events",
+    "empty": {
+      "title": "Let's plan something.",
+      "hint": "Your events will show up here."
+    }
+  },
+  "privacy": {
+    "surface": "Privacy notice",
+    "title": "Privacy notice",
+    "processors": {
+      "title": "Who processes your data",
+      "intro": "Arrangly uses these services to run. Each handles only what its job needs.",
+      "supabase": "Supabase: the database and sign-in.",
+      "vercel": "Vercel: hosting of the app.",
+      "anthropic": "Anthropic: AI suggestions. No allergy, food or hotel data is sent to it.",
+      "google": "Google: sign-in with Google, if you choose it."
+    },
+    "stored": {
+      "title": "What is stored",
+      "account": "Your account: email, name, and a password hash handled by Supabase.",
+      "events": "Event data you enter.",
+      "guests": "A Guest's answers, plus-ones and other needs, once guests are invited."
+    },
+    "deletion": {
+      "title": "Deleting your data as a Guest",
+      "body": "On the Guest Dashboard, Delete my data removes your RSVP, food, hotel and requests."
+    }
   }
 }

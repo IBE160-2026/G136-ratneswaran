@@ -5,7 +5,11 @@
     "home": "Hjem",
     "signUp": "Registrer deg",
     "logIn": "Logg inn",
-    "logOut": "Logg ut"
+    "logOut": "Logg ut",
+    "menu": "Meny",
+    "allEvents": "Alle arrangementer",
+    "privacy": "Personvernerklæring",
+    "closeMenu": "Lukk menyen"
   },
   "home": {
     "surface": "Hjem",
@@ -107,6 +111,32 @@
   },
   "events": {
     "surface": "Alle arrangementer",
-    "title": "Alle arrangementer"
+    "title": "Alle arrangementer",
+    "empty": {
+      "title": "La oss planlegge noe.",
+      "hint": "Arrangementene dine vises her."
+    }
+  },
+  "privacy": {
+    "surface": "Personvernerklæring",
+    "title": "Personvernerklæring",
+    "processors": {
+      "title": "Hvem behandler dataene dine",
+      "intro": "Arrangly bruker disse tjenestene for å fungere. Hver av dem håndterer bare det oppgaven krever.",
+      "supabase": "Supabase: databasen og innloggingen.",
+      "vercel": "Vercel: drift av appen.",
+      "anthropic": "Anthropic: KI-forslag. Ingen allergi-, mat- eller hoteldata sendes dit.",
+      "google": "Google: innlogging med Google, hvis du velger det."
+    },
+    "stored": {
+      "title": "Hva som lagres",
+      "account": "Kontoen din: e-post, navn og en passord-hash som Supabase håndterer.",
+      "events": "Arrangementdata du legger inn.",
+      "guests": "En gjests svar, ledsagere og andre behov, når gjester er invitert."
+    },
+    "deletion": {
+      "title": "Slette dataene dine som gjest",
+      "body": "På gjestesiden fjerner Slett mine data svaret ditt, mat, hotell og forespørsler."
+    }
   }
 }
