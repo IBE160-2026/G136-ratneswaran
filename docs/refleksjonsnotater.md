@@ -84,3 +84,14 @@ Løpende notater om valg og avveininger, til refleksjonsrapporten (30 %). Én op
 - En ny migrasjon midt i en story som ellers ikke rører skjemaet ville ha blandet to hensyn i én PR. Planleggingsdokumentene skal ikke endres under implementering, og AD-21 sier ikke noe om bøtter per flyt.
 
 **Avveining:** Én person kan bruke opp tre e-poster per time ved å registrere seg, be om tilbakestilling og sende bekreftelsen på nytt, og en annen kan brenne budsjettet til en e-postadresse for tilbakestilling. Jeg godtok samme svakhet for registrering i Story 1.4 (alternativ C), men her rammer den en eksisterende bruker. Til gjengjeld ble storyen levert uten skjemaendring, og begrensningen er logget som utsatt funn.
+
+## 2026-10-15 — Story 1.6: GitHub som mock-leverandør for OAuth-testing
+
+**Valg:** OAuth-innlogging testes automatisk mot en liten mock av GitHub (`e2e/mock-github.ts`) som lokal Supabase Auth peker på via `[auth.external.github] url`. Identiteten velges med en cookie, så testene er uavhengige av hverandre. Google bruker samme kode i appen, men testes bare manuelt med ekte legitimasjon. Epic 7 gjenbruker samme metode for oppgradering av gjest.
+
+**Hvorfor:**
+- Google validerer en ID-token mot Google selv og kan ikke fakes med en lokal URL, mens GitHubs endepunkter kan overstyres (som for GitHub Enterprise).
+- Tester mot ekte leverandører trenger hemmeligheter i CI og er ustabile, og NFR9 krever en automatisk metode i lokale og CI-miljøer.
+- Review viste at e2e-testen brukte `SUPABASE_SECRET_KEY`, som AGENTS.md forbyr utenfor de tre stedene i AD-5. Den leser nå brukere med `docker exec … psql` i stedet.
+
+**Avveining:** Google er bare dekket av en manuell sjekk, og mocken beviser GitHub-banen, ikke leverandørenes egen oppførsel. Auth-containeren når mocken via `host.docker.internal`, som virker på macOS men ikke er bekreftet på Linux i CI. Til gjengjeld får Epic 7 en gjenbrukbar testmetode uten ekte kontoer og uten hemmeligheter i CI.

@@ -92,6 +92,17 @@
         "unavailable": "Couldn't save the password right now. Try again shortly.",
         "samePassword": "Choose a password different from your current one."
       }
+    },
+    "oauth": {
+      "google": "Continue with Google",
+      "github": "Continue with GitHub",
+      "cancelled": "You cancelled the sign-in. Try again or use your email.",
+      "unverified": "Your email at that provider is not verified. Verify it there, or sign up with your email.",
+      "failed": "Couldn't sign in with that provider. Try again or use your email.",
+      "errors": {
+        "invalidInput": "Choose Google or GitHub.",
+        "unavailable": "Couldn't start the sign-in right now. Try again shortly."
+      }
     }
   },
   "events": {

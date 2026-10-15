@@ -175,3 +175,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Fire uavhengige review-lag ga 45 funn. KI rettet åtte (blant dem åpen redirect via kontrolltegn i `safeNext`, at et tilbakestilt passord ikke avsluttet andre økter, og at en Auth-feil felte hele layouten), utsatte to (delte limiter-bøtter og skyens redirect-liste) og avviste resten med begrunnelse i spec-ens triage-logg.
 **Min vurdering:** NIL
 **Spor:** branch `feat/1.5-log-in-log-out-and-reset-password`, issue #26
+
+## 2026-10-15 — Story 1.6: logg inn med Google eller GitHub
+
+**Prompt:** «Implementer spec-1-6-sign-in-with-google-or-github.md», spec som eneste kilde.
+**KI foreslo:** `signInWithProvider` (Zod på leverandør, `Origin` som `redirectTo`, `skipBrowserRedirect` og `redirect(data.url)`), `/auth/callback` som bytter koden og mapper feil til `/login?oauth=…`, to knapper på logg inn og opprett konto, og en tilstandsløs mock-GitHub-server som lokal Auth peker på, styrt av en `mock_identity`-cookie. Underveis viste e2e to feil i mocken: id-en kollidert fordi en hash ble flyttall (alle brukere ble samme konto), og `/user` med `email` ble stolt på som verifisert. Auth sender også `access_denied` med «Unverified email» som beskrivelse, så callbacken sjekker beskrivelsen før feilkoden. Auth beholder en ubekreftet rad for uverifisert e-post, så testen krever at ingen er bekreftet i stedet for null rader. Google testes manuelt med ekte nøkler.
+**Min vurdering:** NIL
+**Spor:** branch `feat/1.6-sign-in-with-google-or-github`

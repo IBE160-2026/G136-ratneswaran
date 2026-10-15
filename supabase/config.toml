@@ -166,6 +166,8 @@ additional_redirect_urls = [
   "http://127.0.0.1:3000",
   "http://localhost:3000/auth/reset",
   "http://127.0.0.1:3000/auth/reset",
+  "http://localhost:3000/auth/callback",
+  "http://127.0.0.1:3000/auth/callback",
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
@@ -325,6 +327,24 @@ max_frequency = "5s"
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
+# The github and google blocks hold local mock values; the cloud project holds the real credentials.
+# GitHub talks to the mock in e2e/mock-github.ts; Google cannot be faked locally (see docs/oauth-testing.md).
+[auth.external.github]
+enabled = true
+client_id = "local-mock-client-id"
+secret = "local-mock-secret"
+redirect_uri = ""
+url = "http://host.docker.internal:54399"
+skip_nonce_check = false
+
+[auth.external.google]
+enabled = true
+client_id = "local-mock-client-id"
+secret = "local-mock-secret"
+redirect_uri = ""
+url = ""
+skip_nonce_check = true
+
 [auth.external.apple]
 enabled = false
 client_id = ""
