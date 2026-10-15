@@ -7,7 +7,10 @@ vi.mock("@/lib/supabase/server", () => ({
   getClaims: vi.fn(),
 }));
 const headerValues = new Headers({ origin: "http://x.test" });
-vi.mock("next/headers", () => ({ headers: async () => headerValues }));
+vi.mock("next/headers", () => ({
+  headers: async () => headerValues,
+  cookies: async () => ({ delete: vi.fn() }),
+}));
 vi.mock("next/navigation", () => ({
   redirect: (to: string) => {
     throw new Error(`REDIRECT ${to}`);

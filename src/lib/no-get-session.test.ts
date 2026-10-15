@@ -15,3 +15,10 @@ it("never reads the user with getSession()", () => {
   );
   expect(offenders).toEqual([]);
 });
+
+it("never reads providers from raw_app_meta_data (AD-6)", () => {
+  const offenders = [...files("src"), ...files("app")].filter((path) =>
+    readFileSync(path, "utf8").includes("raw_app_meta_data"),
+  );
+  expect(offenders).toEqual([]);
+});
