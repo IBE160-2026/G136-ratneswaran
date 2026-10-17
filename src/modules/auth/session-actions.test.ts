@@ -1,7 +1,9 @@
+import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
 const auth = {
+  signUp: vi.fn(),
   signInWithPassword: vi.fn(),
   resend: vi.fn(),
   resetPasswordForEmail: vi.fn(),
@@ -21,7 +23,7 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { logIn, resendVerification, forgotPassword, updatePassword, logOut } =
+const { signUp, logIn, resendVerification, forgotPassword, updatePassword, logOut } =
   await import("./actions");
 
 const form = (values: Record<string, string>) => {
@@ -97,6 +99,40 @@ describe.each([
       ok: false,
       error: { code: "unavailable" },
     });
+  });
+});
+
+describe("limiter buckets", () => {
+  const sha = (value: string) => createHash("sha256").update(value).digest("hex");
+  const email = "a@example.com";
+
+  it.each([
+    ["resendVerification", resendVerification, "resend"],
+    ["forgotPassword", forgotPassword, "forgot"],
+  ])("%s counts in its own buckets", async (_name, action, flow) => {
+    await action(null, form({ email }));
+    expect(rpc).toHaveBeenNthCalledWith(1, "abuse_hit", {
+      p_bucket: `${flow}_ip`,
+      p_key_hash: sha("203.0.113.7"),
+      p_max: 5,
+      p_window_seconds: 60,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(2, "abuse_hit", {
+      p_bucket: `${flow}_email`,
+      p_key_hash: sha(email),
+      p_max: 3,
+      p_window_seconds: 3600,
+    });
+  });
+
+  it("does not refuse a flow because another flow's bucket is full", async () => {
+    const full = new Set(["signup_ip", "signup_email"]);
+    rpc.mockImplementation(async (_fn, args) => ({ data: !full.has(args.p_bucket), error: null }));
+    expect(await signUp(null, form({ ...creds }))).toMatchObject({
+      error: { code: "rate_limited" },
+    });
+    expect(await resendVerification(null, form({ email }))).toEqual({ ok: true, data: null });
+    expect(await forgotPassword(null, form({ email }))).toEqual({ ok: true, data: null });
   });
 });
 
