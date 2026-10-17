@@ -1,5 +1,5 @@
 begin;
-select plan(11);
+select plan(18);
 
 set local role anon;
 
@@ -24,6 +24,20 @@ select throws_ok(
   $$delete from public.abuse_counters$$,
   '42501', null, 'anon cannot delete counters'
 );
+
+select ok(public.abuse_hit('forgot_ip', repeat('e', 64), 2, 60), 'a new-style bucket name is accepted');
+select throws_ok(
+  $$select public.abuse_hit('Forgot-IP', repeat('e', 64), 2, 60)$$,
+  '23514', null, 'uppercase and hyphen in a bucket name are refused'
+);
+select throws_ok(
+  format($$select public.abuse_hit(%L, repeat('e', 64), 2, 60)$$, repeat('a', 33)),
+  '23514', null, 'a bucket name over 32 characters is refused'
+);
+select ok(public.abuse_hit(repeat('a', 32), repeat('f', 64), 2, 60), 'a 32-character bucket name is accepted');
+select ok(public.abuse_hit('signup_email', repeat('f', 64), 1, 3600), 'signup_email takes the first hit');
+select ok(not public.abuse_hit('signup_email', repeat('f', 64), 1, 3600), 'signup_email is exhausted');
+select ok(public.abuse_hit('forgot_email', repeat('f', 64), 1, 3600), 'forgot_email for the same key is still allowed');
 
 set local role authenticated;
 select ok(public.abuse_hit('signup_email', repeat('d', 64), 1, 3600), 'authenticated is allowed');

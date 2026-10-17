@@ -203,3 +203,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** Siden `/profile` med seks seksjoner (navn, e-post, passord, tilkoblede kontoer, språk, utseende) og seks Server Actions i `src/modules/auth`. Navn, språk og utseende ligger i Auth `user_metadata` og leses fra `getClaims()`, så det trengs ingen tabell eller migrasjon; etter hver skriving kalles `refreshSession()` og `revalidatePath`. Kontoer kobles med `linkIdentity` og en kortlivet `oauth_next`-cookie som lar `/auth/callback` sende brukeren tilbake til `/profile`, siden `redirectTo` ikke kan bære en query. Lokale radiogrupper sender skjemaet ved endring. Underveis viste e2e at bekreftelseslenken fra e-post ikke logger brukeren inn, så testene logger inn etter bekreftelse.
 **Min vurdering:** Jeg valgte `bmad-build-auto`, som gjennomfører spec, implementering og review i én kjøring per story, på grunn av behandlingstid per story og tiden jeg har til rådighet.
 **Spor:** branch `feat/1.9-profile-and-settings`
+
+## 2026-10-17 — Story 1.10: grenser per flyt for misbrukstelleren
+
+**Prompt:** «Implementer spec-1-10-per-flow-limiter-buckets.md», spec som eneste kilde.
+**KI foreslo:** En migrasjon som bytter sjekken på `abuse_counters.bucket` med en formsjekk (`^[a-z0-9_]{1,32}$`), og `limit(flow, …)` i `src/modules/auth/actions.ts` som teller i `<flow>_ip` og `<flow>_email` for `signup`, `resend` og `forgot`, med uendrede grenser. pgTAP viser et godtatt og to avviste navn og at `signup_email` ikke bruker opp `forgot_email`; Vitest sjekker eksakt bucket per handling og tre flyter etter hverandre.
+**Min vurdering:** Jeg valgte `bmad-build-auto`, som gjennomfører spec, implementering og review i én kjøring per story, på grunn av behandlingstid per story og tiden jeg har til rådighet.
+**Spor:** branch `feat/1.10-per-flow-limiter-buckets`
