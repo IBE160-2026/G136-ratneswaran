@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 10-14-2026 23:22
+last_updated: 10-17-2026 16:12
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -45,8 +45,8 @@ development_status:
   1-7-app-shell-and-all-events: done
   1-8-feedback-and-state-primitives: done
   1-9-profile-and-settings: done
-  1-10-per-flow-limiter-buckets: backlog
-  epic-1-retrospective: optional
+  1-10-per-flow-limiter-buckets: done
+  epic-1-retrospective: done
 
   epic-2: backlog
   2-1-events-table-and-organizer-only-access: backlog
@@ -166,3 +166,66 @@ development_status:
   11-6-manual-test-plan-and-the-shipped-vs-planned-record: backlog
   11-7-launch-check: backlog
   epic-11-retrospective: optional
+action_items:
+  - id: "epic-1-retro-item-1-make-githooks-test-sh-independent-of-the"
+    epic: 1
+    action: "Make .githooks/test.sh independent of the checked-out branch so main
+      CI passes and deploy runs"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-2-after-ci-is-green-on-main-confirm-the-fi"
+    epic: 1
+    action: "After CI is green on main, confirm the first supabase db push applies
+      both migrations to the cloud project and sign-up works there"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-3-delete-stale-deferred-work-entries-ci-ty"
+    epic: 1
+    action: "Delete stale deferred-work entries (CI type-check, CI e2e, host.docker.internal
+      on Linux CI)"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-4-extract-shared-form-styles-and-the-passw"
+    epic: 1
+    action: "Extract shared form styles and the password-rules list before the first
+      Epic 2 form"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-5-add-browser-tests-for-toast-reach-with-t"
+    epic: 1
+    action: "Add browser tests for toast reach with the first undoToast caller and
+      Sheet pathname close with a second sidebar link"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-6-decide-whether-to-adopt-or-disable-the-n"
+    epic: 1
+    action: "Decide whether to adopt or disable the next dev rewrite of AGENTS.md"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-7-decide-step-up-and-session-sign-out-for"
+    epic: 1
+    action: "Decide step-up and session sign-out for credential changes and settings
+      radio feedback in the Epic 11 launch check"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-8-fill-the-four-nil-min-vurdering-fields-i"
+    epic: 1
+    action: "Fill the four NIL Min vurdering fields in ki-logg and offer refleksjonsnotater
+      entries for the limiter-bucket correction and the metadata decision"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-1-retro-item-9-add-run-on-main-after-merge-to-the-done"
+    epic: 1
+    action: "Add run-on-main-after-merge to the done-check of stories that change
+      CI or deployment"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
