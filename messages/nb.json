@@ -145,5 +145,68 @@
     "undo": "Angre",
     "loadFailed": "Kunne ikke laste dette. Sjekk tilkoblingen og prøv igjen.",
     "offline": "Du er frakoblet. Endringer lagres når du er tilbake."
+  },
+  "profile": {
+    "surface": "Profil og innstillinger",
+    "title": "Profil og innstillinger",
+    "errors": {
+      "invalidInput": "Det valget er ikke tilgjengelig.",
+      "unavailable": "Kunne ikke lagre akkurat nå. Prøv igjen om litt."
+    },
+    "link": {
+      "failed": "Kunne ikke koble til kontoen. Prøv igjen om litt.",
+      "cancelled": "Du avbrøt tilkoblingen av kontoen."
+    },
+    "name": {
+      "title": "Navn",
+      "label": "Visningsnavn",
+      "submit": "Lagre navn",
+      "saved": "Navnet er lagret.",
+      "errors": {
+        "invalidInput": "Sjekk feltet under.",
+        "name": "Skriv et navn på 1 til 80 tegn."
+      }
+    },
+    "email": {
+      "title": "E-post",
+      "current": "Nåværende e-post: {email}",
+      "label": "Ny e-post",
+      "submit": "Endre e-post",
+      "sent": "Sjekk innboksen din for å bekrefte den nye e-posten.",
+      "errors": {
+        "invalidInput": "Sjekk feltet under.",
+        "email": "Skriv en gyldig e-postadresse."
+      }
+    },
+    "password": {
+      "title": "Passord",
+      "label": "Nytt passord",
+      "set": "Lagre passord",
+      "saved": "Passordet er lagret.",
+      "errors": {
+        "invalidInput": "Sjekk feltet under."
+      }
+    },
+    "accounts": {
+      "title": "Tilkoblede kontoer",
+      "email": "E-post",
+      "google": "Google",
+      "github": "GitHub",
+      "connected": "Tilkoblet",
+      "connect": {
+        "google": "Koble til Google",
+        "github": "Koble til GitHub"
+      }
+    },
+    "language": {
+      "title": "Språk",
+      "auto": "Auto"
+    },
+    "appearance": {
+      "title": "Utseende",
+      "light": "Lys",
+      "dark": "Mørk",
+      "system": "System"
+    }
   }
 }

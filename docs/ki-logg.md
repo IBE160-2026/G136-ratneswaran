@@ -196,3 +196,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** Sonner-vert i rotlayouten, `undoToast` (10 s) og `saveFailedToast` i `src/lib/feedback.ts`, F6-håndterer som fokuserer Sonners toast-liste, `Skeleton`-lasting og `LoadError` med *Prøv igjen* på `/events`, og ett felles frakoblet-varsel via `useSyncExternalStore`. Underveis la shadcn-CLI-en til feil pakke `cn` og `next-themes`; KI rettet importen til `@/lib/utils`, fjernet begge og satte `theme="system"`. Sonner har ingen `role`-innstilling, så `role="alert"` ligger på selve meldingselementet i lagringsfeil-toasten. Vitest tok bare `.test.ts`, så mønsteret ble utvidet til `.tsx`.
 **Min vurdering:** Jeg valgte `bmad-build-auto`, som gjennomfører spec, implementering og review i én kjøring per story, på grunn av behandlingstid per story og tiden jeg har til rådighet.
 **Spor:** branch `feat/1.8-feedback-and-state-primitives`
+
+## 2026-10-15 — Story 1.9: profil og innstillinger
+
+**Prompt:** «Implementer spec-1-9-profile-and-settings.md», spec som eneste kilde.
+**KI foreslo:** Siden `/profile` med seks seksjoner (navn, e-post, passord, tilkoblede kontoer, språk, utseende) og seks Server Actions i `src/modules/auth`. Navn, språk og utseende ligger i Auth `user_metadata` og leses fra `getClaims()`, så det trengs ingen tabell eller migrasjon; etter hver skriving kalles `refreshSession()` og `revalidatePath`. Kontoer kobles med `linkIdentity` og en kortlivet `oauth_next`-cookie som lar `/auth/callback` sende brukeren tilbake til `/profile`, siden `redirectTo` ikke kan bære en query. Lokale radiogrupper sender skjemaet ved endring. Underveis viste e2e at bekreftelseslenken fra e-post ikke logger brukeren inn, så testene logger inn etter bekreftelse.
+**Min vurdering:** Jeg valgte `bmad-build-auto`, som gjennomfører spec, implementering og review i én kjøring per story, på grunn av behandlingstid per story og tiden jeg har til rådighet.
+**Spor:** branch `feat/1.9-profile-and-settings`
