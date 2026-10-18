@@ -210,3 +210,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **KI foreslo:** En migrasjon som bytter sjekken på `abuse_counters.bucket` med en formsjekk (`^[a-z0-9_]{1,32}$`), og `limit(flow, …)` i `src/modules/auth/actions.ts` som teller i `<flow>_ip` og `<flow>_email` for `signup`, `resend` og `forgot`, med uendrede grenser. pgTAP viser et godtatt og to avviste navn og at `signup_email` ikke bruker opp `forgot_email`; Vitest sjekker eksakt bucket per handling og tre flyter etter hverandre.
 **Min vurdering:** Jeg valgte `bmad-build-auto`, som gjennomfører spec, implementering og review i én kjøring per story, på grunn av behandlingstid per story og tiden jeg har til rådighet.
 **Spor:** branch `feat/1.10-per-flow-limiter-buckets`
+
+## 2026-10-18 — Story 2.1: arrangementstabell og tilgang bare for Organizer
+
+**Prompt:** «/bmad-build-auto på story 2.1».
+**KI foreslo:** Én migrasjon med `public.events`: RLS, `select` og `update (name)` som eneste rettigheter for `authenticated`, sjekken `events_publishable` som bare krever navn, tider, tidssone og språk når `published_at` er satt, hjelperen `is_organizer` (stable, security invoker) og `events_create()` uten argumenter (security definer), som setter `organizer_id` fra `auth.uid()`. Policyene på `events` sammenligner `organizer_id` direkte i stedet for å kalle `is_organizer`, fordi en security invoker-hjelper som leser `events` ville gått i rekursjon under RLS. AD-3 sier at alle policyer bruker hjelperne, så KI foreslår `bmad-correct-course` for å avklare ordlyden. pgTAP dekker hver tillatelse og hvert avslag, og `src/types/database.ts` er regenerert.
+**Review:** Fire uavhengige review-lag. KI la til tester for `is_organizer` uten RLS-filter, for hvert påkrevd felt ved publisering, for AD-11-regelen om fremmednøkler til `auth.users` og for anons avslag ved faktiske kall, og avviste blanke navn. AD-3-spørsmålet ble utsatt til eieren. Resten ble avvist med begrunnelse i spec-ens triage-logg.
+**Min vurdering:** NIL
+**Spor:** branch `feat/2.1-events-table-and-organizer-only-access`, issue #40
