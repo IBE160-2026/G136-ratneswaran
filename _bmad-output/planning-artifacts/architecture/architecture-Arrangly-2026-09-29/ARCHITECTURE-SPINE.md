@@ -83,7 +83,7 @@ Arrows mean "may read from, or call the named function of". A labelled arrow all
 - **Rule:**
   - **Which tables:** every table has RLS enabled.
   - **Allowed policy inputs:** exactly `events.organizer_id`, `role_members`, `tasks.owner_user_id` and `guests.user_id`. Policies never match on email.
-  - **Shared helpers:** every policy uses `is_organizer(event_id)`, `holds_role(role_id)`, `is_guest_of(event_id)` and `is_guest_self(guest_id)`.
+  - **Shared helpers:** every policy uses `is_organizer(event_id)`, `holds_role(role_id)`, `is_guest_of(event_id)` and `is_guest_self(guest_id)`, except on the table a helper itself reads (`events`, `role_members`, `guests`). There the policy compares that table's allowed input with `(select auth.uid())` directly. The helpers are `security invoker` (AD-5), so calling one from a policy on its own table would recurse under RLS.
   - **Who sees a Task:** `is_organizer OR holds_role(task.role_id) OR owner_user_id = auth.uid()`.
   - **What a Guest sees:** only their own rows, plus the latest published `landing_snapshots` of their Event.
   - **Who sees guest data:**

@@ -112,7 +112,7 @@ Data and security architecture
 
 - AD-1 module ownership: only the owning module writes its tables; cross-module writes call the owner's SQL function along an allowed arrow in the module graph. Five modules: events, tasks, guests, notifications, ai.
 - AD-2 two mutation paths: direct edits only on granted columns; everything else is one Postgres function called from a Server Action (`tasks_create`, `tasks_set_status`, `tasks_delegate`, `tasks_accept`, `tasks_resolve_decision`, `tasks_propose`, `tasks_confirm_proposed`, `guests_submit_rsvp`, `guests_submit_request`, `guests_reply_request`, `guests_publish_landing`, `guests_delete_guest_data`, `events_set_role_lead`, `events_revoke_role`). `tasks_resolve_decision` locks the Decision Task `FOR UPDATE`; follow-up Tasks record `spawned_by_option_id`.
-- AD-3 RLS: every table has RLS; policies use only `events.organizer_id`, `role_members`, `tasks.owner_user_id`, `guests.user_id` through the helpers `is_organizer`, `holds_role`, `is_guest_of`, `is_guest_self`; never email matching; views are `security_invoker`; Guests see only their own rows plus the latest published `landing_snapshots`; `guest_food` and `guest_hotel` are readable only by the Organizer, the Guest and holders of the owning Role.
+- AD-3 RLS: every table has RLS; policies use only `events.organizer_id`, `role_members`, `tasks.owner_user_id`, `guests.user_id` through the helpers `is_organizer`, `holds_role`, `is_guest_of`, `is_guest_self`, except on the table a helper itself reads (`events`, `role_members`, `guests`), where the policy compares the input with `(select auth.uid())` directly because the helpers are `security invoker`; never email matching; views are `security_invoker`; Guests see only their own rows plus the latest published `landing_snapshots`; `guest_food` and `guest_hotel` are readable only by the Organizer, the Guest and holders of the owning Role.
 - AD-19 database as boundary: `authenticated` gets SELECT per RLS and `UPDATE (col,…)` only on listed direct-edit columns; all other INSERT/UPDATE/DELETE revoked; invariants as constraints or triggers (one lead per Role via partial unique index, dependencies and parents in the same Role via trigger, consent CHECK on food data, Role deactivation as `roles.active=false`, never a delete).
 - AD-4 one invite system: table `invite_tokens` with `kind ∈ {guest, role_holder, shared_event}`, one exchange route `app/api/invite/[token]`; a guest-only user gets a session, anyone else is sent to sign-in; invitees are passwordless Supabase Auth users; adding a password, identity or Role revokes that user's guest tokens in the same transaction; fresh-link responses are identical whether or not the email exists; Supabase's own magic links are never used for invites.
 - AD-5 elevated privilege: `SUPABASE_SECRET_KEY` only in the invite exchange, invitee creation, and notification delivery, never in a client component; `security definer` only for mutation functions (the AD-2 functions, including `ai_reserve` and `guests_delete_guest_data`, granted to `authenticated` and authorising from `auth.uid()`) and system functions (`notifications_emit`, purge hooks, retention job, token exchange, revoked from `authenticated`), each with `search_path = ''` and a pgTAP test.
@@ -634,7 +634,7 @@ So that nobody else can read or alter my plans.
 **And** a CHECK constraint requires `name`, `starts_at`, `ends_at`, `time_zone` and `language` and `starts_at < ends_at` before an Event can be published, so a draft may be incomplete.
 
 **Given** the helper `is_organizer(event_id)`
-**When** policies use it
+**When** policies on tables that reference `events` use it (the `events` policies compare `organizer_id` directly, AD-3)
 **Then** it is `STABLE`, sets `search_path = ''`, and a pgTAP test covers true and false (AD-3)
 **And** `src/types/database.ts` is regenerated and the events module is the only writer (AD-1, AD-15).
 
@@ -1208,7 +1208,7 @@ So that I can focus and the Organizer can trust the boundaries.
 **And** pgTAP proves a holder of any Role cannot read `guests` rows (other Roles see Guest counts only, AD-3).
 
 **Given** the `holds_role(role_id)` helper
-**When** policies use it
+**When** policies on tables other than `role_members` use it (the `role_members` policies compare `user_id` directly, AD-3)
 **Then** it is `STABLE`, sets `search_path = ''`, and pgTAP covers true and false.
 
 **Given** the Organizer cancels or deletes the Event
@@ -2466,7 +2466,7 @@ A Guest opens a personal link, answers the RSVP without an account, and finds th
 **Epic-wide conventions (apply to every story below):**
 
 - Core sends no application email. A personal link is shown to the Organizer to share; a Guest receives no email from Arrangly or Supabase Auth in Core (AD-4, AD-10, `sprint-change-proposal-2026-10-12.md`).
-- A Guest session is a Supabase session of a guest-only, passwordless user (AD-4). Every guest policy uses `is_guest_of(guest_id)` or `is_guest_self(guest_id)`, never an email match (AD-3).
+- A Guest session is a Supabase session of a guest-only, passwordless user (AD-4). Every guest policy uses `is_guest_of(guest_id)` or `is_guest_self(guest_id)`, except the policies on `guests` itself, which compare `guests.user_id` with `(select auth.uid())` directly; never an email match (AD-3).
 - A guest function never takes a guest id from the client. It takes the Event id and derives the Guest from `auth.uid()`, so one Guest can never write another's answers (AD-2, AD-19).
 - Only functions write RSVP rows (and the food and hotel rows once Story 7.4 is built); `authenticated` has `SELECT` as RLS allows and no direct `INSERT`, `UPDATE` or `DELETE` (AD-19).
 - Allergy, food, hotel and "other needs" text never appear in a prompt, a notification payload, a log line, a URL or an analytics call; guest pages load no third-party scripts and send `Cache-Control: no-store` and `Referrer-Policy: no-referrer` (AD-11, NFR2).
