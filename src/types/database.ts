@@ -37,6 +37,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"events": {
+                  Row: {
+                    "created_at": string,"ends_at": string | null,"id": string,"language": string | null,"name": string | null,"organizer_id": string,"published_at": string | null,"starts_at": string | null,"time_zone": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"ends_at"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id": string,"published_at"?: string | null,"starts_at"?: string | null,"time_zone"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"ends_at"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id"?: string,"published_at"?: string | null,"starts_at"?: string | null,"time_zone"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
@@ -45,6 +59,12 @@ export type Database = {
           Functions: {
             "abuse_hit":
 { Args: { "p_bucket": string,"p_key_hash": string,"p_max": number,"p_window_seconds": number }; Returns: boolean
+                           },
+"events_create":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"is_organizer":
+{ Args: { "p_event_id": string }; Returns: boolean
                            }
           }
           Enums: {
