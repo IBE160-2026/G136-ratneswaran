@@ -40,6 +40,9 @@ test("phone menu follows the h1, traps Esc and closes on navigation", async ({ p
   await page.setViewportSize({ width: 375, height: 700 });
   await page.goto("/events");
   const button = page.getByRole("button", { name: "Menu" });
+  // The page can still show its loading state right after goto, so wait for the real h1 and the menu.
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(button).toBeVisible();
   const after = await page.evaluate(() => {
     const h1 = document.querySelector("main h1")!;
     const b = document.querySelector("main [aria-label='Menu']")!;
