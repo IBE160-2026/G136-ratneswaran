@@ -87,14 +87,12 @@ describe("saveQuestionnaire", () => {
 describe("createEvent", () => {
   it("opens step 1 of the new draft", async () => {
     rpc.mockResolvedValue({ data: "new-id", error: null });
-    await expect(createEvent(null, new FormData())).rejects.toThrow(
-      "REDIRECT /events/new-id/setup",
-    );
+    await expect(createEvent()).rejects.toThrow("REDIRECT /events/new-id/setup");
   });
 
   it("reports a failed create", async () => {
     rpc.mockResolvedValue({ data: null, error: { code: "XX000" } });
-    expect(await createEvent(null, new FormData())).toMatchObject({
+    expect(await createEvent()).toMatchObject({
       ok: false,
       error: { code: "unavailable" },
     });

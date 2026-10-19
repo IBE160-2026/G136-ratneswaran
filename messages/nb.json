@@ -115,6 +115,73 @@
     "empty": {
       "title": "La oss planlegge noe.",
       "hint": "Arrangementene dine vises her."
+    },
+    "createNew": "Opprett nytt arrangement",
+    "saved": "Svarene er lagret.",
+    "wizard": {
+      "surface": "Spørsmål",
+      "draftName": "Nytt arrangement",
+      "title": "Fortell oss om arrangementet",
+      "caption": "Steg {step} av {total}",
+      "back": "Tilbake",
+      "next": "Neste",
+      "unknown": "Usikker ennå",
+      "yes": "Ja",
+      "no": "Nei",
+      "eventType": {
+        "label": "Hva slags arrangement er det?",
+        "birthday": "Bursdag",
+        "wedding": "Bryllup",
+        "party": "Fest",
+        "seminar": "Seminar",
+        "other": "Annet",
+        "choose": "Velg …"
+      },
+      "startsLocal": {
+        "label": "Dato og klokkeslett"
+      },
+      "timeZone": {
+        "label": "Tidssone"
+      },
+      "durationHours": {
+        "label": "Hvor lenge varer det (timer)?"
+      },
+      "guestCount": {
+        "label": "Hvor mange gjester?"
+      },
+      "venueKnown": {
+        "label": "Har du et sted?"
+      },
+      "rsvpWanted": {
+        "label": "Vil du ha svar fra gjestene (RSVP)?"
+      },
+      "rsvpDueDate": {
+        "label": "Svarfrist"
+      },
+      "guestListMethod": {
+        "label": "Hvordan vil du lage gjestelisten?",
+        "invite_link": "Med invitasjonslenke",
+        "manual": "Legge inn for hånd"
+      },
+      "language": {
+        "label": "Språk for gjestene",
+        "nb": "Norsk bokmål",
+        "en": "English",
+        "hint": "Brukes for tekst som gjestene ser. Ditt eget språk endres ikke."
+      },
+      "errors": {
+        "required": "Svar på dette, eller velg «Usikker ennå».",
+        "timeZone": "Velg en gyldig tidssone.",
+        "startsLocal": "Skriv en gyldig dato og et klokkeslett.",
+        "duration": "Skriv et antall timer større enn 0 og høyst 336.",
+        "guestCount": "Skriv et helt tall mellom 1 og 100 000.",
+        "rsvpDueDate": "Skriv en gyldig dato.",
+        "rsvpAfterStart": "Svarfristen kan ikke være etter arrangementets dato.",
+        "rsvpNotWanted": "Svarfrist hører bare til når du vil ha svar.",
+        "invalidInput": "Noe av det du skrev ble ikke godtatt. Se over og prøv igjen.",
+        "forbidden": "Du har ikke tilgang til dette arrangementet.",
+        "unavailable": "Kunne ikke lagre akkurat nå. Prøv igjen om litt."
+      }
     }
   },
   "privacy": {

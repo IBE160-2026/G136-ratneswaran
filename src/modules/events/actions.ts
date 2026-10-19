@@ -10,10 +10,7 @@ import { questionnaireFromForm, questionnaireSchema } from "./schemas";
 const unavailable = refuse("unavailable", "events.wizard.errors.unavailable");
 
 /** Creates a draft Event through `events_create` and opens wizard step 1. */
-export async function createEvent(
-  _previous: Result<null> | null,
-  _formData: FormData,
-): Promise<Result<null>> {
+export async function createEvent(): Promise<Result<null>> {
   if (!(await getClaims())) redirect("/login?next=/events");
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("events_create");
