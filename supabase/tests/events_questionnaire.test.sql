@@ -13,8 +13,8 @@ select is(
   (select array_agg(attname::text order by attname) from pg_attribute
    where attrelid = 'public.events'::regclass and attnum > 0 and not attisdropped
      and has_column_privilege('authenticated', attrelid, attnum, 'UPDATE')),
-  array['name'],
-  'authenticated still may update only name'
+  array['description', 'name'],
+  'authenticated still may update only name and description'
 );
 select ok(
   (select prosecdef from pg_proc where proname = 'events_save_questionnaire'),

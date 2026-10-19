@@ -19,8 +19,8 @@ select is(
   (select array_agg(attname::text order by attname) from pg_attribute
    where attrelid = 'public.events'::regclass and attnum > 0 and not attisdropped
      and has_column_privilege('authenticated', attrelid, attnum, 'UPDATE')),
-  array['name'],
-  'authenticated may update only name'
+  array['description', 'name'],
+  'authenticated may update only name and description'
 );
 select is(
   (select provolatile::text from pg_proc where oid = 'public.is_organizer(uuid)'::regprocedure),

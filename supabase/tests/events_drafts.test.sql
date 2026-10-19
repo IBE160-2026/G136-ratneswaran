@@ -1,5 +1,5 @@
 begin;
-select plan(18);
+select plan(19);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -13,7 +13,7 @@ grant select, insert on drafts to authenticated;
 select is(
   (select array_agg(attname::text order by attname) from pg_attribute
    where attrelid = 'public.events'::regclass and attnum > 0 and not attisdropped),
-  array['cancellation_note', 'cancelled_at', 'created_at', 'duration_minutes', 'ends_at', 'event_type', 'guest_count', 'guest_list_method', 'id',
+  array['cancellation_note', 'cancelled_at', 'created_at', 'description', 'duration_minutes', 'ends_at', 'event_type', 'guest_count', 'guest_list_method', 'id',
     'language', 'name', 'organizer_id', 'published_at', 'rsvp_due_date', 'rsvp_wanted', 'starts_at',
     'time_zone', 'unknown_answers', 'venue_known'],
   'events has exactly the columns events_create checks for a blank draft'
@@ -99,6 +99,15 @@ select isnt(
   (select id from drafts where tag = 'third'),
   (select id from drafts where tag = 'second'),
   'a draft with a name is not reused'
+);
+
+-- A draft with only a description is not blank
+update public.events set description = 'Dinner' where id = (select id from drafts where tag = 'third');
+insert into drafts select 'after-description', public.events_create();
+select isnt(
+  (select id from drafts where tag = 'after-description'),
+  (select id from drafts where tag = 'third'),
+  'a draft with a description is not reused'
 );
 
 -- A draft cannot be published while incomplete
