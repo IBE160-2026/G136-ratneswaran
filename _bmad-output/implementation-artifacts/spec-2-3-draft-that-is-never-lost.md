@@ -2,7 +2,7 @@
 title: '2.3: Draft that is never lost'
 type: 'feature'
 created: '2026-10-19'
-status: 'in-progress'
+status: 'in-review'
 route: 'dispatch'
 baseline_commit: '4ded4a00f9955b35de79f7b038c2f05a804db513'
 warnings: ['oversized']
@@ -65,14 +65,14 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `supabase/migrations/20261019130000_events_create_reuses_blank_draft.sql` -- replace `events_create` to lock, return the caller's newest blank draft or insert -- double-click idempotency, AD-2.
-- [ ] `supabase/tests/events_drafts.test.sql` -- allow and deny for every I/O row the database decides: reuse, new row after answers, other user, two-tab columns both ways, foreign read and save, publish CHECK, lock taken (`pg_advisory_xact_lock` visible in `pg_locks` after the call) -- AD-16.
-- [ ] `src/modules/events/save.ts` + `save.test.ts` -- `callSafely(action)` turns a thrown error into the `unavailable` refusal and rethrows a redirect; `setupPath(eventId)` -- Vitest for both.
-- [ ] `app/events/[eventId]/setup/form.tsx` -- wrap the action with `callSafely`, retry once on `online` -- keeps input after a network failure.
-- [ ] `app/events/page.tsx` -- list the Organizer's drafts as links to `setupPath`, reading "Draft · continue setup" with the Event name or "New event" -- UX-DR7.
-- [ ] `messages/nb.json`, `messages/en.json` -- draft list strings.
-- [ ] `e2e/events-drafts.spec.ts` -- double click ends on one draft link, the link reopens the saved answers, offline *Next* keeps the input and shows the toast, going online saves.
-- [ ] `src/types/database.ts` -- regenerate -- AD-15.
+- [x] `supabase/migrations/20261019130000_events_create_reuses_blank_draft.sql` -- replace `events_create` to lock, return the caller's newest blank draft or insert -- double-click idempotency, AD-2.
+- [x] `supabase/tests/events_drafts.test.sql` -- allow and deny for every I/O row the database decides: reuse, new row after answers, other user, two-tab columns both ways, foreign read and save, publish CHECK, lock taken (`pg_advisory_xact_lock` visible in `pg_locks` after the call) -- AD-16.
+- [x] `src/modules/events/save.ts` + `save.test.ts` -- `callSafely(action)` turns a thrown error into the `unavailable` refusal and rethrows a redirect; `setupPath(eventId)` -- Vitest for both.
+- [x] `app/events/[eventId]/setup/form.tsx` -- wrap the action with `callSafely`, retry once on `online` -- keeps input after a network failure.
+- [x] `app/events/page.tsx` -- list the Organizer's drafts as links to `setupPath`, reading "Draft · continue setup" with the Event name or "New event" -- UX-DR7.
+- [x] `messages/nb.json`, `messages/en.json` -- draft list strings.
+- [x] `e2e/events-drafts.spec.ts` -- double click ends on one draft link, the link reopens the saved answers, offline *Next* keeps the input and shows the toast, going online saves.
+- [x] `src/types/database.ts` -- regenerate -- AD-15.
 - [ ] `docs/ki-logg.md` -- Story 2.3 entry.
 
 **Acceptance Criteria:**
@@ -83,6 +83,12 @@ context:
 - Given the change, when `supabase test db`, `pnpm lint`, `pnpm format:check`, `pnpm test`, `pnpm test:e2e` and `.githooks/test.sh` run, then they pass.
 
 ## Implementation Notes
+
+- `events_create` kept its signature, so `src/types/database.ts` did not change and 2.1's tests pass untouched.
+- A failed save also removes its toast when the next attempt starts or the page unmounts, because the toast has no duration and would otherwise outlive a successful retry.
+- `callSafely` treats any error with a `NEXT_` digest as framework control flow and rethrows it.
+- The draft list is a plain list of links on `/events`; Story 2.4 replaces it with cards.
+- Playwright's `setOffline(false)` fires the `online` event, so the automatic retry is covered end to end.
 
 ## Spec Change Log
 
