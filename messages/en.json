@@ -12,7 +12,8 @@
     "closeMenu": "Close menu",
     "overview": "Overview",
     "questionnaire": "Questionnaire",
-    "team": "Team & Roles"
+    "team": "Team & Roles",
+    "settings": "Event settings"
   },
   "home": {
     "surface": "Home",
@@ -238,6 +239,20 @@
         "name": "Program",
         "description": "Speeches and the run of show",
         "seminarDescription": "Speakers and talks"
+      }
+    },
+    "settings": {
+      "surface": "Event settings",
+      "title": "Event settings",
+      "startsLocal": "Starts",
+      "endsLocal": "Ends",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "readOnly": "This event is over or cancelled, so its settings can no longer be changed.",
+      "errors": {
+        "required": "Fill this in.",
+        "endBeforeStart": "The end must be after the start.",
+        "tooLong": "An event can last at most 14 days."
       }
     }
   },

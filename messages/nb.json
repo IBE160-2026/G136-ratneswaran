@@ -12,7 +12,8 @@
     "closeMenu": "Lukk menyen",
     "overview": "Oversikt",
     "questionnaire": "Spørsmål",
-    "team": "Team og roller"
+    "team": "Team og roller",
+    "settings": "Arrangementsinnstillinger"
   },
   "home": {
     "surface": "Hjem",
@@ -238,6 +239,20 @@
         "name": "Program",
         "description": "Taler og kjøreplan",
         "seminarDescription": "Foredragsholdere og innlegg"
+      }
+    },
+    "settings": {
+      "surface": "Arrangementsinnstillinger",
+      "title": "Arrangementsinnstillinger",
+      "startsLocal": "Starter",
+      "endsLocal": "Slutter",
+      "save": "Lagre",
+      "saved": "Innstillingene er lagret.",
+      "readOnly": "Arrangementet er over eller avlyst, så innstillingene kan ikke endres lenger.",
+      "errors": {
+        "required": "Fyll ut dette.",
+        "endBeforeStart": "Slutten må være etter starten.",
+        "tooLong": "Et arrangement kan vare i høyst 14 dager."
       }
     }
   },

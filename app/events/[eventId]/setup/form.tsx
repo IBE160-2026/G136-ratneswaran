@@ -3,12 +3,17 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
-import { buttonClass, Failure, FieldError, inputClass } from "@/components/form";
+import { buttonClass, Failure, Field, FieldError, inputClass } from "@/components/form";
 import { toast } from "sonner";
 import { saveFailedToast } from "@/lib/feedback";
 import { saveQuestionnaire } from "@/modules/events/actions";
 import { callSafely } from "@/modules/events/save";
-import { eventLanguages, eventTypes, guestListMethods } from "@/modules/events/schemas";
+import {
+  DEFAULT_TIME_ZONE,
+  eventLanguages,
+  eventTypes,
+  guestListMethods,
+} from "@/modules/events/schemas";
 
 type Initial = {
   eventId: string;
@@ -28,28 +33,7 @@ type Initial = {
   language: string;
 };
 
-const DEFAULT_TIME_ZONE = "Europe/Oslo";
 const checkClass = "flex min-h-touch items-center gap-2";
-
-function Field({
-  name,
-  label,
-  error,
-  children,
-}: {
-  name: string;
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={name}>{label}</label>
-      {children}
-      <FieldError id={`${name}-error`} message={error} />
-    </div>
-  );
-}
 
 function Unknown({ name, checked }: { name: string; checked: boolean }) {
   const t = useTranslations("events.wizard");
