@@ -6,6 +6,7 @@ import { z } from "zod";
 import { fieldErrors, refuse, type Result } from "@/lib/result";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
+import { eventPath, isDraft } from "./list";
 import { defaultRoles } from "./roles";
 import { setupPath } from "./save";
 import {
@@ -58,6 +59,7 @@ export async function saveQuestionnaire(
   const { error } = await supabase.rpc("events_save_questionnaire", args);
   if (error) {
     if (error.code === "42501") return refuse("forbidden", "events.wizard.errors.forbidden");
+    if (error.code === "55000") return refuse("read_only", "events.settings.errors.readOnly");
     // Class 23514 is a CHECK, class 22 is bad data (time zone, date range): retrying cannot fix either.
     if (error.code === "23514" || error.code.startsWith("22")) {
       return refuse("invalid_input", "events.wizard.errors.invalidInput");
@@ -92,6 +94,7 @@ export async function updateSchedule(
   const { error } = await supabase.rpc("events_update_schedule", args);
   if (error) {
     if (error.code === "42501") return refuse("forbidden", "events.wizard.errors.forbidden");
+    if (error.code === "55000") return refuse("read_only", "events.settings.errors.readOnly");
     // A CHECK (23514) or bad data (class 22) that Zod could not see, such as a DST edge: retrying cannot fix it.
     if (error.code === "23514" || error.code.startsWith("22")) {
       return refuse("invalid_input", "events.wizard.errors.invalidInput");
@@ -118,8 +121,76 @@ export async function setRoleActive(input: z.input<typeof roleSwitch>): Promise<
   });
   if (error) {
     if (error.code === "42501") return refuse("forbidden", "events.team.errors.forbidden");
+    if (error.code === "55000") return refuse("read_only", "events.settings.errors.readOnly");
     return refuse("unavailable", "events.team.errors.unavailable");
   }
   revalidatePath(`/events/${eventId}/team`);
   return { ok: true, data: null };
+}
+
+/** Shared by cancel and delete: a stale tab meets the database's read-only rule (55000). */
+const refuseEventChange = (code: string) => {
+  if (code === "42501") return refuse("forbidden", "events.wizard.errors.forbidden");
+  if (code === "55000") return refuse("read_only", "events.settings.errors.readOnly");
+  if (code === "23514") return refuse("invalid_input", "events.wizard.errors.invalidInput");
+  return unavailable;
+};
+
+const cancelInput = z.object({
+  eventId: z.uuid(),
+  note: z.string().trim().max(500, "events.settings.cancel.noteTooLong").default(""),
+});
+
+/** Event settings: cancels a published Event through `events_cancel` and opens its home (FR4, AD-2). */
+export async function cancelEvent(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = cancelInput.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return refuse("invalid_input", "events.wizard.errors.invalidInput", fieldErrors(parsed.error));
+  }
+  const { eventId, note } = parsed.data;
+  if (!(await getClaims())) redirect(`/login?next=/events/${eventId}/settings`);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("events_cancel", { p_event_id: eventId, p_note: note });
+  if (error) return refuseEventChange(error.code);
+  revalidatePath("/events", "layout");
+  redirect(eventPath(eventId));
+}
+
+const deleteInput = z.object({ eventId: z.uuid(), confirmName: z.string().trim().default("") });
+
+/**
+ * Event settings: deletes an Event, or discards a draft, through `events_delete` (FR4, AD-2). Anything but
+ * a draft needs its name typed as a confirmation step, not a security rule; whether it is a draft comes
+ * from the database row, not the client.
+ */
+export async function deleteEvent(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = deleteInput.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return refuse("invalid_input", "events.wizard.errors.invalidInput");
+  const { eventId, confirmName } = parsed.data;
+  if (!(await getClaims())) redirect(`/login?next=/events/${eventId}/settings`);
+  const supabase = await createClient();
+  // RLS hides another Organizer's Event, so a missing row is refused like the function would.
+  const { data: event, error: loadError } = await supabase
+    .from("events")
+    .select("name, published_at, cancelled_at")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (loadError) return unavailable;
+  if (!event) return refuse("forbidden", "events.wizard.errors.forbidden");
+  const draft = isDraft(event);
+  if (!draft && confirmName !== (event.name ?? "").trim()) {
+    return refuse("invalid_input", "events.wizard.errors.invalidInput", {
+      confirmName: "events.settings.delete.nameMismatch",
+    });
+  }
+  const { error } = await supabase.rpc("events_delete", { p_event_id: eventId });
+  if (error) return refuseEventChange(error.code);
+  revalidatePath("/events", "layout");
+  redirect(`/events?deleted=${draft ? "draft" : "event"}`);
 }
