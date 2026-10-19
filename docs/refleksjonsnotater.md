@@ -95,3 +95,13 @@ Løpende notater om valg og avveininger, til refleksjonsrapporten (30 %). Én op
 - Review viste at e2e-testen brukte `SUPABASE_SECRET_KEY`, som AGENTS.md forbyr utenfor de tre stedene i AD-5. Den leser nå brukere med `docker exec … psql` i stedet.
 
 **Avveining:** Google er bare dekket av en manuell sjekk, og mocken beviser GitHub-banen, ikke leverandørenes egen oppførsel. Auth-containeren når mocken via `host.docker.internal`, som virker på macOS men ikke er bekreftet på Linux i CI. Til gjengjeld får Epic 7 en gjenbrukbar testmetode uten ekte kontoer og uten hemmeligheter i CI.
+
+## 2026-10-19 — Story 2.7: skrivebeskyttelse med én trigger
+
+**Valg:** Et avlyst arrangement, og et publisert arrangement som er over, gjøres skrivebeskyttet med én `BEFORE UPDATE`-trigger på `events` og `roles`, ikke med en sjekk i hver databasefunksjon.
+
+**Hvorfor:**
+- Triggeren dekker alle som skriver i dag: spørreskjemaet, tidsplanen, rollebryteren og den direkte retten til å endre navn. Den dekker også de som kommer senere, som publisering i 2.8, uten at noen må huske å legge inn sjekken.
+- Regelen står ett sted og testes ett sted. Tilgangssjekken kjører før triggeren, så en bruker uten tilgang får fortsatt `42501`.
+
+**Avveining:** Triggeren stopper også senere systemjobber, som oppryddingen i Epic 7. De må få et eget unntak når de bygges. Regelen er dessuten mindre synlig enn en linje i hver funksjon.
