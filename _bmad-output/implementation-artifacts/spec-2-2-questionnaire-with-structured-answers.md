@@ -2,7 +2,7 @@
 title: '2.2: Questionnaire with structured answers'
 type: 'feature'
 created: '2026-10-19'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 baseline_commit: '55e8646f12dfa5348f7ff56546340d66031d491b'
 warnings: ['oversized']
@@ -74,7 +74,7 @@ context:
 - [x] `app/events/[eventId]/setup/{page,form}.tsx` -- step 1 as one form, with prefilled answers, "Step 1 of 6", *Back*/*Next*, inline errors, `saveFailedToast` on failure -- UX-DR7, UX-DR25.
 - [x] `app/events/page.tsx` -- add the *Create new event* button (form with the `createEvent` action) -- entry point until 2.4.
 - [x] `messages/nb.json`, `messages/en.json` -- all wizard strings and error keys.
-- [ ] `docs/ki-logg.md` -- Story 2.2 entry; offer a `docs/refleksjonsnotater.md` entry for the `unknown_answers` choice (append-only).
+- [x] `docs/ki-logg.md` -- Story 2.2 entry; offer a `docs/refleksjonsnotater.md` entry for the `unknown_answers` choice (append-only).
 
 **Acceptance Criteria:**
 - Given the migration, when `supabase test db` runs, then every new and existing pgTAP test passes.
