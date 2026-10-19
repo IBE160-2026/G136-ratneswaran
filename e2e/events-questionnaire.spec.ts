@@ -23,6 +23,7 @@ test("the Organizer answers step 1, sees inline errors and gets the answers back
 }) => {
   await setupStep1(page, request);
   await expect(page.getByText("Step 1 of 6")).toBeVisible();
+  const setupUrl = page.url();
   await page.setViewportSize({ width: 320, height: 700 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 
@@ -66,6 +67,20 @@ test("the Organizer answers step 1, sees inline errors and gets the answers back
     page.getByRole("radiogroup", { name: "Do you have a venue?" }).getByLabel("Not sure yet"),
   ).toBeChecked();
   await expect(page.getByLabel("Reply by")).toHaveValue("2027-05-20");
+  await expect(page.getByLabel("How long will it last (hours)?")).toHaveValue("4");
+  await expect(page.getByLabel("Time zone")).toHaveValue("Europe/Oslo");
+  await expect(page.getByLabel("Language for guests")).toHaveValue("en");
+  await expect(
+    page
+      .getByRole("radiogroup", { name: "How will you build the guest list?" })
+      .getByLabel("Add them by hand"),
+  ).toBeChecked();
+
+  await page.locator('input[name="guestCountUnknown"]').check();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page).toHaveURL(/\/events\?saved=1$/);
+  await page.goto(setupUrl);
+  await expect(page.locator('input[name="guestCountUnknown"]')).toBeChecked();
 
   await rsvp.getByLabel("No", { exact: true }).check();
   await expect(page.getByLabel("Reply by")).toHaveCount(0);
@@ -80,7 +95,13 @@ test("another user cannot open someone else's Event", async ({ page, request, br
   await other.setExtraHTTPHeaders({ "x-forwarded-for": "198.55.77.77" });
   await setupStep1(otherPage, request);
   await otherPage.goto(url);
+  await expect(otherPage.getByText("This page could not be found.")).toBeVisible();
   await expect(otherPage.getByRole("heading", { name: "Tell us about your event" })).toHaveCount(0);
   await expect(otherPage.getByLabel("What kind of event is it?")).toHaveCount(0);
   await other.close();
+});
+
+test("a signed-out visitor is sent to log in", async ({ page }) => {
+  await page.goto("/events/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/setup");
+  await expect(page).toHaveURL(/\/login\?next=/);
 });
