@@ -1,0 +1,53 @@
+import { setupPath } from "@/modules/events/save";
+import type { Database } from "@/types/database";
+
+type Row = Database["public"]["Tables"]["events"]["Row"];
+export type ListedEvent = Pick<
+  Row,
+  "id" | "name" | "starts_at" | "ends_at" | "time_zone" | "published_at" | "cancelled_at"
+>;
+export type EventCard = ListedEvent & { href: string; past: boolean };
+
+export const eventPath = (eventId: string) => `/events/${eventId}`;
+
+/** next-intl dateTime options: the date as it falls where the Event happens. */
+export const eventDateFormat = (event: Pick<ListedEvent, "time_zone">) =>
+  ({
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: event.time_zone ?? "UTC",
+  }) as const;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Past = cancelled, or over. With no end ("Not sure yet" duration) an Event runs 24 hours from its start. */
+export const isPast = (event: ListedEvent, now: Date) => {
+  if (event.cancelled_at !== null) return true;
+  const end = event.ends_at ?? event.starts_at;
+  if (!end) return false;
+  return new Date(end).getTime() + (event.ends_at ? 0 : DAY_MS) < now.getTime();
+};
+
+/** A draft stays editable even once its date has passed, so a mistyped date can be fixed. */
+export const isDraft = (event: Pick<ListedEvent, "published_at" | "cancelled_at">) =>
+  event.published_at === null && event.cancelled_at === null;
+
+// Undated Events sort last in either direction.
+const byDate = (direction: 1 | -1) => (a: ListedEvent, b: ListedEvent) => {
+  if (!a.starts_at || !b.starts_at) return Number(!a.starts_at) - Number(!b.starts_at);
+  return direction * (new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+};
+
+/** Upcoming by date with undated last, past newest first. Drafts open setup, everything else the home. */
+export function groupEvents(rows: ListedEvent[], now: Date) {
+  const cards = rows.map((event): EventCard => {
+    const href = isDraft(event) ? setupPath(event.id) : eventPath(event.id);
+    return { ...event, past: isPast(event, now), href };
+  });
+  return {
+    upcoming: cards.filter((card) => !card.past).sort(byDate(1)),
+    past: cards.filter((card) => card.past).sort(byDate(-1)),
+  };
+}

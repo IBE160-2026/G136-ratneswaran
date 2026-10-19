@@ -9,7 +9,9 @@
     "menu": "Meny",
     "allEvents": "Alle arrangementer",
     "privacy": "Personvernerklæring",
-    "closeMenu": "Lukk menyen"
+    "closeMenu": "Lukk menyen",
+    "overview": "Oversikt",
+    "questionnaire": "Spørsmål"
   },
   "home": {
     "surface": "Hjem",
@@ -27,7 +29,8 @@
     "done": "Ferdig",
     "obsolete": "Utgått",
     "atRisk": "{count} i faresonen",
-    "newItem": "{count, plural, one {# ny sak} other {# nye saker}}"
+    "newItem": "{count, plural, one {# ny sak} other {# nye saker}}",
+    "cancelled": "Avlyst"
   },
   "auth": {
     "signUp": {
@@ -113,8 +116,7 @@
     "surface": "Alle arrangementer",
     "title": "Alle arrangementer",
     "empty": {
-      "title": "La oss planlegge noe.",
-      "hint": "Arrangementene dine vises her."
+      "title": "La oss planlegge noe."
     },
     "createNew": "Opprett nytt arrangement",
     "saved": "Svarene er lagret.",
@@ -184,9 +186,16 @@
       }
     },
     "draft": {
-      "title": "Utkast",
       "untitled": "Nytt arrangement",
-      "item": "{name} – Utkast · fortsett oppsettet"
+      "continueSetup": "Utkast · fortsett oppsettet"
+    },
+    "organizer": "Arrangør",
+    "past": "Tidligere arrangementer ({count})",
+    "noAccess": "Du har ikke tilgang til denne delen av arrangementet.",
+    "home": {
+      "surface": "Oversikt",
+      "draft": "Utkast",
+      "published": "Publisert"
     }
   },
   "privacy": {

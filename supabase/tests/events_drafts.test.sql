@@ -12,7 +12,7 @@ grant select, insert on drafts to authenticated;
 select is(
   (select array_agg(attname::text order by attname) from pg_attribute
    where attrelid = 'public.events'::regclass and attnum > 0 and not attisdropped),
-  array['created_at', 'duration_minutes', 'ends_at', 'event_type', 'guest_count', 'guest_list_method', 'id',
+  array['cancelled_at', 'created_at', 'duration_minutes', 'ends_at', 'event_type', 'guest_count', 'guest_list_method', 'id',
     'language', 'name', 'organizer_id', 'published_at', 'rsvp_due_date', 'rsvp_wanted', 'starts_at',
     'time_zone', 'unknown_answers', 'venue_known'],
   'events has exactly the columns events_create checks for a blank draft'

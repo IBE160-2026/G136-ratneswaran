@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { CalendarDays, UserRound } from "lucide-react";
+import { useParams, usePathname } from "next/navigation";
+import { CalendarDays, ClipboardList, House, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { logOut } from "@/modules/auth/actions";
 import { cn } from "@/lib/utils";
+import { eventPath } from "@/modules/events/list";
+import { setupPath } from "@/modules/events/save";
 
 function NavLink({
   href,
@@ -45,9 +47,20 @@ export function AppNav({
   onNavigate?: () => void;
 }) {
   const t = useTranslations("shell");
+  const { eventId } = useParams<{ eventId?: string }>();
   return (
     <nav aria-label={t("navLabel")} className="flex h-full flex-col gap-1 p-3">
-      {/* The event group of later epics goes here. */}
+      {/* The event group: only the items that exist so far. Later epics add theirs here. */}
+      {eventId && (
+        <>
+          <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
+            {t("overview")}
+          </NavLink>
+          <NavLink href={setupPath(eventId)} icon={ClipboardList} onNavigate={onNavigate}>
+            {t("questionnaire")}
+          </NavLink>
+        </>
+      )}
       <NavLink href="/events" icon={CalendarDays} onNavigate={onNavigate}>
         {t("allEvents")}
       </NavLink>

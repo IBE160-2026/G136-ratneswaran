@@ -1,6 +1,5 @@
-import { execFileSync } from "node:child_process";
 import { expect, test, type Page } from "@playwright/test";
-import { confirmed, unique } from "./support";
+import { confirmed, psql, unique } from "./support";
 
 // Limiter buckets are per IP and shared by every test, so give each its own.
 test.beforeEach(async ({ page }) => {
@@ -24,12 +23,7 @@ function usersOf(email: string) {
   const sql = `select u.id, coalesce(u.email_confirmed_at::text, ''), coalesce(string_agg(i.provider, ',' order by i.provider), '')
     from auth.users u left join auth.identities i on i.user_id = u.id
     where u.email = '${email}' group by u.id`;
-  const out = execFileSync(
-    "docker",
-    ["exec", "supabase_db_Arrangly", "psql", "-U", "postgres", "-At", "-F", "|", "-c", sql],
-    { encoding: "utf8" },
-  );
-  return out
+  return psql(sql)
     .split("\n")
     .filter(Boolean)
     .map((line) => {

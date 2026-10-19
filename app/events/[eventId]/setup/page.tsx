@@ -1,21 +1,12 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { cache } from "react";
-import { notFound, redirect } from "next/navigation";
-import { z } from "zod";
-import { createClient, getClaims } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { getClaims } from "@/lib/supabase/server";
+import { eventPath, isDraft, isPast } from "@/modules/events/list";
 import { timeZoneNames, toLocalInput } from "@/modules/events/schemas";
+import { loadEvent } from "../load-event";
 import { QuestionnaireForm } from "./form";
 
 type Props = { params: Promise<{ eventId: string }> };
-
-const loadEvent = cache(async (eventId: string) => {
-  if (!z.uuid().safeParse(eventId).success) notFound();
-  const supabase = await createClient();
-  // RLS hides another Organizer's Event, so a missing row and a foreign one look the same.
-  const { data } = await supabase.from("events").select("*").eq("id", eventId).maybeSingle();
-  if (!data) notFound();
-  return data;
-});
 
 export async function generateMetadata({ params }: Props) {
   // A signed-out visitor gets the login redirect from the page, not a 404 from here.
@@ -29,6 +20,8 @@ export default async function SetupPage({ params }: Props) {
   const { eventId } = await params;
   if (!(await getClaims())) redirect(`/login?next=/events/${eventId}/setup`);
   const event = await loadEvent(eventId);
+  // Published past and cancelled Events are read-only; Story 2.7 enforces it in the database.
+  if (!isDraft(event) && isPast(event, new Date())) redirect(eventPath(eventId));
   const locale = await getLocale();
   const timeZone = event.time_zone;
   const unknown = new Set(event.unknown_answers);
