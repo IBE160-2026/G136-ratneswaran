@@ -61,3 +61,29 @@ export async function answerStep1(page: Page, eventType = "birthday") {
     .getByLabel("Add them by hand")
     .check();
 }
+
+/** Signs up, confirms and logs in a new user on All events. */
+export async function signedIn(page: Page, request: APIRequestContext) {
+  const email = await confirmed(page, request);
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill("abcdefg1");
+  await page.getByRole("button", { name: "Log in" }).click();
+  await expect(page.getByRole("button", { name: "Create new event" })).toBeVisible();
+  return email;
+}
+
+/**
+ * An Event with all pool Roles switched off, dated `starts` from now, that the app cannot make yet
+ * (publish is 2.8). Emails come from `unique()`, so no value holds a quote.
+ */
+export function seed(email: string, starts: string, published = true) {
+  const id = psql(`insert into public.events
+      (organizer_id, name, starts_at, ends_at, time_zone, language, published_at)
+    select id, 'Seeded', now() + interval '${starts}', now() + interval '${starts}' + interval '4 hours',
+      'Europe/Oslo', 'en', ${published ? "now()" : "null"}
+    from auth.users where email = '${email}' returning id`).split("\n")[0];
+  psql(`insert into public.roles (event_id, key)
+    select '${id}', k from unnest(enum_range(null::public.role_key)) as k`);
+  return id;
+}

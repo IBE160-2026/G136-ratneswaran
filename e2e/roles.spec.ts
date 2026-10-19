@@ -1,5 +1,5 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { answerStep1, confirmed, psql, unique } from "./support";
+import { expect, test, type Page } from "@playwright/test";
+import { answerStep1, psql, seed, signedIn, unique } from "./support";
 
 // Limiter buckets are per IP and shared by every test, so give each its own.
 test.beforeEach(async ({ page }) => {
@@ -7,36 +7,11 @@ test.beforeEach(async ({ page }) => {
   await page.context().setExtraHTTPHeaders({ "x-forwarded-for": `198.58.${octet()}.${octet()}` });
 });
 
-async function signedIn(page: Page, request: APIRequestContext) {
-  const email = await confirmed(page, request);
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password", { exact: true }).fill("abcdefg1");
-  await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page.getByRole("button", { name: "Create new event" })).toBeVisible();
-  return email;
-}
-
 /** Answers step 1 for `eventType` on the open setup page and saves it. */
 async function saveType(page: Page, eventType: string) {
   await answerStep1(page, eventType);
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page).toHaveURL(/\/events\?saved=1$/);
-}
-
-/**
- * An Event with all pool Roles switched off, dated `starts` from now, that the app cannot make yet
- * (publish is 2.8). Emails come from `unique()`, so no value holds a quote.
- */
-function seed(email: string, starts: string, published = true) {
-  const id = psql(`insert into public.events
-      (organizer_id, name, starts_at, ends_at, time_zone, language, published_at)
-    select id, 'Seeded', now() + interval '${starts}', now() + interval '${starts}' + interval '4 hours',
-      'Europe/Oslo', 'en', ${published ? "now()" : "null"}
-    from auth.users where email = '${email}' returning id`).split("\n")[0];
-  psql(`insert into public.roles (event_id, key)
-    select '${id}', k from unnest(enum_range(null::public.role_key)) as k`);
-  return id;
 }
 
 const roleSwitch = (page: Page, name: string) => page.getByRole("switch", { name, exact: true });

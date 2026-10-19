@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { createEvent, saveQuestionnaire, setRoleActive } = await import("./actions");
+const { createEvent, saveQuestionnaire, setRoleActive, updateSchedule } = await import("./actions");
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -96,6 +96,62 @@ describe("saveQuestionnaire", () => {
   it("sends a signed-out caller to log in", async () => {
     getClaims.mockResolvedValue(null);
     await expect(saveQuestionnaire(null, form(answers))).rejects.toThrow("REDIRECT /login");
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateSchedule", () => {
+  const settings = {
+    eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    startsLocal: "2027-06-01T18:00",
+    endsLocal: "2027-06-01T23:30",
+    timeZone: "Europe/Oslo",
+    rsvpDueDate: "",
+    language: "nb",
+  };
+
+  it("saves through events_update_schedule with null for an empty reply-by date", async () => {
+    expect(await updateSchedule(null, form(settings))).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledWith("events_update_schedule", {
+      p_event_id: settings.eventId,
+      p_starts_local: "2027-06-01T18:00",
+      p_ends_local: "2027-06-01T23:30",
+      p_time_zone: "Europe/Oslo",
+      p_rsvp_due_date: null,
+      p_language: "nb",
+    });
+  });
+
+  it("rejects an end before the start inline without calling the database", async () => {
+    const result = await updateSchedule(null, form({ ...settings, endsLocal: "2027-06-01T17:00" }));
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: "invalid_input",
+        fields: { endsLocal: "events.settings.errors.endBeforeStart" },
+      },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["42501", "forbidden"],
+    ["23514", "invalid_input"],
+    ["22023", "invalid_input"],
+    ["XX000", "unavailable"],
+  ])("maps database error %s to %s", async (code, expected) => {
+    rpc.mockResolvedValue({ data: null, error: { code } });
+    expect(await updateSchedule(null, form(settings))).toMatchObject({
+      ok: false,
+      error: { code: expected },
+    });
+  });
+
+  it("sends a signed-out caller to log in", async () => {
+    getClaims.mockResolvedValue(null);
+    await expect(updateSchedule(null, form(settings))).rejects.toThrow(
+      `REDIRECT /login?next=/events/${settings.eventId}/settings`,
+    );
     expect(rpc).not.toHaveBeenCalled();
   });
 });

@@ -29,3 +29,24 @@ export function FieldError({ id, message }: { id: string; message?: string }) {
     </p>
   ) : null;
 }
+
+/** A labelled control with its inline error, which the control names in `aria-describedby`. */
+export function Field({
+  name,
+  label,
+  error,
+  children,
+}: {
+  name: string;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={name}>{label}</label>
+      {children}
+      <FieldError id={`${name}-error`} message={error} />
+    </div>
+  );
+}
