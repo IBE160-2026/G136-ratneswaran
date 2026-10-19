@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 10-19-2026 16:36
+last_updated: 10-19-2026 17:30
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -53,7 +53,7 @@ development_status:
   2-2-questionnaire-with-structured-answers: done
   2-3-draft-that-is-never-lost: done
   2-4-all-events-shows-my-events: done
-  2-5-roles-from-the-branch-pool: backlog
+  2-5-roles-from-the-branch-pool: review
   2-6-event-settings-dates-rsvp-due-date-and-language: backlog
   2-7-cancel-or-delete-an-event: backlog
   2-8-description-and-publish-to-the-team: backlog
