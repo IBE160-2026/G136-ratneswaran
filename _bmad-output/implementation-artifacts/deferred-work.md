@@ -25,3 +25,10 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-5-log-in-log-out-and-reset-password.md`
   summary: Cloud Auth `additional_redirect_urls` must list the production `/auth/reset` URL.
   evidence: `forgotPassword` builds `redirectTo` from the request origin; only the local allow-list names `/auth/reset`. Owner takes it in Story 11.1's environment checklist.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-3-draft-that-is-never-lost.md`
+  summary: Prove with two database connections that simultaneous `events_create` calls for one Organizer end with one row.
+  evidence: pgTAP runs in one session, so it checks the lock key and the sequential reuse but cannot race two callers (medium, unverified). A psql two-connection script or a Vitest test against local Supabase would settle it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-3-draft-that-is-never-lost.md`
+  summary: Test that `/events` leaves a published Event out of the draft list and shows the empty state for an Organizer who has none.
+  evidence: No published Event can be made through the app until Story 2.8, so no test reaches the `published_at is null` filter. Story 2.4 replaces the list with cards and can carry this check (low).

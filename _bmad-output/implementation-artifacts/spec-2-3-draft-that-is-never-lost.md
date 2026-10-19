@@ -2,7 +2,7 @@
 title: '2.3: Draft that is never lost'
 type: 'feature'
 created: '2026-10-19'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 baseline_commit: '4ded4a00f9955b35de79f7b038c2f05a804db513'
 warnings: ['oversized']
@@ -73,7 +73,7 @@ context:
 - [x] `messages/nb.json`, `messages/en.json` -- draft list strings.
 - [x] `e2e/events-drafts.spec.ts` -- double click ends on one draft link, the link reopens the saved answers, offline *Next* keeps the input and shows the toast, going online saves.
 - [x] `src/types/database.ts` -- regenerate -- AD-15.
-- [ ] `docs/ki-logg.md` -- Story 2.3 entry.
+- [x] `docs/ki-logg.md` -- Story 2.3 entry.
 
 **Acceptance Criteria:**
 - Given a draft, when the Organizer opens *All events*, then a link reads "Draft · continue setup" and opens its setup page.
@@ -85,7 +85,7 @@ context:
 ## Implementation Notes
 
 - `events_create` kept its signature, so `src/types/database.ts` did not change and 2.1's tests pass untouched.
-- A failed save also removes its toast when the next attempt starts or the page unmounts, because the toast has no duration and would otherwise outlive a successful retry.
+- The failed-save toast has no duration, so it is dismissed when *Retry* or the `online` retry starts, when a new result arrives and when the page unmounts. Retry sends the form's current values, not the ones from the failed attempt.
 - `callSafely` treats any error with a `NEXT_` digest as framework control flow and rethrows it.
 - The draft list is a plain list of links on `/events`; Story 2.4 replaces it with cards.
 - Playwright's `setOffline(false)` fires the `online` event, so the automatic retry is covered end to end.
@@ -93,6 +93,28 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+### 2026-10-19 — Review pass
+- verdicts: 36 findings (blind 11, edge 17, gap 2 plus 3 other) grouped into 18 entries — 8 patched (medium 2, low 6), 2 deferred, 8 rejected (false 3, low 5).
+- findings:
+  - `[low]` `[patch]` (blind 1, edge 18) the `next dev` block in `AGENTS.md` was committed with the story — restored to `main`'s file. Cause: `git add -A` while the dev server ran.
+  - `[medium]` `[patch]` (edge 1, 5) *Retry* and the `online` retry re-sent the answers from the failed attempt, so edits made after the failure were lost, and a missing `lastData` gave no toast — both now send the form's current values and the toast no longer depends on `lastData`.
+  - `[low]` `[patch]` (blind 2, edge 2, 3, 15) *Retry* plus `online` could send two saves, and the toast stayed visible while a retry was in flight — the `online` handler dismisses the toast and each retry path clears the other.
+  - `[low]` `[patch]` (blind 7) the link text held a hard-coded separator in JSX — one message `events.draft.item` with the name as a parameter.
+  - `[medium]` `[patch]` (blind 8, gap 2, edge 9) the lock test only showed that some lock was held, and a new `events` column would silently stay out of the blank-draft test — pgTAP now checks the lock key for A and not B, and fails when the column set changes.
+  - `[low]` `[patch]` (gap other) `actions.ts` hard-coded the setup path next to `setupPath` — both use `setupPath`.
+  - `[low]` `[patch]` (blind 12) `docs/ki-logg.md` entry — added. The reflection-note offer is in the hand-over message.
+  - `[medium]` `[defer]` (gap 2) no two-connection test of the double-click race — see `deferred-work.md`.
+  - `[low]` `[defer]` (gap 1) no test that a published Event stays out of the draft list — see `deferred-work.md`, for Story 2.4.
+  - `[false]` `[reject]` (blind 3) the cleanup exists on one branch only — it removes the toast made on that branch, and the other branches make none.
+  - `[false]` `[reject]` (blind 12) types not regenerated — the function signature is unchanged and `supabase gen types | diff` shows no diff.
+  - `[false]` `[reject]` (edge 12) `setupPath` without encoding — ids are uuids from the database.
+  - `[low]` `[reject]` (blind 5, edge 8) the drafts query error replaces the page with the error card — that is the designed failure state with *Retry* (UX-DR24).
+  - `[low]` `[reject]` (blind 6, edge 7) unbounded list and identical unnamed drafts — one blank draft exists at most, and Story 2.4 replaces the list with dated cards.
+  - `[low]` `[reject]` (edge 4) the `online` listener also exists when the browser was online — it never fires then, and the toast text comes from the story.
+  - `[low]` `[reject]` (blind 4, edge 11) `callSafely` labels any non-Next error as unavailable — a server fault is also something to retry, and logging would add a debug leftover.
+  - `[low]` `[reject]` (blind 9, edge 10) old duplicate blank drafts stay and the query has no organizer filter — they show as extra links, and RLS gives the Organizer's rows only until Epic 3.
+  - `[low]` `[reject]` (edge 13) the online event could fire before the listener exists — the toast and the listener come from one effect run.
 
 ## Design Notes
 
