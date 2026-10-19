@@ -31,6 +31,9 @@ const raw = z.object({
 /** The names the form offers. Intl omits UTC, and the database accepts only exact names, so Zod checks the same list. */
 export const timeZoneNames = () => ["UTC", ...Intl.supportedValuesOf("timeZone")];
 
+/** Offered when the Event has no time zone yet. */
+export const DEFAULT_TIME_ZONE = "Europe/Oslo";
+
 const isLocalDateTime = (value: string) =>
   /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(value) &&
   !Number.isNaN(Date.parse(`${value}:00Z`)) &&
@@ -135,6 +138,64 @@ export const questionnaireSchema = raw.transform((input, ctx) => {
 
 export type Questionnaire = z.output<typeof questionnaireSchema>;
 
+const S = "events.settings.errors";
+
+/** Event settings: raw form strings in, the arguments of `events_update_schedule` out. */
+export const scheduleSchema = z
+  .object({
+    eventId: z.uuid(),
+    startsLocal: z.string(),
+    endsLocal: z.string(),
+    timeZone: z.string(),
+    rsvpDueDate: z.string(),
+    language: z.string(),
+  })
+  .transform((input, ctx) => {
+    let failed = false;
+    const bad = (field: string, message: string) => {
+      failed = true;
+      ctx.addIssue({ code: "custom", message, path: [field] });
+    };
+    const localTime = (field: "startsLocal" | "endsLocal") => {
+      if (input[field] === "") bad(field, `${S}.required`);
+      else if (!isLocalDateTime(input[field])) bad(field, `${E}.startsLocal`);
+      else return input[field];
+      return null;
+    };
+
+    const startsLocal = localTime("startsLocal");
+    const endsLocal = localTime("endsLocal");
+    if (startsLocal && endsLocal) {
+      // Wall-clock difference: across a DST change it can be an hour off, and the database CHECK decides then.
+      const minutes = (Date.parse(`${endsLocal}:00Z`) - Date.parse(`${startsLocal}:00Z`)) / 60000;
+      if (minutes <= 0) bad("endsLocal", `${S}.endBeforeStart`);
+      else if (minutes > MAX_DURATION_MINUTES) bad("endsLocal", `${S}.tooLong`);
+    }
+
+    if (!timeZoneNames().includes(input.timeZone)) bad("timeZone", `${E}.timeZone`);
+
+    let rsvpDueDate: string | null = null;
+    if (input.rsvpDueDate !== "") {
+      if (!isDate(input.rsvpDueDate)) bad("rsvpDueDate", `${E}.rsvpDueDate`);
+      else if (startsLocal && input.rsvpDueDate > startsLocal.slice(0, 10))
+        bad("rsvpDueDate", `${E}.rsvpAfterStart`);
+      else rsvpDueDate = input.rsvpDueDate;
+    }
+
+    if (!(eventLanguages as readonly string[]).includes(input.language))
+      bad("language", `${S}.required`);
+
+    if (failed) return z.NEVER;
+    return {
+      eventId: input.eventId,
+      startsLocal: startsLocal!,
+      endsLocal: endsLocal!,
+      timeZone: input.timeZone,
+      rsvpDueDate,
+      language: input.language as (typeof eventLanguages)[number],
+    };
+  });
+
 const text = (data: FormData, key: string) => {
   const value = data.get(key);
   return typeof value === "string" ? value.trim() : "";
@@ -156,6 +217,17 @@ export function questionnaireFromForm(data: FormData) {
     rsvpDueDate: text(data, "rsvpDueDate"),
     rsvpDueUnknown: data.has("rsvpDueUnknown"),
     guestListMethod: text(data, "guestListMethod"),
+    language: text(data, "language"),
+  };
+}
+
+export function scheduleFromForm(data: FormData) {
+  return {
+    eventId: text(data, "eventId"),
+    startsLocal: text(data, "startsLocal"),
+    endsLocal: text(data, "endsLocal"),
+    timeZone: text(data, "timeZone"),
+    rsvpDueDate: text(data, "rsvpDueDate"),
     language: text(data, "language"),
   };
 }

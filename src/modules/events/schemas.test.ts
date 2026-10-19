@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   questionnaireFromForm,
   questionnaireSchema,
+  scheduleFromForm,
+  scheduleSchema,
   toLocalInput,
   type Questionnaire,
 } from "./schemas";
@@ -124,6 +126,79 @@ describe("questionnaireSchema", () => {
     expect(errorOf({ eventType: "concert" })).toEqual([
       ["eventType", "events.wizard.errors.required"],
     ]);
+  });
+});
+
+describe("scheduleSchema", () => {
+  const schedule = {
+    eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    startsLocal: "2027-06-01T18:00",
+    endsLocal: "2027-06-01T23:30",
+    timeZone: "Europe/Oslo",
+    rsvpDueDate: "2027-05-20",
+    language: "nb",
+  };
+  const errors = (changes: Partial<typeof schedule>) => {
+    const result = scheduleSchema.safeParse({ ...schedule, ...changes });
+    return result.success ? null : result.error.issues.map((i) => [i.path[0], i.message]);
+  };
+
+  it("turns the settings into function arguments", () => {
+    expect(scheduleSchema.safeParse(schedule)).toMatchObject({ success: true, data: schedule });
+  });
+
+  it("stores an empty reply-by date as null", () => {
+    const result = scheduleSchema.safeParse({ ...schedule, rsvpDueDate: "" });
+    expect(result.success && result.data.rsvpDueDate).toBeNull();
+  });
+
+  it("requires start, end, time zone and language", () => {
+    expect(errors({ startsLocal: "", endsLocal: "", language: "" })).toEqual([
+      ["startsLocal", "events.settings.errors.required"],
+      ["endsLocal", "events.settings.errors.required"],
+      ["language", "events.settings.errors.required"],
+    ]);
+    expect(errors({ timeZone: "" })).toEqual([["timeZone", "events.wizard.errors.timeZone"]]);
+  });
+
+  it("rejects impossible dates and times", () => {
+    expect(errors({ endsLocal: "2027-02-30T18:00" })).toEqual([
+      ["endsLocal", "events.wizard.errors.startsLocal"],
+    ]);
+    expect(errors({ rsvpDueDate: "2027-13-01" })).toEqual([
+      ["rsvpDueDate", "events.wizard.errors.rsvpDueDate"],
+    ]);
+  });
+
+  it("rejects an end at or before the start", () => {
+    for (const endsLocal of ["2027-06-01T18:00", "2027-06-01T17:59"]) {
+      expect(errors({ endsLocal })).toEqual([
+        ["endsLocal", "events.settings.errors.endBeforeStart"],
+      ]);
+    }
+  });
+
+  it("accepts 14 days and rejects anything longer", () => {
+    expect(errors({ endsLocal: "2027-06-15T18:00" })).toBeNull();
+    expect(errors({ endsLocal: "2027-06-15T18:01" })).toEqual([
+      ["endsLocal", "events.settings.errors.tooLong"],
+    ]);
+  });
+
+  it("rejects a reply-by date after the start's day, but not on it", () => {
+    expect(errors({ rsvpDueDate: "2027-06-02" })).toEqual([
+      ["rsvpDueDate", "events.wizard.errors.rsvpAfterStart"],
+    ]);
+    expect(errors({ rsvpDueDate: "2027-06-01" })).toBeNull();
+  });
+
+  it("reads the form and trims text", () => {
+    const data = new FormData();
+    data.set("startsLocal", " 2027-06-01T18:00 ");
+    expect(scheduleFromForm(data)).toMatchObject({
+      startsLocal: "2027-06-01T18:00",
+      rsvpDueDate: "",
+    });
   });
 });
 

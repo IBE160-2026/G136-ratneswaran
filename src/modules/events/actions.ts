@@ -8,7 +8,12 @@ import { createClient, getClaims } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { defaultRoles } from "./roles";
 import { setupPath } from "./save";
-import { questionnaireFromForm, questionnaireSchema } from "./schemas";
+import {
+  questionnaireFromForm,
+  questionnaireSchema,
+  scheduleFromForm,
+  scheduleSchema,
+} from "./schemas";
 
 const unavailable = refuse("unavailable", "events.wizard.errors.unavailable");
 
@@ -61,6 +66,41 @@ export async function saveQuestionnaire(
   }
   revalidatePath("/events");
   redirect("/events?saved=1");
+}
+
+/** Event settings: validates, then saves the schedule and language through `events_update_schedule` (AD-2). */
+export async function updateSchedule(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = scheduleSchema.safeParse(scheduleFromForm(formData));
+  if (!parsed.success) {
+    return refuse("invalid_input", "events.wizard.errors.invalidInput", fieldErrors(parsed.error));
+  }
+  const schedule = parsed.data;
+  if (!(await getClaims())) redirect(`/login?next=/events/${schedule.eventId}/settings`);
+  // The generated types make every argument non-null, but an empty reply-by date is stored as null.
+  const args = {
+    p_event_id: schedule.eventId,
+    p_starts_local: schedule.startsLocal,
+    p_ends_local: schedule.endsLocal,
+    p_time_zone: schedule.timeZone,
+    p_rsvp_due_date: schedule.rsvpDueDate,
+    p_language: schedule.language,
+  } as Database["public"]["Functions"]["events_update_schedule"]["Args"];
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("events_update_schedule", args);
+  if (error) {
+    if (error.code === "42501") return refuse("forbidden", "events.wizard.errors.forbidden");
+    // A CHECK (23514) or bad data (class 22) that Zod could not see, such as a DST edge: retrying cannot fix it.
+    if (error.code === "23514" || error.code.startsWith("22")) {
+      return refuse("invalid_input", "events.wizard.errors.invalidInput");
+    }
+    return unavailable;
+  }
+  // Dates show on All events and the Event's pages.
+  revalidatePath("/events", "layout");
+  return { ok: true, data: null };
 }
 
 const roleSwitch = z.object({ eventId: z.uuid(), roleId: z.uuid(), active: z.boolean() });
