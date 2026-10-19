@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { ZodError } from "zod";
+import { fieldErrors, refuse, type Result } from "@/lib/result";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import {
   emailSchema,
@@ -17,19 +17,9 @@ import {
   safeNext,
   signUpSchema,
   themeSchema,
-  type Result,
 } from "./schemas";
 
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
-
-const refuse = (code: string, message: string, fields?: Record<string, string>) =>
-  ({ ok: false, error: { code, message, fields } }) as const;
-
-const fieldErrors = (error: ZodError) => {
-  const fields: Record<string, string> = {};
-  for (const issue of error.issues) fields[String(issue.path[0])] ??= issue.message;
-  return fields;
-};
 
 /**
  * IP bucket first so a refused request never spends the email's budget (AD-4). Null means allowed.
