@@ -2,10 +2,14 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { StatusLabel } from "@/components/status-label";
 import { getClaims } from "@/lib/supabase/server";
-import { eventDateFormat } from "@/modules/events/list";
+import { eventDateFormat, isDraft, missingForPublish } from "@/modules/events/list";
 import { loadEvent } from "./load-event";
+import { PublishBanner } from "./publish-dialog";
 
-type Props = { params: Promise<{ eventId: string }> };
+type Props = {
+  params: Promise<{ eventId: string }>;
+  searchParams: Promise<{ published?: string }>;
+};
 
 export async function generateMetadata({ params }: Props) {
   if (!(await getClaims())) return { title: "Arrangly" };
@@ -17,8 +21,9 @@ export async function generateMetadata({ params }: Props) {
 }
 
 // Interim Event home: Epic 5's Dashboard replaces it as the landing page.
-export default async function EventHomePage({ params }: Props) {
+export default async function EventHomePage({ params, searchParams }: Props) {
   const { eventId } = await params;
+  const { published } = await searchParams;
   if (!(await getClaims())) redirect(`/login?next=/events/${eventId}`);
   const event = await loadEvent(eventId);
   const t = await getTranslations("events");
@@ -41,6 +46,8 @@ export default async function EventHomePage({ params }: Props) {
       ) : (
         <p>{t(event.published_at ? "home.published" : "home.draft")}</p>
       )}
+      {published === "1" && event.published_at && <p role="status">{t("home.publishedStatus")}</p>}
+      {isDraft(event) && <PublishBanner eventId={eventId} missing={missingForPublish(event)} />}
     </div>
   );
 }

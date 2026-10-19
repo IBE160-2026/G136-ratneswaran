@@ -16,11 +16,11 @@ const gridClass = "grid gap-3 sm:grid-cols-2";
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; deleted?: string }>;
+  searchParams: Promise<{ deleted?: string }>;
 }) {
   if (!(await getClaims())) redirect("/login?next=/events");
   const t = await getTranslations("events");
-  const { saved, deleted } = await searchParams;
+  const { deleted } = await searchParams;
   // RLS limits this to the Organizer's own Events.
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -33,7 +33,6 @@ export default async function EventsPage({
   return (
     <div className="flex flex-col gap-4 py-12">
       <h1 className="text-large-title">{t("title")}</h1>
-      {saved === "1" && <p role="status">{t("saved")}</p>}
       {(deleted === "event" || deleted === "draft") && (
         <p role="status">{t(`deleted.${deleted}`)}</p>
       )}

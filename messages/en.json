@@ -121,7 +121,6 @@
       "title": "Let's plan something."
     },
     "createNew": "Create new event",
-    "saved": "Your answers are saved.",
     "wizard": {
       "surface": "Questionnaire",
       "draftName": "New event",
@@ -197,7 +196,8 @@
     "home": {
       "surface": "Overview",
       "draft": "Draft",
-      "published": "Published"
+      "published": "Published",
+      "publishedStatus": "Your event is published. Guests aren't invited yet."
     },
     "team": {
       "surface": "Team & Roles",
@@ -284,6 +284,37 @@
     "deleted": {
       "event": "Event deleted.",
       "draft": "Draft discarded."
+    },
+    "description": {
+      "surface": "Name and description",
+      "title": "Name and describe your event",
+      "name": "Event name",
+      "description": "Description",
+      "descriptionHint": "What is happening, for whom, and anything guests should know. Up to 2000 characters.",
+      "errors": {
+        "nameTooLong": "Keep the name to 200 characters or fewer.",
+        "descriptionTooLong": "Keep the description to 2000 characters or fewer.",
+        "nameRequired": "A published event needs a name."
+      }
+    },
+    "publish": {
+      "banner": "Only your team can see this event. Publish to send invitations.",
+      "open": "Publish",
+      "title": "Publish this event?",
+      "description": "Your team can then work on the event. Guests aren't invited yet; you'll invite them later.",
+      "incompleteDescription": "Fill in these before you publish:",
+      "confirm": "Publish",
+      "notYet": "Not yet",
+      "missing": {
+        "name": "Event name",
+        "starts_at": "Start time",
+        "ends_at": "End time",
+        "time_zone": "Time zone",
+        "language": "Language for guests"
+      },
+      "errors": {
+        "incomplete": "Some required details are missing."
+      }
     }
   },
   "privacy": {

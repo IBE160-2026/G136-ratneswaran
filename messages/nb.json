@@ -121,7 +121,6 @@
       "title": "La oss planlegge noe."
     },
     "createNew": "Opprett nytt arrangement",
-    "saved": "Svarene er lagret.",
     "wizard": {
       "surface": "Spørsmål",
       "draftName": "Nytt arrangement",
@@ -197,7 +196,8 @@
     "home": {
       "surface": "Oversikt",
       "draft": "Utkast",
-      "published": "Publisert"
+      "published": "Publisert",
+      "publishedStatus": "Arrangementet er publisert. Gjestene er ikke invitert ennå."
     },
     "team": {
       "surface": "Team og roller",
@@ -284,6 +284,37 @@
     "deleted": {
       "event": "Arrangementet er slettet.",
       "draft": "Utkastet er forkastet."
+    },
+    "description": {
+      "surface": "Navn og beskrivelse",
+      "title": "Gi arrangementet navn og beskrivelse",
+      "name": "Navn på arrangementet",
+      "description": "Beskrivelse",
+      "descriptionHint": "Hva som skjer, for hvem, og det gjestene bør vite. Opptil 2000 tegn.",
+      "errors": {
+        "nameTooLong": "Navnet kan ha høyst 200 tegn.",
+        "descriptionTooLong": "Beskrivelsen kan ha høyst 2000 tegn.",
+        "nameRequired": "Et publisert arrangement må ha et navn."
+      }
+    },
+    "publish": {
+      "banner": "Bare teamet ditt ser dette arrangementet. Publiser for å sende invitasjoner.",
+      "open": "Publiser",
+      "title": "Publisere arrangementet?",
+      "description": "Teamet ditt kan da jobbe med arrangementet. Gjestene er ikke invitert ennå; du inviterer dem senere.",
+      "incompleteDescription": "Fyll inn dette før du publiserer:",
+      "confirm": "Publiser",
+      "notYet": "Ikke ennå",
+      "missing": {
+        "name": "Navn på arrangementet",
+        "starts_at": "Starttidspunkt",
+        "ends_at": "Sluttidspunkt",
+        "time_zone": "Tidssone",
+        "language": "Språk for gjestene"
+      },
+      "errors": {
+        "incomplete": "Noen påkrevde opplysninger mangler."
+      }
     }
   },
   "privacy": {
