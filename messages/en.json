@@ -11,7 +11,8 @@
     "privacy": "Privacy notice",
     "closeMenu": "Close menu",
     "overview": "Overview",
-    "questionnaire": "Questionnaire"
+    "questionnaire": "Questionnaire",
+    "team": "Team & Roles"
   },
   "home": {
     "surface": "Home",
@@ -196,6 +197,48 @@
       "surface": "Overview",
       "draft": "Draft",
       "published": "Published"
+    },
+    "team": {
+      "surface": "Team & Roles",
+      "title": "Team & Roles",
+      "intro": "Switch on the Roles this event needs.",
+      "suggested": {
+        "on": "Suggested: on",
+        "off": "Suggested: off"
+      },
+      "errors": {
+        "forbidden": "You can't change the Roles of this event.",
+        "unavailable": "Couldn't save the change. Try again.",
+        "invalidInput": "That change wasn't accepted."
+      },
+      "readOnly": "This event is over or cancelled, so its Roles can no longer be changed."
+    },
+    "roles": {
+      "venue": {
+        "name": "Venue",
+        "description": "Place, booking and setup"
+      },
+      "guests": {
+        "name": "Guests",
+        "description": "Guest list, replies and requests"
+      },
+      "food_beverage": {
+        "name": "Food & Beverage",
+        "description": "Menu, serving and allergies"
+      },
+      "entertainment": {
+        "name": "Entertainment",
+        "description": "Music, activities and acts"
+      },
+      "travel_logistics": {
+        "name": "Travel & Logistics",
+        "description": "Transport and accommodation"
+      },
+      "program": {
+        "name": "Program",
+        "description": "Speeches and the run of show",
+        "seminarDescription": "Speakers and talks"
+      }
     }
   },
   "privacy": {
