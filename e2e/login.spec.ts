@@ -54,6 +54,8 @@ test("logged-out /events returns there after login; an unsafe next is ignored", 
   page,
   request,
 }) => {
+  // The first request to /events compiles it in dev, which has been slow enough on a loaded CI runner to fail the default timeout.
+  test.slow();
   const email = await confirmed(page, request);
   await page.goto("/events");
   await expect(page).toHaveURL(/\/login\?next=(%2F|\/)events$/);
@@ -61,6 +63,7 @@ test("logged-out /events returns there after login; an unsafe next is ignored", 
   await page.getByLabel("Password", { exact: true }).fill("abcdefg1");
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL(/\/events$/);
+  await expect(page.getByRole("heading", { name: "All events" })).toBeVisible();
   await page.getByRole("button", { name: "Log out" }).click();
   await expect(page).toHaveURL(/\/login$/);
   await logIn(page, email, "abcdefg1", "/login?next=//evil.com");
