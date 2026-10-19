@@ -55,8 +55,8 @@ test("the Organizer answers step 1, sees inline errors and gets the answers back
   await count.fill("80");
   await page.getByLabel("Reply by").fill("2027-05-20");
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page).toHaveURL(/\/events\?saved=1$/);
-  await expect(page.getByText("Your answers are saved.")).toBeVisible();
+  await expect(page).toHaveURL(/\/setup\/description$/);
+  await expect(page.getByText("Step 3 of 6")).toBeVisible();
 
   await page.goBack();
   await page.reload();
@@ -78,7 +78,7 @@ test("the Organizer answers step 1, sees inline errors and gets the answers back
 
   await page.locator('input[name="guestCountUnknown"]').check();
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page).toHaveURL(/\/events\?saved=1$/);
+  await expect(page).toHaveURL(/\/setup\/description$/);
   await page.goto(setupUrl);
   await expect(page.locator('input[name="guestCountUnknown"]')).toBeChecked();
 
