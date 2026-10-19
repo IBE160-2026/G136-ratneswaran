@@ -2,7 +2,7 @@
 title: '2.2: Questionnaire with structured answers'
 type: 'feature'
 created: '2026-10-19'
-status: 'in-progress'
+status: 'in-review'
 route: 'dispatch'
 baseline_commit: '55e8646f12dfa5348f7ff56546340d66031d491b'
 warnings: ['oversized']
@@ -96,6 +96,32 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+### 2026-10-19 — Review pass
+- verdicts: 27 findings (blind 12, edge 12, gap 3) — high 0, medium 1, low 7, false 6, rejected-low 13. `[patch]` 8, `[reject]` 19.
+- findings:
+  - `[medium]` `[patch]` (blind 2, edge 8) re-saving step 1 overwrote `ends_at` with start plus duration, or with null, so a later `events_update_schedule` (2.6) edit would be lost — the function keeps `ends_at` while start and duration are unchanged. pgTAP covers kept, recomputed and null.
+  - `[low]` `[patch]` (blind 4, edge 2) Zod used `Intl` to accept time zones, which takes lowercase names the database rejects, and the form list lacked UTC — Zod and the form now share `timeZoneNames()`; a Vitest case rejects `europe/oslo`.
+  - `[low]` `[patch]` (edge 1) `generateMetadata` ran `loadEvent` before the login redirect, so a signed-out visitor saw 404 — it returns a plain title without a session. An e2e test proves the redirect.
+  - `[low]` `[patch]` (edge 3, 4, gap 2) data errors of class 22 (e.g. `22008`) were shown as a transient failure with a futile Retry — mapped to `invalid_input`; table rows for `22023` and `22008` added.
+  - `[low]` `[patch]` (edge 6) an expired session sent the user to `/events`, not back to the Event — the redirect keeps the Event path.
+  - `[low]` `[patch]` (edge 10) 100 minutes prefilled as `1.6666666666666667` — rounded to two decimals, which round-trips every whole minute.
+  - `[low]` `[patch]` (blind 10) `loadEvent` ran twice per request — wrapped in `cache()`.
+  - `[medium]` `[patch]` (gap 1) reload verified only some answers — e2e now asserts duration, time zone, language, guest-list method and an "unknown" checkbox round trip. Also added a Vitest case for RSVP "not sure yet" (blind 11) and a not-found text check in the foreign-Event e2e (gap other).
+  - `[patch]` (blind 1) ki-logg entry missing — entry added.
+  - `[false]` `[reject]` (blind 1) types not regenerated — `database.ts` was excluded from the review diff; `supabase gen types | diff` shows no diff.
+  - `[false]` `[reject]` (blind 3) language not validated in the database — `events.language` already has `check (language in ('nb','en'))` from 2.1.
+  - `[false]` `[reject]` (blind 12) other importers of `Result` — `tsc` passes and grep finds none.
+  - `[false]` `[reject]` (edge 7) a direct caller can null answers without an unknown key — null with no key means never asked, which the spec allows.
+  - `[false]` `[reject]` (edge 11) focus does not reach the h1 — measured: the Event is reached through a full page load, where focus starts at the skip link by design (UX-DR25), and `RouteFocus` covers client navigation.
+  - `[false]` `[reject]` (edge 12) the retry toast fires only for `unavailable` — intended: other codes are not transient and show inline.
+  - `[low]` `[reject]` (blind 5) a time in the spring-forward gap shifts silently — a once-a-year hour, and the fix adds a round-trip branch.
+  - `[low]` `[reject]` (blind 6, edge 5) a tampered `eventId` shows no message — unreachable from the UI.
+  - `[low]` `[reject]` (blind 7) ticking "Not sure yet" ignores a typed value — the checkbox sits next to the field and the choice is visible.
+  - `[low]` `[reject]` (blind 8) the caption says 6 steps while Next returns to All events, and `?saved=1` persists — Open Question 2 settled this for now.
+  - `[low]` `[reject]` (blind 9, edge 9) redundant radiogroup role, missing checkbox association, `eslint-disable` and focus on the alert — cosmetic; a fix adds state or markup.
+  - `[low]` `[reject]` (blind 11) no pgTAP for a null event id, and nothing on old rows — `is_organizer(null)` is false so it raises `42501`; the new columns only add constraints to rows that satisfy them.
+  - `[low]` `[reject]` (gap 2) retry toast has no test — needs a harness that forces an action failure; three lines of wiring.
 
 ## Design Notes
 
