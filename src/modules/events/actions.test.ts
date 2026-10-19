@@ -68,6 +68,8 @@ describe("saveQuestionnaire", () => {
   it.each([
     ["42501", "forbidden"],
     ["23514", "invalid_input"],
+    ["22023", "invalid_input"],
+    ["22008", "invalid_input"],
     ["XX000", "unavailable"],
   ])("maps database error %s to %s", async (code, expected) => {
     rpc.mockResolvedValue({ data: null, error: { code } });

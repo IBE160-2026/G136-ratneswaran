@@ -1,22 +1,25 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient, getClaims } from "@/lib/supabase/server";
-import { toLocalInput } from "@/modules/events/schemas";
+import { timeZoneNames, toLocalInput } from "@/modules/events/schemas";
 import { QuestionnaireForm } from "./form";
 
 type Props = { params: Promise<{ eventId: string }> };
 
-async function loadEvent(eventId: string) {
+const loadEvent = cache(async (eventId: string) => {
   if (!z.uuid().safeParse(eventId).success) notFound();
   const supabase = await createClient();
   // RLS hides another Organizer's Event, so a missing row and a foreign one look the same.
   const { data } = await supabase.from("events").select("*").eq("id", eventId).maybeSingle();
   if (!data) notFound();
   return data;
-}
+});
 
 export async function generateMetadata({ params }: Props) {
+  // A signed-out visitor gets the login redirect from the page, not a 404 from here.
+  if (!(await getClaims())) return { title: "Arrangly" };
   const t = await getTranslations("events.wizard");
   const event = await loadEvent((await params).eventId);
   return { title: `${t("surface")} – ${event.name ?? t("draftName")} – Arrangly` };
@@ -40,7 +43,9 @@ export default async function SetupPage({ params }: Props) {
         startsLocal: event.starts_at && timeZone ? toLocalInput(event.starts_at, timeZone) : "",
         startsUnknown: unknown.has("starts_at"),
         timeZone: timeZone ?? "",
-        durationHours: event.duration_minutes ? String(event.duration_minutes / 60) : "",
+        durationHours: event.duration_minutes
+          ? String(Math.round((event.duration_minutes / 60) * 100) / 100)
+          : "",
         durationUnknown: unknown.has("duration"),
         guestCount: event.guest_count ? String(event.guest_count) : "",
         guestCountUnknown: unknown.has("guest_count"),
@@ -53,7 +58,7 @@ export default async function SetupPage({ params }: Props) {
           : (event.guest_list_method ?? ""),
         language: event.language ?? locale,
       }}
-      timeZones={Intl.supportedValuesOf("timeZone")}
+      timeZones={timeZoneNames()}
     />
   );
 }

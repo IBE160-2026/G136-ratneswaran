@@ -27,8 +27,8 @@ export async function saveQuestionnaire(
   if (!parsed.success) {
     return refuse("invalid_input", "events.wizard.errors.invalidInput", fieldErrors(parsed.error));
   }
-  if (!(await getClaims())) redirect("/login?next=/events");
   const answers = parsed.data;
+  if (!(await getClaims())) redirect(`/login?next=/events/${answers.eventId}/setup`);
   // The generated types make every argument non-null, but "Not sure yet" is stored as null.
   const args = {
     p_event_id: answers.eventId,
@@ -48,7 +48,8 @@ export async function saveQuestionnaire(
   const { error } = await supabase.rpc("events_save_questionnaire", args);
   if (error) {
     if (error.code === "42501") return refuse("forbidden", "events.wizard.errors.forbidden");
-    if (error.code === "23514" || error.code === "22023") {
+    // Class 23514 is a CHECK, class 22 is bad data (time zone, date range): retrying cannot fix either.
+    if (error.code === "23514" || error.code.startsWith("22")) {
       return refuse("invalid_input", "events.wizard.errors.invalidInput");
     }
     return unavailable;

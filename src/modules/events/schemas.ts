@@ -28,14 +28,8 @@ const raw = z.object({
   language: z.string(),
 });
 
-const isTimeZone = (value: string) => {
-  try {
-    new Intl.DateTimeFormat("en", { timeZone: value });
-    return value !== "";
-  } catch {
-    return false;
-  }
-};
+/** The names the form offers. Intl omits UTC, and the database accepts only exact names, so Zod checks the same list. */
+export const timeZoneNames = () => ["UTC", ...Intl.supportedValuesOf("timeZone")];
 
 const isLocalDateTime = (value: string) =>
   /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(value) &&
@@ -64,7 +58,7 @@ export const questionnaireSchema = raw.transform((input, ctx) => {
     eventType = input.eventType as (typeof eventTypes)[number];
   else bad("eventType");
 
-  if (!isTimeZone(input.timeZone)) bad("timeZone", `${E}.timeZone`);
+  if (!timeZoneNames().includes(input.timeZone)) bad("timeZone", `${E}.timeZone`);
 
   let startsLocal: string | null = null;
   if (input.startsUnknown) unknownAnswers.push("starts_at");

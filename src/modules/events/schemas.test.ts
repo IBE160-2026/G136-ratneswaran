@@ -79,6 +79,15 @@ describe("questionnaireSchema", () => {
     expect(result.success && result.data.unknownAnswers).toEqual(["rsvp_due_date"]);
   });
 
+  it("asks no due date when RSVP is not sure yet", () => {
+    const result = parse({ rsvpWanted: "unknown", rsvpDueDate: "" });
+    expect(result.success && result.data).toMatchObject({
+      rsvpWanted: null,
+      rsvpDueDate: null,
+      unknownAnswers: ["rsvp_wanted"],
+    });
+  });
+
   it.each(["0", "2.5", "-1", "abc", "100001"])("rejects guest count %s", (guestCount) => {
     expect(errorOf({ guestCount })).toEqual([["guestCount", "events.wizard.errors.guestCount"]]);
   });
@@ -107,6 +116,9 @@ describe("questionnaireSchema", () => {
       ["startsLocal", "events.wizard.errors.startsLocal"],
     ]);
     expect(errorOf({ timeZone: "Mars/Base" })).toEqual([
+      ["timeZone", "events.wizard.errors.timeZone"],
+    ]);
+    expect(errorOf({ timeZone: "europe/oslo" })).toEqual([
       ["timeZone", "events.wizard.errors.timeZone"],
     ]);
     expect(errorOf({ eventType: "concert" })).toEqual([
