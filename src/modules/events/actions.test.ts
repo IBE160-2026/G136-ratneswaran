@@ -3,7 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const rpc = vi.fn();
 const getClaims = vi.fn();
 const maybeSingle = vi.fn();
-const from = () => ({ select: () => ({ eq: () => ({ maybeSingle }) }) });
+const update = vi.fn();
+const updated = vi.fn();
+const from = () => ({
+  select: () => ({ eq: () => ({ maybeSingle }) }),
+  update: (values: unknown) => {
+    update(values);
+    return { eq: () => ({ select: updated }) };
+  },
+});
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ rpc, from }), getClaims }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
@@ -12,8 +20,16 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { cancelEvent, createEvent, deleteEvent, saveQuestionnaire, setRoleActive, updateSchedule } =
-  await import("./actions");
+const {
+  cancelEvent,
+  createEvent,
+  deleteEvent,
+  publishEvent,
+  saveDescription,
+  saveQuestionnaire,
+  setRoleActive,
+  updateSchedule,
+} = await import("./actions");
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -41,9 +57,9 @@ beforeEach(() => {
 });
 
 describe("saveQuestionnaire", () => {
-  it("calls the function with null for Not sure yet and returns to All events", async () => {
+  it("calls the function with null for Not sure yet and opens step 3", async () => {
     await expect(saveQuestionnaire(null, form(answers))).rejects.toThrow(
-      "REDIRECT /events?saved=1",
+      `REDIRECT /events/${answers.eventId}/setup/description`,
     );
     expect(rpc).toHaveBeenCalledWith(
       "events_save_questionnaire",
@@ -338,6 +354,125 @@ describe("deleteEvent", () => {
     getClaims.mockResolvedValue(null);
     await expect(deleteEvent(null, form({ eventId }))).rejects.toThrow(
       `REDIRECT /login?next=/events/${eventId}/settings`,
+    );
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("saveDescription", () => {
+  beforeEach(() => updated.mockResolvedValue({ data: [{ id: eventId }], error: null }));
+
+  it("saves the trimmed name and description and opens the Event home", async () => {
+    await expect(
+      saveDescription(null, form({ eventId, name: " Lucas 40 ", description: " Dinner " })),
+    ).rejects.toThrow(`REDIRECT /events/${eventId}`);
+    expect(update).toHaveBeenCalledWith({ name: "Lucas 40", description: "Dinner" });
+  });
+
+  it("stores blank fields as null", async () => {
+    await expect(
+      saveDescription(null, form({ eventId, name: "  ", description: "" })),
+    ).rejects.toThrow("REDIRECT");
+    expect(update).toHaveBeenCalledWith({ name: null, description: null });
+  });
+
+  it("rejects a description over 2000 characters inline without saving", async () => {
+    const result = await saveDescription(
+      null,
+      form({ eventId, name: "x", description: "x".repeat(2001) }),
+    );
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: "invalid_input",
+        fields: { description: "events.description.errors.descriptionTooLong" },
+      },
+    });
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("marks the name when a published Event would lose it", async () => {
+    updated.mockResolvedValue({ data: null, error: { code: "23514" } });
+    expect(await saveDescription(null, form({ eventId, name: " " }))).toMatchObject({
+      error: { code: "invalid_input", fields: { name: "events.description.errors.nameRequired" } },
+    });
+  });
+
+  it("refuses an Event the caller cannot see", async () => {
+    updated.mockResolvedValue({ data: [], error: null });
+    expect(await saveDescription(null, form({ eventId, name: "x" }))).toMatchObject({
+      error: { code: "forbidden" },
+    });
+  });
+
+  it.each([
+    ["55000", "read_only"],
+    ["XX000", "unavailable"],
+  ])("maps database error %s to %s", async (code, expected) => {
+    updated.mockResolvedValue({ data: null, error: { code } });
+    expect(await saveDescription(null, form({ eventId, name: "x" }))).toMatchObject({
+      error: { code: expected },
+    });
+  });
+
+  it("sends a signed-out caller to log in", async () => {
+    getClaims.mockResolvedValue(null);
+    await expect(saveDescription(null, form({ eventId }))).rejects.toThrow(
+      `REDIRECT /login?next=/events/${eventId}/setup/description`,
+    );
+    expect(update).not.toHaveBeenCalled();
+  });
+});
+
+describe("publishEvent", () => {
+  it("publishes and opens the Event home with the published status", async () => {
+    await expect(publishEvent(null, form({ eventId }))).rejects.toThrow(
+      `REDIRECT /events/${eventId}?published=1`,
+    );
+    expect(rpc).toHaveBeenCalledWith("events_publish", { p_event_id: eventId });
+  });
+
+  it("names each missing field of an incomplete draft", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "23514" } });
+    maybeSingle.mockResolvedValue({
+      data: {
+        name: null,
+        starts_at: "2027-06-01T16:00:00Z",
+        ends_at: null,
+        time_zone: "Europe/Oslo",
+        language: "en",
+      },
+      error: null,
+    });
+    expect(await publishEvent(null, form({ eventId }))).toEqual({
+      ok: false,
+      error: {
+        code: "incomplete",
+        message: "events.publish.errors.incomplete",
+        fields: { name: "events.publish.missing.name", ends_at: "events.publish.missing.ends_at" },
+      },
+    });
+  });
+
+  it.each([
+    ["42501", "forbidden"],
+    ["55000", "read_only"],
+    ["XX000", "unavailable"],
+  ])("maps database error %s to %s", async (code, expected) => {
+    rpc.mockResolvedValue({ data: null, error: { code } });
+    expect(await publishEvent(null, form({ eventId }))).toMatchObject({
+      ok: false,
+      error: { code: expected },
+    });
+  });
+
+  it("refuses a malformed id and sends a signed-out caller to log in", async () => {
+    expect(await publishEvent(null, form({ eventId: "nope" }))).toMatchObject({
+      error: { code: "invalid_input" },
+    });
+    getClaims.mockResolvedValue(null);
+    await expect(publishEvent(null, form({ eventId }))).rejects.toThrow(
+      `REDIRECT /login?next=/events/${eventId}`,
     );
     expect(rpc).not.toHaveBeenCalled();
   });

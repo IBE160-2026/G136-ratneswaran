@@ -6,7 +6,7 @@ import { z } from "zod";
 import { fieldErrors, refuse, type Result } from "@/lib/result";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
-import { eventPath, isDraft } from "./list";
+import { eventPath, isDraft, missingForPublish } from "./list";
 import { defaultRoles } from "./roles";
 import { setupPath } from "./save";
 import {
@@ -67,7 +67,51 @@ export async function saveQuestionnaire(
     return unavailable;
   }
   revalidatePath("/events");
-  redirect("/events?saved=1");
+  redirect(`${eventPath(answers.eventId)}/setup/description`);
+}
+
+const blankAsNull = (max: number, message: string) =>
+  z
+    .string()
+    .trim()
+    .max(max, message)
+    .default("")
+    .transform((value) => value || null);
+
+const descriptionInput = z.object({
+  eventId: z.uuid(),
+  name: blankAsNull(200, "events.description.errors.nameTooLong"),
+  description: blankAsNull(2000, "events.description.errors.descriptionTooLong"),
+});
+
+/** Wizard step 3: saves name and description in one direct update on the granted columns (AD-19). */
+export async function saveDescription(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = descriptionInput.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return refuse("invalid_input", "events.wizard.errors.invalidInput", fieldErrors(parsed.error));
+  }
+  const { eventId, name, description } = parsed.data;
+  if (!(await getClaims())) redirect(`/login?next=${eventPath(eventId)}/setup/description`);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("events")
+    .update({ name, description })
+    .eq("id", eventId)
+    .select("id");
+  // Clearing the name of a published Event fails events_publishable.
+  if (error?.code === "23514") {
+    return refuse("invalid_input", "events.wizard.errors.invalidInput", {
+      name: "events.description.errors.nameRequired",
+    });
+  }
+  if (error) return refuseEventChange(error.code);
+  // RLS hides another Organizer's Event, so the update matches no row.
+  if (data.length === 0) return refuse("forbidden", "events.wizard.errors.forbidden");
+  revalidatePath("/events", "layout");
+  redirect(eventPath(eventId));
 }
 
 /** Event settings: validates, then saves the schedule and language through `events_update_schedule` (AD-2). */
@@ -193,4 +237,38 @@ export async function deleteEvent(
   if (error) return refuseEventChange(error.code);
   revalidatePath("/events", "layout");
   redirect(`/events?deleted=${draft ? "draft" : "event"}`);
+}
+
+const publishInput = z.object({ eventId: z.uuid() });
+
+/**
+ * Event home: publishes to the team through `events_publish` (FR4, AD-2). The database CHECK decides
+ * completeness; on a refusal the row is re-read to name what is missing. Core sends no invitation.
+ */
+export async function publishEvent(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = publishInput.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return refuse("invalid_input", "events.wizard.errors.invalidInput");
+  const { eventId } = parsed.data;
+  if (!(await getClaims())) redirect(`/login?next=${eventPath(eventId)}`);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("events_publish", { p_event_id: eventId });
+  if (error?.code === "23514") {
+    const { data: event } = await supabase
+      .from("events")
+      .select("name, starts_at, ends_at, time_zone, language")
+      .eq("id", eventId)
+      .maybeSingle();
+    const missing = event ? missingForPublish(event) : [];
+    // An end before the start fails the same CHECK with nothing empty: the plain message covers it.
+    const fields = missing.length
+      ? Object.fromEntries(missing.map((field) => [field, `events.publish.missing.${field}`]))
+      : undefined;
+    return refuse("incomplete", "events.publish.errors.incomplete", fields);
+  }
+  if (error) return refuseEventChange(error.code);
+  revalidatePath("/events", "layout");
+  redirect(`${eventPath(eventId)}?published=1`);
 }
