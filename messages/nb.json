@@ -252,8 +252,38 @@
       "errors": {
         "required": "Fyll ut dette.",
         "endBeforeStart": "Slutten må være etter starten.",
-        "tooLong": "Et arrangement kan vare i høyst 14 dager."
+        "tooLong": "Et arrangement kan vare i høyst 14 dager.",
+        "readOnly": "Arrangementet er over eller avlyst, så det kan ikke endres lenger."
+      },
+      "endTitle": "Avlys eller slett",
+      "keep": "Behold arrangementet",
+      "cancel": {
+        "open": "Avlys arrangementet",
+        "title": "Avlyse arrangementet?",
+        "description": "Arrangementet flyttes til Tidligere arrangementer og kan ikke endres lenger. Dette kan ikke angres.",
+        "note": "Melding (valgfritt)",
+        "noteHint": "Vises sammen med avlysningen, for eksempel hvorfor eller hva som skjer i stedet.",
+        "noteTooLong": "Hold meldingen på 500 tegn eller færre.",
+        "confirm": "Avlys arrangementet"
+      },
+      "delete": {
+        "open": "Slett arrangementet",
+        "title": "Slette arrangementet?",
+        "description": "Arrangementet og alt i det slettes for godt. Dette kan ikke angres. Skriv navnet på arrangementet for å bekrefte.",
+        "name": "Navn på arrangementet",
+        "nameMismatch": "Navnet stemmer ikke med arrangementets navn.",
+        "confirm": "Slett arrangementet"
+      },
+      "discard": {
+        "open": "Forkast utkastet",
+        "title": "Forkaste utkastet?",
+        "description": "Utkastet og svarene slettes for godt. Dette kan ikke angres.",
+        "confirm": "Forkast utkastet"
       }
+    },
+    "deleted": {
+      "event": "Arrangementet er slettet.",
+      "draft": "Utkastet er forkastet."
     }
   },
   "privacy": {

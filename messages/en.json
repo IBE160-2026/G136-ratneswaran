@@ -252,8 +252,38 @@
       "errors": {
         "required": "Fill this in.",
         "endBeforeStart": "The end must be after the start.",
-        "tooLong": "An event can last at most 14 days."
+        "tooLong": "An event can last at most 14 days.",
+        "readOnly": "This event is over or cancelled, so it can no longer be changed."
+      },
+      "endTitle": "Cancel or delete",
+      "keep": "Keep event",
+      "cancel": {
+        "open": "Cancel event",
+        "title": "Cancel this event?",
+        "description": "The event moves to Past events and can no longer be changed. This can't be undone.",
+        "note": "Note (optional)",
+        "noteHint": "Shown with the cancellation, for example why or what happens instead.",
+        "noteTooLong": "Keep the note to 500 characters or fewer.",
+        "confirm": "Cancel event"
+      },
+      "delete": {
+        "open": "Delete event",
+        "title": "Delete this event?",
+        "description": "The event and everything in it are deleted for good. This can't be undone. Type the event's name to confirm.",
+        "name": "Event name",
+        "nameMismatch": "The name doesn't match the event's name.",
+        "confirm": "Delete event"
+      },
+      "discard": {
+        "open": "Discard draft",
+        "title": "Discard this draft?",
+        "description": "The draft and its answers are deleted for good. This can't be undone.",
+        "confirm": "Discard draft"
       }
+    },
+    "deleted": {
+      "event": "Event deleted.",
+      "draft": "Draft discarded."
     }
   },
   "privacy": {

@@ -20,7 +20,7 @@ export default async function SetupPage({ params }: Props) {
   const { eventId } = await params;
   if (!(await getClaims())) redirect(`/login?next=/events/${eventId}/setup`);
   const event = await loadEvent(eventId);
-  // Published past and cancelled Events are read-only; Story 2.7 enforces it in the database.
+  // Published past and cancelled Events are read-only; the database refuses their changes too.
   if (!isDraft(event) && isPast(event, new Date())) redirect(eventPath(eventId));
   const locale = await getLocale();
   const timeZone = event.time_zone;
