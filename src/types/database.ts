@@ -51,6 +51,26 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"roles": {
+                  Row: {
+                    "active": boolean,"event_id": string,"id": string,"key": Database["public"]['Enums']["role_key"],"toggled_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"event_id": string,"id"?: string,"key": Database["public"]['Enums']["role_key"],"toggled_at"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"event_id"?: string,"id"?: string,"key"?: Database["public"]['Enums']["role_key"],"toggled_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "roles_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -64,14 +84,17 @@ export type Database = {
 { Args: Record<PropertyKey, never>; Returns: string
                            },
 "events_save_questionnaire":
-{ Args: { "p_duration_minutes": number,"p_event_id": string,"p_event_type": string,"p_guest_count": number,"p_guest_list_method": string,"p_language": string,"p_rsvp_due_date": string,"p_rsvp_wanted": boolean,"p_starts_local": string,"p_time_zone": string,"p_unknown_answers": (string)[],"p_venue_known": boolean }; Returns: undefined
+{ Args: { "p_default_roles"?: (Database["public"]['Enums']["role_key"])[],"p_duration_minutes": number,"p_event_id": string,"p_event_type": string,"p_guest_count": number,"p_guest_list_method": string,"p_language": string,"p_rsvp_due_date": string,"p_rsvp_wanted": boolean,"p_starts_local": string,"p_time_zone": string,"p_unknown_answers": (string)[],"p_venue_known": boolean }; Returns: undefined
+                           },
+"events_set_role_active":
+{ Args: { "p_active": boolean,"p_role_id": string }; Returns: undefined
                            },
 "is_organizer":
 { Args: { "p_event_id": string }; Returns: boolean
                            }
           }
           Enums: {
-            [_ in never]: never
+            "role_key": "venue"|"guests"|"food_beverage"|"entertainment"|"travel_logistics"|"program"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -191,7 +214,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            
+            "role_key": ["venue", "guests", "food_beverage", "entertainment", "travel_logistics", "program"]
           }
         }
 } as const
