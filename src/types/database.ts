@@ -39,14 +39,14 @@ export type Database = {
                   ]
                 },"events": {
                   Row: {
-                    "cancelled_at": string | null,"created_at": string,"duration_minutes": number | null,"ends_at": string | null,"event_type": string | null,"guest_count": number | null,"guest_list_method": string | null,"id": string,"language": string | null,"name": string | null,"organizer_id": string,"published_at": string | null,"rsvp_due_date": string | null,"rsvp_wanted": boolean | null,"starts_at": string | null,"time_zone": string | null,"unknown_answers": (string)[],"venue_known": boolean | null
+                    "cancellation_note": string | null,"cancelled_at": string | null,"created_at": string,"duration_minutes": number | null,"ends_at": string | null,"event_type": string | null,"guest_count": number | null,"guest_list_method": string | null,"id": string,"language": string | null,"name": string | null,"organizer_id": string,"published_at": string | null,"rsvp_due_date": string | null,"rsvp_wanted": boolean | null,"starts_at": string | null,"time_zone": string | null,"unknown_answers": (string)[],"venue_known": boolean | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "cancelled_at"?: string | null,"created_at"?: string,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id": string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
+                    "cancellation_note"?: string | null,"cancelled_at"?: string | null,"created_at"?: string,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id": string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
                   }
                   Update: {
-                    "cancelled_at"?: string | null,"created_at"?: string,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id"?: string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
+                    "cancellation_note"?: string | null,"cancelled_at"?: string | null,"created_at"?: string,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id"?: string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
                   }
                   Relationships: [
                     
@@ -80,8 +80,14 @@ isOneToOne: false
             "abuse_hit":
 { Args: { "p_bucket": string,"p_key_hash": string,"p_max": number,"p_window_seconds": number }; Returns: boolean
                            },
+"events_cancel":
+{ Args: { "p_event_id": string,"p_note": string }; Returns: undefined
+                           },
 "events_create":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"events_delete":
+{ Args: { "p_event_id": string }; Returns: undefined
                            },
 "events_save_questionnaire":
 { Args: { "p_default_roles"?: (Database["public"]['Enums']["role_key"])[],"p_duration_minutes": number,"p_event_id": string,"p_event_type": string,"p_guest_count": number,"p_guest_list_method": string,"p_language": string,"p_rsvp_due_date": string,"p_rsvp_wanted": boolean,"p_starts_local": string,"p_time_zone": string,"p_unknown_answers": (string)[],"p_venue_known": boolean }; Returns: undefined

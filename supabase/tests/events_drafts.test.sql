@@ -9,10 +9,11 @@ create temp table drafts (tag text, id uuid);
 grant select, insert on drafts to authenticated;
 
 -- A new events column must be added to the blank-draft test in events_create, or an answered draft could be reused.
+-- cancellation_note is set only with cancelled_at, which the test already covers.
 select is(
   (select array_agg(attname::text order by attname) from pg_attribute
    where attrelid = 'public.events'::regclass and attnum > 0 and not attisdropped),
-  array['cancelled_at', 'created_at', 'duration_minutes', 'ends_at', 'event_type', 'guest_count', 'guest_list_method', 'id',
+  array['cancellation_note', 'cancelled_at', 'created_at', 'duration_minutes', 'ends_at', 'event_type', 'guest_count', 'guest_list_method', 'id',
     'language', 'name', 'organizer_id', 'published_at', 'rsvp_due_date', 'rsvp_wanted', 'starts_at',
     'time_zone', 'unknown_answers', 'venue_known'],
   'events has exactly the columns events_create checks for a blank draft'
