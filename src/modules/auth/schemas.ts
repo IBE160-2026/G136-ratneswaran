@@ -1,12 +1,5 @@
 import { z } from "zod";
 
-export type Result<T> =
-  | { ok: true; data: T }
-  | {
-      ok: false;
-      error: { code: string; message: string; fields?: Partial<Record<string, string>> };
-    };
-
 /** Password policy (FR1): mirrored in `supabase/config.toml` as minimum_password_length and letters_digits (ASCII letters only, as Auth checks). */
 export const passwordRules = {
   length: (value: string) => value.length >= 8,

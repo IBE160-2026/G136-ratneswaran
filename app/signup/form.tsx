@@ -5,9 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { signUp } from "@/modules/auth/actions";
 import { passwordRules, type PasswordRule } from "@/modules/auth/schemas";
-
-const inputClass =
-  "min-h-touch border-input bg-background w-full rounded-lg border px-3 aria-[invalid=true]:border-destructive";
+import { buttonClass, inputClass } from "@/components/form";
 
 export function SignUpForm() {
   const t = useTranslations();
@@ -100,11 +98,7 @@ export function SignUpForm() {
           })}
         </ul>
       </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="bg-primary text-primary-foreground min-h-touch rounded-full px-6"
-      >
+      <button type="submit" disabled={pending} className={buttonClass}>
         {t("auth.signUp.submit")}
       </button>
     </form>

@@ -115,6 +115,73 @@
     "empty": {
       "title": "Let's plan something.",
       "hint": "Your events will show up here."
+    },
+    "createNew": "Create new event",
+    "saved": "Your answers are saved.",
+    "wizard": {
+      "surface": "Questionnaire",
+      "draftName": "New event",
+      "title": "Tell us about your event",
+      "caption": "Step {step} of {total}",
+      "back": "Back",
+      "next": "Next",
+      "unknown": "Not sure yet",
+      "yes": "Yes",
+      "no": "No",
+      "eventType": {
+        "label": "What kind of event is it?",
+        "birthday": "Birthday",
+        "wedding": "Wedding",
+        "party": "Party",
+        "seminar": "Seminar",
+        "other": "Other",
+        "choose": "Choose …"
+      },
+      "startsLocal": {
+        "label": "Date and time"
+      },
+      "timeZone": {
+        "label": "Time zone"
+      },
+      "durationHours": {
+        "label": "How long will it last (hours)?"
+      },
+      "guestCount": {
+        "label": "How many guests?"
+      },
+      "venueKnown": {
+        "label": "Do you have a venue?"
+      },
+      "rsvpWanted": {
+        "label": "Do you want guests to reply (RSVP)?"
+      },
+      "rsvpDueDate": {
+        "label": "Reply by"
+      },
+      "guestListMethod": {
+        "label": "How will you build the guest list?",
+        "invite_link": "With an invite link",
+        "manual": "Add them by hand"
+      },
+      "language": {
+        "label": "Language for guests",
+        "nb": "Norsk bokmål",
+        "en": "English",
+        "hint": "Used for text your guests see. Your own language does not change."
+      },
+      "errors": {
+        "required": "Answer this, or choose \"Not sure yet\".",
+        "timeZone": "Choose a valid time zone.",
+        "startsLocal": "Enter a valid date and time.",
+        "duration": "Enter a number of hours above 0 and at most 336.",
+        "guestCount": "Enter a whole number between 1 and 100,000.",
+        "rsvpDueDate": "Enter a valid date.",
+        "rsvpAfterStart": "The reply date can't be after the event date.",
+        "rsvpNotWanted": "A reply date only applies when you want replies.",
+        "invalidInput": "Something you entered wasn't accepted. Check it and try again.",
+        "forbidden": "You don't have access to this event.",
+        "unavailable": "Couldn't save right now. Try again shortly."
+      }
     }
   },
   "privacy": {

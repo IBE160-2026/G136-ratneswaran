@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { updatePassword } from "@/modules/auth/actions";
 import { passwordRules, type PasswordRule } from "@/modules/auth/schemas";
+import { buttonClass } from "@/components/form";
 
 export function ResetForm() {
   const t = useTranslations();
@@ -65,11 +66,7 @@ export function ResetForm() {
           })}
         </ul>
       </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="bg-primary text-primary-foreground min-h-touch rounded-full px-6"
-      >
+      <button type="submit" disabled={pending} className={buttonClass}>
         {t("auth.reset.submit")}
       </button>
     </form>

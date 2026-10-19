@@ -218,3 +218,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Fire uavhengige review-lag. KI la til tester for `is_organizer` uten RLS-filter, for hvert påkrevd felt ved publisering, for AD-11-regelen om fremmednøkler til `auth.users` og for anons avslag ved faktiske kall, og avviste blanke navn. AD-3-spørsmålet ble utsatt til eieren. Resten ble avvist med begrunnelse i spec-ens triage-logg.
 **Min vurdering:** NIL
 **Spor:** branch `feat/2.1-events-table-and-organizer-only-access`, issue #40
+
+## 2026-10-19 — Story 2.2: spørreskjema med strukturerte svar
+
+**Prompt:** «Er vi klare for bygging av story 2.2?», deretter «ja, gjør alt som trengs» og godkjenning av spec-en i `bmad-build`.
+**KI foreslo:** Issue #43 og story-grenen, så en spec med to åpne spørsmål jeg svarte på: ett skjema for steg 1 i stedet for ett spørsmål per skjerm, og en enkel *Create new event*-knapp på `/events` til 2.3 og 2.4 finnes. Én migrasjon legger til svarkolonnene og funksjonen `events_save_questionnaire`. «Ikke sikker ennå» lagres som en nøkkel i `unknown_answers` med null i verdikolonnen, slik at «aldri spurt» og «usikker» holdes adskilt og Epic 4 leser ett felt. En CHECK hindrer at en verdi og nøkkelen står samtidig, og en annen at fristen kommer etter arrangementsdagen i arrangementets tidssone. Zod, Server Actions, skjemaet med inline feil, pgTAP, Vitest og Playwright dekker flyten. Skjemastiler og `Result` ble flyttet til felles filer (Epic 1-retro A4).
+**Review:** Tre uavhengige subagenter ga 27 funn. KI rettet ni: `ends_at` overskrives ikke når start og varighet er uendret, Zod bruker samme tidssoneliste som skjemaet, klasse 22-feil vises som ugyldig input, og e2e dekker svar etter omlasting. Tretten ble avvist med begrunnelse i spec-ens triage-logg. KI antok først at fokus flyttes til `h1` etter opprettelse. Målingen viste en full sideinnlasting, der fokus ligger på hopp-lenken etter UX-DR25, så antakelsen ble droppet. `next dev` skrev en blokk inn i `AGENTS.md`; den ble ikke committet.
+**Min vurdering:** NIL
+**Spor:** branch `feat/2.2-questionnaire-with-structured-answers`, issue #43
