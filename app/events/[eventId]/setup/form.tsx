@@ -4,8 +4,10 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { buttonClass, Failure, FieldError, inputClass } from "@/components/form";
+import { toast } from "sonner";
 import { saveFailedToast } from "@/lib/feedback";
 import { saveQuestionnaire } from "@/modules/events/actions";
+import { callSafely } from "@/modules/events/save";
 import { eventLanguages, eventTypes, guestListMethods } from "@/modules/events/schemas";
 
 type Initial = {
@@ -110,7 +112,11 @@ export function QuestionnaireForm({
 }) {
   const t = useTranslations("events.wizard");
   const tf = useTranslations("feedback");
-  const [state, action, pending] = useActionState(saveQuestionnaire, null);
+  const [state, action, pending] = useActionState(
+    (previous: Parameters<typeof saveQuestionnaire>[0], data: FormData) =>
+      callSafely(() => saveQuestionnaire(previous, data)),
+    null,
+  );
   const [rsvpWanted, setRsvpWanted] = useState(initial.rsvpWanted);
   const formRef = useRef<HTMLFormElement>(null);
   const zoneRef = useRef<HTMLSelectElement>(null);
@@ -130,7 +136,14 @@ export function QuestionnaireForm({
     formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
     if (state.error.code === "unavailable" && lastData.current) {
       const data = lastData.current;
-      saveFailedToast(tf("saveFailed"), () => submit(data), tf("retry"));
+      const retry = () => submit(data);
+      const toastId = saveFailedToast(tf("saveFailed"), retry, tf("retry"));
+      // The browser coming back online retries once with the same answers.
+      window.addEventListener("online", retry, { once: true });
+      return () => {
+        window.removeEventListener("online", retry);
+        toast.dismiss(toastId);
+      };
     }
     // submit only wraps the stable dispatch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
