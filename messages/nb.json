@@ -182,6 +182,11 @@
         "forbidden": "Du har ikke tilgang til dette arrangementet.",
         "unavailable": "Kunne ikke lagre akkurat nå. Prøv igjen om litt."
       }
+    },
+    "draft": {
+      "title": "Utkast",
+      "continue": "Utkast · fortsett oppsettet",
+      "untitled": "Nytt arrangement"
     }
   },
   "privacy": {
