@@ -32,3 +32,6 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-3-draft-that-is-never-lost.md`
   summary: Test that `/events` leaves a published Event out of the draft list and shows the empty state for an Organizer who has none.
   evidence: No published Event can be made through the app until Story 2.8, so no test reaches the `published_at is null` filter. Story 2.4 replaces the list with cards and can carry this check (low).
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-roles-from-the-branch-pool.md`
+  summary: Prove that the 2.5 backfill gives Events created before the migration six Roles with the base three active.
+  evidence: pgTAP and e2e run on a freshly migrated database with no Events before `20261019170000_roles.sql`, so the backfill touches zero rows in every test (low). A pre-migration fixture or a check against the cloud data after deploy would settle it.

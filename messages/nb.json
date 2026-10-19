@@ -11,7 +11,8 @@
     "privacy": "Personvernerklæring",
     "closeMenu": "Lukk menyen",
     "overview": "Oversikt",
-    "questionnaire": "Spørsmål"
+    "questionnaire": "Spørsmål",
+    "team": "Team og roller"
   },
   "home": {
     "surface": "Hjem",
@@ -196,6 +197,48 @@
       "surface": "Oversikt",
       "draft": "Utkast",
       "published": "Publisert"
+    },
+    "team": {
+      "surface": "Team og roller",
+      "title": "Team og roller",
+      "intro": "Slå på rollene arrangementet trenger.",
+      "suggested": {
+        "on": "Foreslått: på",
+        "off": "Foreslått: av"
+      },
+      "errors": {
+        "forbidden": "Du kan ikke endre rollene for dette arrangementet.",
+        "unavailable": "Kunne ikke lagre endringen. Prøv igjen.",
+        "invalidInput": "Endringen ble ikke godtatt."
+      },
+      "readOnly": "Arrangementet er over eller avlyst, så rollene kan ikke endres lenger."
+    },
+    "roles": {
+      "venue": {
+        "name": "Lokale",
+        "description": "Sted, booking og oppsett"
+      },
+      "guests": {
+        "name": "Gjester",
+        "description": "Gjesteliste, svar og ønsker"
+      },
+      "food_beverage": {
+        "name": "Mat og drikke",
+        "description": "Meny, servering og allergier"
+      },
+      "entertainment": {
+        "name": "Underholdning",
+        "description": "Musikk, aktiviteter og innslag"
+      },
+      "travel_logistics": {
+        "name": "Reise og logistikk",
+        "description": "Transport og overnatting"
+      },
+      "program": {
+        "name": "Program",
+        "description": "Taler og kjøreplan",
+        "seminarDescription": "Foredragsholdere og innlegg"
+      }
     }
   },
   "privacy": {

@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { createEvent, saveQuestionnaire } = await import("./actions");
+const { createEvent, saveQuestionnaire, setRoleActive } = await import("./actions");
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -52,6 +52,20 @@ describe("saveQuestionnaire", () => {
         p_rsvp_wanted: false,
         p_rsvp_due_date: null,
         p_unknown_answers: ["venue_known"],
+        p_default_roles: ["venue", "guests", "food_beverage", "entertainment", "program"],
+      }),
+    );
+  });
+
+  it("sends the base Roles when the event type is Not sure yet", async () => {
+    await expect(
+      saveQuestionnaire(null, form({ ...answers, eventType: "unknown" })),
+    ).rejects.toThrow("REDIRECT");
+    expect(rpc).toHaveBeenCalledWith(
+      "events_save_questionnaire",
+      expect.objectContaining({
+        p_event_type: null,
+        p_default_roles: ["venue", "guests", "food_beverage"],
       }),
     );
   });
@@ -98,5 +112,45 @@ describe("createEvent", () => {
       ok: false,
       error: { code: "unavailable" },
     });
+  });
+});
+
+describe("setRoleActive", () => {
+  const input = {
+    eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    roleId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    active: false,
+  };
+
+  it("sends a signed-out caller to log in", async () => {
+    getClaims.mockResolvedValue(null);
+    await expect(setRoleActive(input)).rejects.toThrow(
+      `REDIRECT /login?next=/events/${input.eventId}/team`,
+    );
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("switches the Role through events_set_role_active", async () => {
+    expect(await setRoleActive(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledWith("events_set_role_active", {
+      p_role_id: input.roleId,
+      p_active: false,
+    });
+  });
+
+  it("refuses a malformed id without calling the database", async () => {
+    expect(await setRoleActive({ ...input, roleId: "nope" })).toMatchObject({
+      ok: false,
+      error: { code: "invalid_input" },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["42501", "forbidden"],
+    ["XX000", "unavailable"],
+  ])("maps database error %s to %s", async (code, expected) => {
+    rpc.mockResolvedValue({ data: null, error: { code } });
+    expect(await setRoleActive(input)).toMatchObject({ ok: false, error: { code: expected } });
   });
 });
