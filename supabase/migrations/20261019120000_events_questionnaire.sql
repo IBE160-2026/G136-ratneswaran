@@ -80,8 +80,12 @@ begin
   update public.events set
     event_type = p_event_type,
     starts_at = v_starts_at,
-    -- Story 2.6 takes over ends_at through events_update_schedule; duration_minutes only records the answer.
-    ends_at = v_starts_at + make_interval(mins => p_duration_minutes),
+    -- Story 2.6 takes over ends_at through events_update_schedule, so re-saving unchanged answers keeps it.
+    ends_at = case
+      when v_starts_at is not distinct from starts_at and p_duration_minutes is not distinct from duration_minutes
+        then ends_at
+      else v_starts_at + make_interval(mins => p_duration_minutes)
+    end,
     time_zone = p_time_zone,
     duration_minutes = p_duration_minutes,
     guest_count = p_guest_count,

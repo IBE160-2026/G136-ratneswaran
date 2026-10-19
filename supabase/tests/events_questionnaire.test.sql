@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(28);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -53,6 +53,38 @@ select results_eq(
   $$values ('birthday'::text, '2027-06-01 16:00Z'::timestamptz, '2027-06-01 20:00Z'::timestamptz,
     'Europe/Oslo'::text, 240, 80, false, true, '2027-05-20'::date, 'invite_link'::text, 'nb'::text, '{}'::text[])$$,
   'each answer is its own column and ends_at is start plus duration'
+);
+
+-- ends_at follows the answers, and is kept while they are unchanged
+select lives_ok(
+  $$select public.events_save_questionnaire((select id from created), 'birthday', '2027-06-01 18:00',
+    'Europe/Oslo', 240, 80, false, true, '2027-05-20', 'invite_link', 'nb', '{}')$$,
+  'A saves the same start and duration again'
+);
+reset role;
+update public.events set ends_at = '2027-06-02 03:00Z' where id = (select id from created);
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "authenticated"}';
+select public.events_save_questionnaire((select id from created), 'birthday', '2027-06-01 18:00',
+  'Europe/Oslo', 240, 90, false, true, '2027-05-20', 'invite_link', 'nb', '{}');
+select is(
+  (select ends_at from public.events where id = (select id from created)),
+  '2027-06-02 03:00Z'::timestamptz,
+  'unchanged start and duration keep a later-set ends_at'
+);
+select public.events_save_questionnaire((select id from created), 'birthday', '2027-06-01 18:00',
+  'Europe/Oslo', 120, 90, false, true, '2027-05-20', 'invite_link', 'nb', '{}');
+select is(
+  (select ends_at from public.events where id = (select id from created)),
+  '2027-06-01 18:00Z'::timestamptz,
+  'a new duration recomputes ends_at'
+);
+select public.events_save_questionnaire((select id from created), 'birthday', '2027-06-01 18:00',
+  'Europe/Oslo', null, 90, false, true, '2027-05-20', 'invite_link', 'nb', '{duration}');
+select is(
+  (select ends_at from public.events where id = (select id from created)),
+  null::timestamptz,
+  'an unknown duration leaves ends_at empty'
 );
 
 -- Not sure yet
