@@ -65,15 +65,15 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/components/form.tsx` -- extract `inputClass`, `buttonClass`, `Failure`, `FieldError` from `app/profile/forms.tsx`; use them in `profile`, `login` and `signup` forms -- retrospective A4, no behaviour change. The password-rules list stays where it is (no Epic 2 form uses it).
-- [ ] `supabase/migrations/20261019120000_events_questionnaire.sql` -- columns, CHECKs, `events_save_questionnaire` and its grants -- AD-2, AD-19.
-- [ ] `supabase/tests/events_questionnaire.test.sql` -- allow and deny for every I/O row, plus: update-column set still `{name}`, direct write of a new column denied, function attributes (definer, empty `search_path`, not executable by anon), `rsvp_due_date` CHECK, unknown-key CHECK -- AD-16.
-- [ ] `src/types/database.ts` -- regenerate -- AD-15.
-- [ ] `src/modules/events/schemas.ts` + `schemas.test.ts` -- Zod questionnaire schema with the DB limits and the branching rule -- AD-17.
-- [ ] `src/modules/events/actions.ts` + `actions.test.ts` -- `saveQuestionnaire` (Zod, then the RPC, mapping `42501` and `23514` to keys); `createEvent` (calls `events_create`, redirects to step 1) -- AD-2.
-- [ ] `app/events/[eventId]/setup/{page,form}.tsx` -- step 1 as one form, with prefilled answers, "Step 1 of 6", *Back*/*Next*, inline errors, `saveFailedToast` on failure -- UX-DR7, UX-DR25.
-- [ ] `app/events/page.tsx` -- add the *Create new event* button (form with the `createEvent` action) -- entry point until 2.4.
-- [ ] `messages/nb.json`, `messages/en.json` -- all wizard strings and error keys.
+- [x] `src/components/form.tsx` -- extract `inputClass`, `buttonClass`, `Failure`, `FieldError` from `app/profile/forms.tsx`; use them in `profile`, `login` and `signup` forms -- retrospective A4, no behaviour change. The password-rules list stays where it is (no Epic 2 form uses it).
+- [x] `supabase/migrations/20261019120000_events_questionnaire.sql` -- columns, CHECKs, `events_save_questionnaire` and its grants -- AD-2, AD-19.
+- [x] `supabase/tests/events_questionnaire.test.sql` -- allow and deny for every I/O row, plus: update-column set still `{name}`, direct write of a new column denied, function attributes (definer, empty `search_path`, not executable by anon), `rsvp_due_date` CHECK, unknown-key CHECK -- AD-16.
+- [x] `src/types/database.ts` -- regenerate -- AD-15.
+- [x] `src/modules/events/schemas.ts` + `schemas.test.ts` -- Zod questionnaire schema with the DB limits and the branching rule -- AD-17.
+- [x] `src/modules/events/actions.ts` + `actions.test.ts` -- `saveQuestionnaire` (Zod, then the RPC, mapping `42501` and `23514` to keys); `createEvent` (calls `events_create`, redirects to step 1) -- AD-2.
+- [x] `app/events/[eventId]/setup/{page,form}.tsx` -- step 1 as one form, with prefilled answers, "Step 1 of 6", *Back*/*Next*, inline errors, `saveFailedToast` on failure -- UX-DR7, UX-DR25.
+- [x] `app/events/page.tsx` -- add the *Create new event* button (form with the `createEvent` action) -- entry point until 2.4.
+- [x] `messages/nb.json`, `messages/en.json` -- all wizard strings and error keys.
 - [ ] `docs/ki-logg.md` -- Story 2.2 entry; offer a `docs/refleksjonsnotater.md` entry for the `unknown_answers` choice (append-only).
 
 **Acceptance Criteria:**
@@ -84,6 +84,14 @@ context:
 - Given the change, when `pnpm lint`, `pnpm format:check`, `pnpm test` and `.githooks/test.sh` run, then they pass.
 
 ## Implementation Notes
+
+- `Result`, `refuse` and `fieldErrors` moved to `src/lib/result.ts` (they were private to the auth module), so the events module does not import from auth.
+- The generated RPC types make every argument non-null, so `saveQuestionnaire` casts the argument object once, with a comment. "Not sure yet" is stored as null.
+- The form submits through `onSubmit` and `startTransition` instead of `<form action>`, because React resets an uncontrolled form after an action and the inputs would lose their values on a validation error.
+- Radio groups are `fieldset role="radiogroup"` with `aria-invalid`, since `aria-invalid` is not valid on a radio input. Focus goes to the first `[aria-invalid="true"]`.
+- Added `e2e/events-questionnaire.spec.ts` (answer, inline errors with focus, reload shows answers, 320px, another user gets no form). It was not in the task list.
+- `next dev` rewrote `AGENTS.md` while the dev server ran. That change was reverted and is not part of the story.
+- `e2e/shell.spec.ts` "phone menu follows the h1" failed once in the full run and passes alone, with and without this change.
 
 ## Spec Change Log
 
