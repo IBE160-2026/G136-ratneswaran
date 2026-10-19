@@ -1,4 +1,5 @@
 import {
+  CalendarX,
   CircleAlert,
   CircleCheck,
   CircleDot,
@@ -25,6 +26,7 @@ export const STATUSES = {
   obsolete: { icon: CircleMinus, tone: "text-status-obsolete line-through" },
   atRisk: { icon: null, tone: "text-at-risk-text" },
   newItem: { icon: null, tone: "bg-badge px-2 py-0.5 text-badge-foreground" },
+  cancelled: { icon: CalendarX, tone: "text-muted-foreground" },
 } satisfies Record<string, { icon: LucideIcon | null; tone: string }>;
 
 export type Status = keyof typeof STATUSES;

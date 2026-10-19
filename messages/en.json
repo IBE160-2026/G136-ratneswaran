@@ -9,7 +9,9 @@
     "menu": "Menu",
     "allEvents": "All events",
     "privacy": "Privacy notice",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "overview": "Overview",
+    "questionnaire": "Questionnaire"
   },
   "home": {
     "surface": "Home",
@@ -27,7 +29,8 @@
     "done": "Done",
     "obsolete": "Obsolete",
     "atRisk": "{count} at risk",
-    "newItem": "{count, plural, one {# new item} other {# new items}}"
+    "newItem": "{count, plural, one {# new item} other {# new items}}",
+    "cancelled": "Cancelled"
   },
   "auth": {
     "signUp": {
@@ -113,8 +116,7 @@
     "surface": "All events",
     "title": "All events",
     "empty": {
-      "title": "Let's plan something.",
-      "hint": "Your events will show up here."
+      "title": "Let's plan something."
     },
     "createNew": "Create new event",
     "saved": "Your answers are saved.",
@@ -184,9 +186,16 @@
       }
     },
     "draft": {
-      "title": "Drafts",
       "untitled": "New event",
-      "item": "{name} – Draft · continue setup"
+      "continueSetup": "Draft · continue setup"
+    },
+    "organizer": "Organizer",
+    "past": "Past events ({count})",
+    "noAccess": "You don't have access to this part of the event.",
+    "home": {
+      "surface": "Overview",
+      "draft": "Draft",
+      "published": "Published"
     }
   },
   "privacy": {
