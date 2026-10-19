@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 
 const MAILPIT = "http://127.0.0.1:54324/api/v1";
@@ -32,4 +33,13 @@ export async function confirmed(page: Page, request: APIRequestContext, password
   await signUp(page, email, password);
   await page.goto(await mailLink(request, email));
   return email;
+}
+
+/** Runs SQL as postgres on the local database; callers only interpolate generated values. */
+export function psql(sql: string) {
+  return execFileSync(
+    "docker",
+    ["exec", "supabase_db_Arrangly", "psql", "-U", "postgres", "-At", "-F", "|", "-c", sql],
+    { encoding: "utf8" },
+  );
 }

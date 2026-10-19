@@ -95,7 +95,9 @@ test("another user cannot open someone else's Event", async ({ page, request, br
   await other.setExtraHTTPHeaders({ "x-forwarded-for": "198.55.77.77" });
   await setupStep1(otherPage, request);
   await otherPage.goto(url);
-  await expect(otherPage.getByText("This page could not be found.")).toBeVisible();
+  await expect(
+    otherPage.getByText("You don't have access to this part of the event."),
+  ).toBeVisible();
   await expect(otherPage.getByRole("heading", { name: "Tell us about your event" })).toHaveCount(0);
   await expect(otherPage.getByLabel("What kind of event is it?")).toHaveCount(0);
   await other.close();
