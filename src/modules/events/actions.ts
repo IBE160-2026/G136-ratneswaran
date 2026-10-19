@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { fieldErrors, refuse, type Result } from "@/lib/result";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
+import { setupPath } from "./save";
 import { questionnaireFromForm, questionnaireSchema } from "./schemas";
 
 const unavailable = refuse("unavailable", "events.wizard.errors.unavailable");
@@ -15,7 +16,7 @@ export async function createEvent(): Promise<Result<null>> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("events_create");
   if (error || !data) return unavailable;
-  redirect(`/events/${data}/setup`);
+  redirect(setupPath(data));
 }
 
 /** Wizard step 1: validates, then saves every answer through `events_save_questionnaire` (AD-2, AD-17). */
@@ -28,7 +29,7 @@ export async function saveQuestionnaire(
     return refuse("invalid_input", "events.wizard.errors.invalidInput", fieldErrors(parsed.error));
   }
   const answers = parsed.data;
-  if (!(await getClaims())) redirect(`/login?next=/events/${answers.eventId}/setup`);
+  if (!(await getClaims())) redirect(`/login?next=${setupPath(answers.eventId)}`);
   // The generated types make every argument non-null, but "Not sure yet" is stored as null.
   const args = {
     p_event_id: answers.eventId,

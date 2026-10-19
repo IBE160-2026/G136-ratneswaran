@@ -185,8 +185,8 @@
     },
     "draft": {
       "title": "Drafts",
-      "continue": "Draft · continue setup",
-      "untitled": "New event"
+      "untitled": "New event",
+      "item": "{name} – Draft · continue setup"
     }
   },
   "privacy": {

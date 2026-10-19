@@ -185,8 +185,8 @@
     },
     "draft": {
       "title": "Utkast",
-      "continue": "Utkast · fortsett oppsettet",
-      "untitled": "Nytt arrangement"
+      "untitled": "Nytt arrangement",
+      "item": "{name} – Utkast · fortsett oppsettet"
     }
   },
   "privacy": {

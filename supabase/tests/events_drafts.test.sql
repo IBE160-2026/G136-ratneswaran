@@ -1,5 +1,5 @@
 begin;
-select plan(16);
+select plan(18);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -7,6 +7,16 @@ insert into auth.users (id, email) values
 
 create temp table drafts (tag text, id uuid);
 grant select, insert on drafts to authenticated;
+
+-- A new events column must be added to the blank-draft test in events_create, or an answered draft could be reused.
+select is(
+  (select array_agg(attname::text order by attname) from pg_attribute
+   where attrelid = 'public.events'::regclass and attnum > 0 and not attisdropped),
+  array['created_at', 'duration_minutes', 'ends_at', 'event_type', 'guest_count', 'guest_list_method', 'id',
+    'language', 'name', 'organizer_id', 'published_at', 'rsvp_due_date', 'rsvp_wanted', 'starts_at',
+    'time_zone', 'unknown_answers', 'venue_known'],
+  'events has exactly the columns events_create checks for a blank draft'
+);
 
 -- A creates twice: one blank draft
 set local role authenticated;
@@ -20,8 +30,14 @@ select is(
 );
 select is((select count(*) from public.events), 1::bigint, 'A has one draft after two creates');
 select ok(
-  (select count(*) from pg_locks where locktype = 'advisory' and pid = pg_backend_pid()) >= 1,
-  'create took the per-Organizer lock'
+  exists (select 1 from pg_locks where locktype = 'advisory' and pid = pg_backend_pid()
+    and ((classid::bigint << 32) | objid::bigint) = hashtextextended('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 0)),
+  'create took the lock keyed on the Organizer'
+);
+select ok(
+  not exists (select 1 from pg_locks where locktype = 'advisory' and pid = pg_backend_pid()
+    and ((classid::bigint << 32) | objid::bigint) = hashtextextended('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 0)),
+  'the lock is not shared with another Organizer'
 );
 
 -- Other user B gets their own draft

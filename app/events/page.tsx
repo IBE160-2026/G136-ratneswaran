@@ -43,7 +43,7 @@ export default async function EventsPage({
                   href={setupPath(draft.id)}
                   className="min-h-touch bg-card flex items-center rounded-lg border px-4"
                 >
-                  {draft.name ?? t("draft.untitled")} – {t("draft.continue")}
+                  {t("draft.item", { name: draft.name ?? t("draft.untitled") })}
                 </Link>
               </li>
             ))}

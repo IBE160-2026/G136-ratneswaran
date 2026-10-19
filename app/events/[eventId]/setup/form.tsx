@@ -120,7 +120,6 @@ export function QuestionnaireForm({
   const [rsvpWanted, setRsvpWanted] = useState(initial.rsvpWanted);
   const formRef = useRef<HTMLFormElement>(null);
   const zoneRef = useRef<HTMLSelectElement>(null);
-  const lastData = useRef<FormData | null>(null);
   const errors = (state && !state.ok && state.error.fields) || {};
   const submit = (data: FormData) => startTransition(() => action(data));
 
@@ -134,14 +133,18 @@ export function QuestionnaireForm({
   useEffect(() => {
     if (!state || state.ok) return;
     formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-    if (state.error.code === "unavailable" && lastData.current) {
-      const data = lastData.current;
-      const retry = () => submit(data);
+    if (state.error.code === "unavailable") {
+      // Retry sends what is in the form now, so edits made after the failure are not lost.
+      const retry = () => submit(new FormData(formRef.current!));
       const toastId = saveFailedToast(tf("saveFailed"), retry, tf("retry"));
-      // The browser coming back online retries once with the same answers.
-      window.addEventListener("online", retry, { once: true });
+      // The browser coming back online retries once.
+      const onOnline = () => {
+        toast.dismiss(toastId);
+        retry();
+      };
+      window.addEventListener("online", onOnline, { once: true });
       return () => {
-        window.removeEventListener("online", retry);
+        window.removeEventListener("online", onOnline);
         toast.dismiss(toastId);
       };
     }
@@ -164,8 +167,7 @@ export function QuestionnaireForm({
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        lastData.current = new FormData(event.currentTarget);
-        submit(lastData.current);
+        submit(new FormData(event.currentTarget));
       }}
       className="flex max-w-md flex-col gap-6 py-12"
     >
