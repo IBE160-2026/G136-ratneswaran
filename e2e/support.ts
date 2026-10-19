@@ -43,3 +43,21 @@ export function psql(sql: string) {
     { encoding: "utf8" },
   );
 }
+
+/** Fills wizard step 1 with valid answers for the given event type. */
+export async function answerStep1(page: Page, eventType = "birthday") {
+  await page.getByLabel("What kind of event is it?").selectOption(eventType);
+  await page.getByLabel("Date and time").fill("2027-06-01T18:00");
+  await page.getByLabel("Time zone").selectOption("Europe/Oslo");
+  await page.getByLabel("How long will it last (hours)?").fill("4");
+  await page.getByLabel("How many guests?").fill("80");
+  await page.getByRole("radiogroup", { name: "Do you have a venue?" }).getByLabel("Yes").check();
+  await page
+    .getByRole("radiogroup", { name: "Do you want guests to reply (RSVP)?" })
+    .getByLabel("No", { exact: true })
+    .check();
+  await page
+    .getByRole("radiogroup", { name: "How will you build the guest list?" })
+    .getByLabel("Add them by hand")
+    .check();
+}
