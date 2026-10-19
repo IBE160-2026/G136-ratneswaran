@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
 const getClaims = vi.fn();
-vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ rpc }), getClaims }));
+const maybeSingle = vi.fn();
+const from = () => ({ select: () => ({ eq: () => ({ maybeSingle }) }) });
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ rpc, from }), getClaims }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: (to: string) => {
@@ -10,7 +12,8 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { createEvent, saveQuestionnaire, setRoleActive, updateSchedule } = await import("./actions");
+const { cancelEvent, createEvent, deleteEvent, saveQuestionnaire, setRoleActive, updateSchedule } =
+  await import("./actions");
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -81,6 +84,7 @@ describe("saveQuestionnaire", () => {
 
   it.each([
     ["42501", "forbidden"],
+    ["55000", "read_only"],
     ["23514", "invalid_input"],
     ["22023", "invalid_input"],
     ["22008", "invalid_input"],
@@ -136,6 +140,7 @@ describe("updateSchedule", () => {
 
   it.each([
     ["42501", "forbidden"],
+    ["55000", "read_only"],
     ["23514", "invalid_input"],
     ["22023", "invalid_input"],
     ["XX000", "unavailable"],
@@ -204,9 +209,136 @@ describe("setRoleActive", () => {
 
   it.each([
     ["42501", "forbidden"],
+    ["55000", "read_only"],
     ["XX000", "unavailable"],
   ])("maps database error %s to %s", async (code, expected) => {
     rpc.mockResolvedValue({ data: null, error: { code } });
     expect(await setRoleActive(input)).toMatchObject({ ok: false, error: { code: expected } });
+  });
+});
+
+const eventId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+describe("cancelEvent", () => {
+  it("cancels with the trimmed note and opens the Event home", async () => {
+    await expect(cancelEvent(null, form({ eventId, note: "  Rain  " }))).rejects.toThrow(
+      `REDIRECT /events/${eventId}`,
+    );
+    expect(rpc).toHaveBeenCalledWith("events_cancel", { p_event_id: eventId, p_note: "Rain" });
+  });
+
+  it("rejects a note over 500 characters inline without calling the database", async () => {
+    const result = await cancelEvent(null, form({ eventId, note: "x".repeat(501) }));
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "invalid_input", fields: { note: "events.settings.cancel.noteTooLong" } },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["42501", "forbidden"],
+    ["55000", "read_only"],
+    ["XX000", "unavailable"],
+  ])("maps database error %s to %s", async (code, expected) => {
+    rpc.mockResolvedValue({ data: null, error: { code } });
+    expect(await cancelEvent(null, form({ eventId, note: "" }))).toMatchObject({
+      ok: false,
+      error: { code: expected },
+    });
+  });
+
+  it("sends a signed-out caller to log in", async () => {
+    getClaims.mockResolvedValue(null);
+    await expect(cancelEvent(null, form({ eventId, note: "" }))).rejects.toThrow(
+      `REDIRECT /login?next=/events/${eventId}/settings`,
+    );
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("deleteEvent", () => {
+  const published = { name: "Summer party", published_at: "2027-01-01", cancelled_at: null };
+
+  beforeEach(() => maybeSingle.mockResolvedValue({ data: published, error: null }));
+
+  it("deletes once the typed name matches, ignoring surrounding spaces", async () => {
+    await expect(
+      deleteEvent(null, form({ eventId, confirmName: " Summer party " })),
+    ).rejects.toThrow("REDIRECT /events?deleted=event");
+    expect(rpc).toHaveBeenCalledWith("events_delete", { p_event_id: eventId });
+  });
+
+  it.each(["summer party", "Summer", ""])(
+    "refuses the typed name %j inline without deleting",
+    async (confirmName) => {
+      expect(await deleteEvent(null, form({ eventId, confirmName }))).toMatchObject({
+        ok: false,
+        error: {
+          code: "invalid_input",
+          fields: { confirmName: "events.settings.delete.nameMismatch" },
+        },
+      });
+      expect(rpc).not.toHaveBeenCalled();
+    },
+  );
+
+  it("discards a draft without a typed name", async () => {
+    maybeSingle.mockResolvedValue({
+      data: { name: null, published_at: null, cancelled_at: null },
+      error: null,
+    });
+    await expect(deleteEvent(null, form({ eventId }))).rejects.toThrow(
+      "REDIRECT /events?deleted=draft",
+    );
+    expect(rpc).toHaveBeenCalledWith("events_delete", { p_event_id: eventId });
+  });
+
+  it("needs the name for a cancelled Event", async () => {
+    maybeSingle.mockResolvedValue({
+      data: { ...published, cancelled_at: "2027-01-02" },
+      error: null,
+    });
+    expect(await deleteEvent(null, form({ eventId }))).toMatchObject({
+      error: { code: "invalid_input" },
+    });
+  });
+
+  it("reports a failed lookup without deleting", async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: { code: "XX000" } });
+    expect(await deleteEvent(null, form({ eventId, confirmName: "x" }))).toMatchObject({
+      error: { code: "unavailable" },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses an Event the caller cannot see", async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: null });
+    expect(await deleteEvent(null, form({ eventId, confirmName: "x" }))).toMatchObject({
+      error: { code: "forbidden" },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["42501", "forbidden"],
+    ["XX000", "unavailable"],
+  ])("maps database error %s to %s", async (code, expected) => {
+    rpc.mockResolvedValue({ data: null, error: { code } });
+    expect(await deleteEvent(null, form({ eventId, confirmName: "Summer party" }))).toMatchObject({
+      ok: false,
+      error: { code: expected },
+    });
+  });
+
+  it("refuses a malformed id and sends a signed-out caller to log in", async () => {
+    expect(await deleteEvent(null, form({ eventId: "nope" }))).toMatchObject({
+      error: { code: "invalid_input" },
+    });
+    getClaims.mockResolvedValue(null);
+    await expect(deleteEvent(null, form({ eventId }))).rejects.toThrow(
+      `REDIRECT /login?next=/events/${eventId}/settings`,
+    );
+    expect(rpc).not.toHaveBeenCalled();
   });
 });

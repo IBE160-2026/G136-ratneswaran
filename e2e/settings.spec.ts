@@ -93,6 +93,10 @@ test("Event settings is in the event group, read-only once over or cancelled, an
       await expect(page.getByLabel(label)).toBeDisabled();
     }
     await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
+    if (id === over) {
+      await expect(page.getByRole("button", { name: "Cancel event" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Delete event" })).toBeVisible();
+    }
   }
 
   // A draft stays editable after its date has passed, so a mistyped date can be fixed.

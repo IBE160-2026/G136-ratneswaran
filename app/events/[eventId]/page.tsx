@@ -32,7 +32,12 @@ export default async function EventHomePage({ params }: Props) {
         </p>
       )}
       {event.cancelled_at ? (
-        <StatusLabel status="cancelled" className="self-start" />
+        <>
+          <StatusLabel status="cancelled" className="self-start" />
+          {event.cancellation_note && (
+            <p className="break-words whitespace-pre-line">{event.cancellation_note}</p>
+          )}
+        </>
       ) : (
         <p>{t(event.published_at ? "home.published" : "home.draft")}</p>
       )}

@@ -28,7 +28,7 @@ export default async function TeamPage({ params }: Props) {
     .eq("event_id", eventId);
   if (error) throw new Error("Could not load roles");
   const roles = data.toSorted((a, b) => roleKeys.indexOf(a.key) - roleKeys.indexOf(b.key));
-  // Published past and cancelled Events are read-only; Story 2.7 enforces it in the database.
+  // Published past and cancelled Events are read-only; the database refuses their changes too.
   const readOnly = !isDraft(event) && isPast(event, new Date());
   return (
     <div className="flex flex-col gap-4 py-12">
