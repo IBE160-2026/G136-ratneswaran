@@ -89,6 +89,9 @@ isOneToOne: false
 "events_set_role_active":
 { Args: { "p_active": boolean,"p_role_id": string }; Returns: undefined
                            },
+"events_update_schedule":
+{ Args: { "p_ends_local": string,"p_event_id": string,"p_language": string,"p_rsvp_due_date": string,"p_starts_local": string,"p_time_zone": string }; Returns: undefined
+                           },
 "is_organizer":
 { Args: { "p_event_id": string }; Returns: boolean
                            }
