@@ -1,11 +1,12 @@
 begin;
-select plan(30);
+select plan(33);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'user-b@example.test');
 
--- A's Events: open draft (1), cancelled published (2), ended published (3), second draft (4)
+-- A's Events: open draft (1), cancelled published (2), ended published (3), second draft (4),
+-- past draft (5), published and not ended (6)
 insert into public.events (id, organizer_id, name, starts_at, ends_at, time_zone, language, published_at, cancelled_at)
 values
   ('30000000-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Lucas 40',
@@ -15,7 +16,11 @@ values
   ('30000000-0000-0000-0000-000000000003', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Over',
    now() - interval '2 days', now() - interval '1 day', 'Europe/Oslo', 'en', now() - interval '3 days', null),
   ('30000000-0000-0000-0000-000000000004', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Other',
-   now() + interval '7 days', now() + interval '7 days 4 hours', 'Europe/Oslo', 'en', null, null);
+   now() + interval '7 days', now() + interval '7 days 4 hours', 'Europe/Oslo', 'en', null, null),
+  ('30000000-0000-0000-0000-000000000005', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Past draft',
+   now() - interval '2 days', now() - interval '1 day', 'Europe/Oslo', 'en', null, null),
+  ('30000000-0000-0000-0000-000000000006', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Upcoming',
+   now() + interval '7 days', now() + interval '7 days 4 hours', 'Europe/Oslo', 'en', now(), null);
 
 -- Attributes and grants
 select ok(
@@ -120,6 +125,18 @@ select throws_ok(
 select throws_ok(
   $$select public.guests_add('30000000-0000-0000-0000-000000000003', '[{"name": "Eva", "email": "eva@x.no"}]')$$,
   '55000', null, 'an ended published Event takes no guests'
+);
+select lives_ok(
+  $$select public.guests_add('30000000-0000-0000-0000-000000000005', '[{"name": "Eva", "email": "eva@x.no"}]')$$,
+  'a past draft still takes guests'
+);
+select lives_ok(
+  $$select public.guests_add('30000000-0000-0000-0000-000000000006', '[{"name": "Eva", "email": "eva@x.no"}]')$$,
+  'a published Event that has not ended takes guests'
+);
+select throws_ok(
+  $$select public.guests_add('30000000-0000-0000-0000-000000000001', '{}'::jsonb)$$,
+  '22023', null, 'rows that are not an array are refused'
 );
 select throws_ok(
   $$insert into public.guests (event_id, name) values ('30000000-0000-0000-0000-000000000001', 'Eva')$$,

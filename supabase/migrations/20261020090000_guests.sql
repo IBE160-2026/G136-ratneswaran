@@ -6,10 +6,13 @@ create table public.guests (
   event_id uuid not null references public.events (id) on delete cascade,
   -- No control characters, line breaks included: names reach email headers later.
   name text not null check (char_length(btrim(name)) between 1 and 200 and name !~ '[[:cntrl:]]'),
-  created_at timestamptz not null default now(),
+  -- clock_timestamp, not now(): rows of one batch keep the order they were typed in.
+  created_at timestamptz not null default clock_timestamp(),
   -- Target of the composite key below, so a contact can never point at another Event's guest.
   unique (id, event_id)
 );
+
+create index guests_event_created on public.guests (event_id, created_at);
 
 -- The email lives apart from the name and stays readable only by the Organizer.
 create table public.guest_contacts (
