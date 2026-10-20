@@ -338,16 +338,17 @@
         "invalidCharacters": "Inneholder ugyldige tegn.",
         "duplicate": "E-posten står to ganger.",
         "alreadyListed": "Står allerede på listen.",
-        "tooMany": "For mange rader. Legg til høyst 200 om gangen."
+        "tooMany": "For mange rader. Legg til høyst {max} om gangen."
       },
       "errors": {
         "empty": "Skriv minst én gjest.",
-        "tooLong": "Det er for mye tekst på én gang. Legg til høyst 200 gjester om gangen."
+        "tooLong": "Det er for mye tekst på én gang. Legg til høyst {max} gjester om gangen."
       }
     },
     "list": {
       "count": "{count, plural, one {# gjest} other {# gjester}}",
-      "empty": "Ingen gjester ennå. Legg dem til med navn og e-post."
+      "empty": "Ingen gjester ennå. Legg dem til med navn og e-post.",
+      "emptyReadOnly": "Ingen gjester."
     }
   },
   "privacy": {

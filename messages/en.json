@@ -338,16 +338,17 @@
         "invalidCharacters": "Contains invalid characters.",
         "duplicate": "Duplicate email.",
         "alreadyListed": "Already on the list.",
-        "tooMany": "Too many rows. Add at most 200 at a time."
+        "tooMany": "Too many rows. Add at most {max} at a time."
       },
       "errors": {
         "empty": "Write at least one guest.",
-        "tooLong": "That's too much text at once. Add at most 200 guests at a time."
+        "tooLong": "That's too much text at once. Add at most {max} guests at a time."
       }
     },
     "list": {
       "count": "{count, plural, one {# guest} other {# guests}}",
-      "empty": "No guests yet. Add them by name and email."
+      "empty": "No guests yet. Add them by name and email.",
+      "emptyReadOnly": "No guests."
     }
   },
   "privacy": {

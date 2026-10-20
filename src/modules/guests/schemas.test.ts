@@ -21,6 +21,12 @@ describe("parseGuestRows", () => {
     ]);
   });
 
+  it("drops one pair of quotes around the name in the angle form", () => {
+    expect(parseGuestRows('"Berg, Ann" <ann@x.no>').valid).toEqual([
+      { name: "Berg, Ann", email: "ann@x.no", line: '"Berg, Ann" <ann@x.no>' },
+    ]);
+  });
+
   it.each([
     ["Dan, dan@", "invalidEmail"],
     ["Dan", "format"],

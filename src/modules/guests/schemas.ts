@@ -29,7 +29,8 @@ export type FailedRow = { line: string; reason: string };
 /** `Name <email>`, or a name and an email split at the last tab, comma or semicolon. */
 function split(line: string) {
   const angle = /^(.*)<([^<>]*)>\s*$/.exec(line);
-  if (angle) return { name: angle[1], email: angle[2] };
+  // Mail clients write `"Berg, Ann" <ann@x.no>`: drop one pair of quotes around the name.
+  if (angle) return { name: angle[1].trim().replace(/^"(.*)"$/, "$1"), email: angle[2] };
   const at = Math.max(line.lastIndexOf("\t"), line.lastIndexOf(","), line.lastIndexOf(";"));
   return at < 0 ? null : { name: line.slice(0, at), email: line.slice(at + 1) };
 }
