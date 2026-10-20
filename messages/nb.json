@@ -11,6 +11,7 @@
     "privacy": "Personvernerklæring",
     "closeMenu": "Lukk menyen",
     "overview": "Oversikt",
+    "guests": "Gjester",
     "questionnaire": "Spørsmål",
     "team": "Team og roller",
     "settings": "Arrangementsinnstillinger"
@@ -32,7 +33,8 @@
     "obsolete": "Utgått",
     "atRisk": "{count} i faresonen",
     "newItem": "{count, plural, one {# ny sak} other {# nye saker}}",
-    "cancelled": "Avlyst"
+    "cancelled": "Avlyst",
+    "notInvited": "Ikke invitert ennå"
   },
   "auth": {
     "signUp": {
@@ -315,6 +317,38 @@
       "errors": {
         "incomplete": "Noen påkrevde opplysninger mangler."
       }
+    }
+  },
+  "guests": {
+    "surface": "Gjester",
+    "title": "Gjester",
+    "stepTitle": "Legg til gjestene",
+    "readOnly": "Arrangementet er over eller avlyst, så gjestelisten kan ikke endres lenger.",
+    "add": {
+      "label": "Gjester, én per linje",
+      "hint": "Skriv navn og e-post på hver linje, som «Ann Berg, ann@example.com» eller «Ann Berg '<'ann@example.com>». Du kan lime inn rader fra et regneark. Opptil {max} gjester om gangen.",
+      "submit": "Legg til gjester",
+      "added": "{count, plural, =0 {Ingen gjester lagt til} one {# gjest lagt til} other {# gjester lagt til}}",
+      "failedTitle": "{count, plural, one {# linje ble ikke lagt til. Rett den og legg den til igjen.} other {# linjer ble ikke lagt til. Rett dem og legg dem til igjen.}}",
+      "failedRow": "{line}: {reason}",
+      "reasons": {
+        "format": "Skriv navn og e-post, skilt med komma.",
+        "invalidName": "Skriv et navn på 1 til 200 tegn.",
+        "invalidEmail": "Ugyldig e-post.",
+        "invalidCharacters": "Inneholder ugyldige tegn.",
+        "duplicate": "E-posten står to ganger.",
+        "alreadyListed": "Står allerede på listen.",
+        "tooMany": "For mange rader. Legg til høyst {max} om gangen."
+      },
+      "errors": {
+        "empty": "Skriv minst én gjest.",
+        "tooLong": "Det er for mye tekst på én gang. Legg til høyst {max} gjester om gangen."
+      }
+    },
+    "list": {
+      "count": "{count, plural, one {# gjest} other {# gjester}}",
+      "empty": "Ingen gjester ennå. Legg dem til med navn og e-post.",
+      "emptyReadOnly": "Ingen gjester."
     }
   },
   "privacy": {

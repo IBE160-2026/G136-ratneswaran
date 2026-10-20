@@ -33,7 +33,7 @@ test("a double click makes one draft, and its link reopens the saved answers", a
   await draft.click();
   await answerStep1(page);
   await next(page).click();
-  await expect(page).toHaveURL(/\/setup\/description$/);
+  await expect(page).toHaveURL(/\/setup\/guests$/);
 
   await page.goto("/events");
   await page.getByRole("link", { name: /Draft · continue setup/ }).click();
@@ -58,6 +58,6 @@ test("an offline save keeps the input and saves when the browser is back online"
   await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
 
   await page.context().setOffline(false);
-  await expect(page).toHaveURL(/\/setup\/description$/);
+  await expect(page).toHaveURL(/\/setup\/guests$/);
   await expect(toast).toHaveCount(0);
 });

@@ -8,6 +8,7 @@ import {
   Flag,
   Hourglass,
   Lock,
+  Mail,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +28,8 @@ export const STATUSES = {
   atRisk: { icon: null, tone: "text-at-risk-text" },
   newItem: { icon: null, tone: "bg-badge px-2 py-0.5 text-badge-foreground" },
   cancelled: { icon: CalendarX, tone: "text-muted-foreground" },
+  // Constant until Epic 7 adds invitations.
+  notInvited: { icon: Mail, tone: "text-muted-foreground" },
 } satisfies Record<string, { icon: LucideIcon | null; tone: string }>;
 
 export type Status = keyof typeof STATUSES;

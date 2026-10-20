@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { CalendarDays, ClipboardList, House, Settings, UserRound, Users } from "lucide-react";
+import {
+  CalendarDays,
+  ClipboardList,
+  Contact,
+  House,
+  Settings,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { logOut } from "@/modules/auth/actions";
 import { cn } from "@/lib/utils";
@@ -55,6 +63,9 @@ export function AppNav({
         <>
           <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
             {t("overview")}
+          </NavLink>
+          <NavLink href={`${eventPath(eventId)}/guests`} icon={Contact} onNavigate={onNavigate}>
+            {t("guests")}
           </NavLink>
           <NavLink href={`${eventPath(eventId)}/team`} icon={Users} onNavigate={onNavigate}>
             {t("team")}
