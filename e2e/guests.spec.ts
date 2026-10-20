@@ -115,7 +115,7 @@ test("a failed add offers Retry and adds once back online", async ({ page, reque
   await expect(page.getByRole("status").filter({ hasText: "1 guest added" })).toBeVisible();
 });
 
-test("the guest list reads at 320px", async ({ page, request }) => {
+test("a list of 40 guests reads at 320px", async ({ page, request }) => {
   const email = await signedIn(page, request);
   const id = seed(email, "7 days");
   addGuest(
@@ -123,13 +123,22 @@ test("the guest list reads at 320px", async ({ page, request }) => {
     "Annabelle Christina Bergersen-Dahl",
     "annabelle.christina.bergersen-dahl@example.com",
   );
+  psql(`with g as (insert into public.guests (event_id, name)
+      select '${id}', 'Guest ' || i from generate_series(1, 39) as i returning id, event_id, name)
+    insert into public.guest_contacts (guest_id, event_id, email)
+    select id, event_id, replace(lower(name), ' ', '') || '@example.com' from g`);
   await page.setViewportSize({ width: 320, height: 640 });
   await page.goto(`/events/${id}/guests`);
-  await expect(page.getByText("Not invited yet")).toBeVisible();
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
-  );
-  expect(overflow).toBe(false);
+  await expect(page.getByRole("heading", { level: 2, name: "40 guests" })).toBeVisible();
+  await expect(page.getByText("Not invited yet")).toHaveCount(40);
+  const overflows = () =>
+    page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+  expect(await overflows()).toBe(false);
+  await page.getByRole("button", { name: "Edit Annabelle Christina Bergersen-Dahl" }).click();
+  await expect(page.getByLabel("Name", { exact: true })).toBeFocused();
+  expect(await overflows()).toBe(false);
 });
 
 test("a cancelled Event shows its guests without the form", async ({ page, request }) => {
@@ -141,6 +150,97 @@ test("a cancelled Event shows its guests without the form", async ({ page, reque
   await expect(page.getByText("This event is over or cancelled")).toBeVisible();
   await expect(page.getByLabel("Guests, one per line")).toHaveCount(0);
   await expect(page.getByRole("region", { name: "1 guest" })).toContainText("Ann Berg");
+  await expect(page.getByRole("button", { name: /^(Edit|Remove) / })).toHaveCount(0);
   await page.goto(`/events/${id}/setup/guests`);
   await expect(page).toHaveURL(new RegExp(`/events/${id}$`));
+});
+
+test("a guest's name and email are edited inline, under the rules of adding", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "7 days");
+  addGuest(id, "Ann Berg", "ann@x.no");
+  addGuest(id, "Bo", "bo@x.no");
+  await page.goto(`/events/${id}/guests`);
+
+  await page.getByRole("button", { name: "Edit Ann Berg" }).click();
+  const name = page.getByLabel("Name", { exact: true });
+  await expect(name).toBeFocused();
+  await expect(name).toHaveValue("Ann Berg");
+  const contact = page.getByLabel("Email", { exact: true });
+  await contact.fill("BO@x.no");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(contact).toHaveAttribute("aria-invalid", "true");
+  await expect(contact).toBeFocused();
+  await expect(page.getByText("Already on the list.")).toBeVisible();
+
+  await name.fill("Ann Dahl");
+  await contact.fill("ann.berg@x.no");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("button", { name: "Edit Ann Dahl" })).toBeFocused();
+  await page.reload();
+  await expect(page.getByRole("region", { name: "2 guests" }).getByRole("listitem")).toHaveText([
+    /^Ann Dahl\s*ann\.berg@x\.no/,
+    /^Bo/,
+  ]);
+
+  await page.getByRole("button", { name: "Edit Bo" }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Bob");
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("button", { name: "Edit Bo" })).toBeFocused();
+});
+
+test("a removed guest comes back with Undo, and stays gone without it", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "7 days");
+  addGuest(id, "Ann Berg", "ann@x.no");
+  addGuest(id, "Bo", "bo@x.no");
+  await page.goto(`/events/${id}/guests`);
+
+  await page.getByRole("button", { name: "Remove Ann Berg" }).click();
+  await expect(page.getByRole("button", { name: "Edit Bo" })).toBeFocused();
+  await expect(page.getByRole("region", { name: "1 guest" })).toBeVisible();
+  await expect(page.getByText("Ann Berg removed.")).toBeVisible();
+  await page.getByRole("button", { name: "Undo" }).click();
+  // The restored guest returns at the end of the list.
+  await expect(page.getByRole("region", { name: "2 guests" }).getByRole("listitem")).toHaveText([
+    /^Bo/,
+    /^Ann Berg\s*ann@x\.no/,
+  ]);
+
+  await page.getByRole("button", { name: "Remove Bo" }).click();
+  await expect(page.getByText("Bo removed.")).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("region", { name: "1 guest" }).getByRole("listitem")).toHaveText([
+    /^Ann Berg/,
+  ]);
+
+  await page.getByRole("button", { name: "Remove Ann Berg" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Guests" })).toBeFocused();
+  await expect(page.getByText("No guests yet. Add them by name and email.")).toBeVisible();
+});
+
+test("Undo after the email was added again duplicates nothing", async ({ page, request }) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "7 days");
+  addGuest(id, "Ann Berg", "ann@x.no");
+  await page.goto(`/events/${id}/guests`);
+
+  await page.getByRole("button", { name: "Remove Ann Berg" }).click();
+  await expect(page.getByText("Ann Berg removed.")).toBeVisible();
+  await page.getByLabel("Guests, one per line").fill("Ann Berg, ann@x.no");
+  await page.getByRole("button", { name: "Add guests" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "1 guest added" })).toBeVisible();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(
+    page.getByText("That email is on the list again, so nothing was brought back."),
+  ).toBeVisible();
+  await expect(page.getByRole("region", { name: "1 guest" }).getByRole("listitem")).toHaveText([
+    /^Ann Berg/,
+  ]);
 });
