@@ -348,7 +348,21 @@
     "list": {
       "count": "{count, plural, one {# guest} other {# guests}}",
       "empty": "No guests yet. Add them by name and email.",
-      "emptyReadOnly": "No guests."
+      "emptyReadOnly": "No guests.",
+      "edit": "Edit",
+      "editLabel": "Edit {name}",
+      "remove": "Remove",
+      "removeLabel": "Remove {name}",
+      "name": "Name",
+      "email": "Email",
+      "save": "Save",
+      "cancel": "Cancel",
+      "removed": "{name} removed.",
+      "errors": {
+        "removeFailed": "Couldn't remove {name}. Try again.",
+        "restoreFailed": "Couldn't bring back {name}. Add them again by hand.",
+        "restoreDuplicate": "That email is on the list again, so nothing was brought back."
+      }
     }
   },
   "privacy": {

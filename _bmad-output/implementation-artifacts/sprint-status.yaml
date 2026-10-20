@@ -57,8 +57,8 @@ development_status:
   2-6-event-settings-dates-rsvp-due-date-and-language: done
   2-7-cancel-or-delete-an-event: done
   2-8-description-and-publish-to-the-team: done
-  2-9-add-guests-by-hand: review
-  2-10-edit-and-remove-guests: backlog
+  2-9-add-guests-by-hand: done
+  2-10-edit-and-remove-guests: review
   epic-2-retrospective: optional
 
   epic-3: backlog

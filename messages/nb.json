@@ -348,7 +348,21 @@
     "list": {
       "count": "{count, plural, one {# gjest} other {# gjester}}",
       "empty": "Ingen gjester ennå. Legg dem til med navn og e-post.",
-      "emptyReadOnly": "Ingen gjester."
+      "emptyReadOnly": "Ingen gjester.",
+      "edit": "Endre",
+      "editLabel": "Endre {name}",
+      "remove": "Fjern",
+      "removeLabel": "Fjern {name}",
+      "name": "Navn",
+      "email": "E-post",
+      "save": "Lagre",
+      "cancel": "Avbryt",
+      "removed": "{name} er fjernet.",
+      "errors": {
+        "removeFailed": "Kunne ikke fjerne {name}. Prøv igjen.",
+        "restoreFailed": "Kunne ikke hente tilbake {name}. Legg gjesten til igjen for hånd.",
+        "restoreDuplicate": "E-posten står på listen igjen, så ingenting ble hentet tilbake."
+      }
     }
   },
   "privacy": {

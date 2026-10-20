@@ -8,7 +8,8 @@ const reason = (key: string) => `guests.add.reasons.${key}`;
 // Control characters and the Unicode line separators: they could split a future email header.
 const controls = /^[^\u0000-\u001F\u007F-\u009F\u2028\u2029]*$/;
 
-const rowSchema = z.object({
+// One guest; shared by adding and editing (FR-5).
+export const guestSchema = z.object({
   name: z
     .string()
     .trim()
@@ -23,7 +24,7 @@ const rowSchema = z.object({
     .pipe(z.email(reason("invalidEmail"))),
 });
 
-export type GuestRow = z.infer<typeof rowSchema>;
+export type GuestRow = z.infer<typeof guestSchema>;
 export type FailedRow = { line: string; reason: string };
 
 /** `Name <email>`, or a name and an email split at the last tab, comma or semicolon. */
@@ -48,7 +49,7 @@ export function parseGuestRows(text: string, existing: ReadonlySet<string> = new
     if (index >= MAX_GUEST_ROWS) return failed.push({ line, reason: reason("tooMany") });
     const parts = split(line);
     if (!parts) return failed.push({ line, reason: reason("format") });
-    const parsed = rowSchema.safeParse(parts);
+    const parsed = guestSchema.safeParse(parts);
     if (!parsed.success) return failed.push({ line, reason: parsed.error.issues[0].message });
     const key = parsed.data.email.toLowerCase();
     if (existing.has(key)) return failed.push({ line, reason: reason("alreadyListed") });

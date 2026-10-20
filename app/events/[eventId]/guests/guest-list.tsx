@@ -1,8 +1,10 @@
-import { getTranslations } from "next-intl/server";
-import { StatusLabel } from "@/components/status-label";
 import { createClient } from "@/lib/supabase/server";
+import { GuestRows } from "./guest-rows";
 
-/** Shared by wizard step 2 and the Guests page. Oldest first; RLS shows only the Organizer's guests. */
+/**
+ * Shared by wizard step 2 and the Guests page. Oldest first; RLS shows only the Organizer's guests.
+ * The server loads the rows; GuestRows edits and removes them.
+ */
 export async function GuestList({
   eventId,
   readOnly = false,
@@ -10,7 +12,6 @@ export async function GuestList({
   eventId: string;
   readOnly?: boolean;
 }) {
-  const t = await getTranslations("guests.list");
   const supabase = await createClient();
   const [guests, contacts] = await Promise.all([
     supabase
@@ -24,23 +25,11 @@ export async function GuestList({
   ]);
   if (guests.error || contacts.error) throw new Error("Could not load guests");
   const email = new Map(contacts.data.map((contact) => [contact.guest_id, contact.email]));
-
-  if (guests.data.length === 0)
-    return <p className="text-muted-foreground">{t(readOnly ? "emptyReadOnly" : "empty")}</p>;
   return (
-    <section aria-labelledby="guest-count" className="flex flex-col gap-2">
-      <h2 id="guest-count" className="text-headline">
-        {t("count", { count: guests.data.length })}
-      </h2>
-      <ul role="list" className="divide-border flex flex-col divide-y">
-        {guests.data.map((guest) => (
-          <li key={guest.id} className="flex flex-wrap items-baseline gap-x-3 py-2">
-            <span className="min-w-0 break-words">{guest.name}</span>
-            <span className="text-muted-foreground min-w-0 break-all">{email.get(guest.id)}</span>
-            <StatusLabel status="notInvited" className="ml-auto" />
-          </li>
-        ))}
-      </ul>
-    </section>
+    <GuestRows
+      eventId={eventId}
+      readOnly={readOnly}
+      guests={guests.data.map((guest) => ({ ...guest, email: email.get(guest.id) ?? "" }))}
+    />
   );
 }
