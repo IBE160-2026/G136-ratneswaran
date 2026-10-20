@@ -7,6 +7,13 @@ test.beforeEach(async ({ page }) => {
   await page.context().setExtraHTTPHeaders({ "x-forwarded-for": `198.63.${octet()}.${octet()}` });
 });
 
+/** Inserts one guest with its contact; callers pass literals without quotes. */
+const addGuest = (eventId: string, name: string, email: string) =>
+  psql(`with g as (insert into public.guests (event_id, name)
+      values ('${eventId}', '${name}') returning id, event_id)
+    insert into public.guest_contacts (guest_id, event_id, email)
+    select id, event_id, '${email}' from g`);
+
 test("step 2 adds pasted guests, reports the failed lines and lists the guests", async ({
   page,
   request,
@@ -86,15 +93,36 @@ test("the Guests page is in the sidebar and refuses an email already on the list
     "Ann B, Ann@X.no: Already on the list.",
   ]);
   await expect(page.getByRole("region", { name: "1 guest" })).toBeVisible();
+
+  // Oldest first, not alphabetical.
+  await rows.fill("Aaron, aaron@x.no");
+  await page.getByRole("button", { name: "Add guests" }).click();
+  await expect(page.getByRole("region", { name: "2 guests" }).getByRole("listitem")).toHaveText([
+    /^Ann Berg/,
+    /^Aaron/,
+  ]);
+});
+
+test("a failed add offers Retry and adds once back online", async ({ page, request }) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "7 days");
+  await page.goto(`/events/${id}/guests`);
+  await page.getByLabel("Guests, one per line").fill("Ann Berg, ann@x.no");
+  await page.context().setOffline(true);
+  await page.getByRole("button", { name: "Add guests" }).click();
+  await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
+  await page.context().setOffline(false);
+  await expect(page.getByRole("status").filter({ hasText: "1 guest added" })).toBeVisible();
 });
 
 test("the guest list reads at 320px", async ({ page, request }) => {
   const email = await signedIn(page, request);
   const id = seed(email, "7 days");
-  psql(`with g as (insert into public.guests (event_id, name)
-      values ('${id}', 'Annabelle Christina Bergersen-Dahl') returning id, event_id)
-    insert into public.guest_contacts (guest_id, event_id, email)
-    select id, event_id, 'annabelle.christina.bergersen-dahl@example.com' from g`);
+  addGuest(
+    id,
+    "Annabelle Christina Bergersen-Dahl",
+    "annabelle.christina.bergersen-dahl@example.com",
+  );
   await page.setViewportSize({ width: 320, height: 640 });
   await page.goto(`/events/${id}/guests`);
   await expect(page.getByText("Not invited yet")).toBeVisible();
@@ -107,10 +135,12 @@ test("the guest list reads at 320px", async ({ page, request }) => {
 test("a cancelled Event shows its guests without the form", async ({ page, request }) => {
   const email = await signedIn(page, request);
   const id = seed(email, "7 days");
+  addGuest(id, "Ann Berg", "ann@x.no");
   psql(`update public.events set cancelled_at = now() where id = '${id}'`);
   await page.goto(`/events/${id}/guests`);
   await expect(page.getByText("This event is over or cancelled")).toBeVisible();
   await expect(page.getByLabel("Guests, one per line")).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "1 guest" })).toContainText("Ann Berg");
   await page.goto(`/events/${id}/setup/guests`);
   await expect(page).toHaveURL(new RegExp(`/events/${id}$`));
 });
