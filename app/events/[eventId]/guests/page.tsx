@@ -33,7 +33,7 @@ export default async function GuestsPage({ params }: Props) {
       ) : (
         <AddGuestsForm eventId={eventId} />
       )}
-      <GuestList eventId={eventId} />
+      <GuestList eventId={eventId} readOnly={readOnly} />
     </div>
   );
 }

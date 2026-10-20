@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useRef } from "react";
-import { buttonClass, Failure, FieldError, inputClass } from "@/components/form";
+import { buttonClass, Failure, inputClass } from "@/components/form";
 import { addGuests, type AddGuestsResult } from "@/modules/guests/actions";
 import { MAX_GUEST_ROWS } from "@/modules/guests/schemas";
 import { callSafely } from "@/modules/events/save";
@@ -64,17 +64,26 @@ export function AddGuestsForm({ eventId }: { eventId: string }) {
         <p id="rows-hint" className="text-muted-foreground">
           {t("guests.add.hint", { max: MAX_GUEST_ROWS })}
         </p>
-        <FieldError id="rows-error" message={fieldError} />
+        {fieldError && (
+          <p id="rows-error" className="text-destructive">
+            {t(fieldError, { max: MAX_GUEST_ROWS })}
+          </p>
+        )}
       </div>
       {/* Always rendered, so screen readers announce the count when it fills in. */}
-      <p role="status">{state?.ok && t("guests.add.added", { count: state.data.added })}</p>
+      <p role="status">
+        {!pending && state?.ok && t("guests.add.added", { count: state.data.added })}
+      </p>
       {failed.length > 0 && (
         <div id="rows-failed" className="text-destructive flex flex-col gap-1">
           <p>{t("guests.add.failedTitle", { count: failed.length })}</p>
           <ul role="list" className="flex flex-col gap-1">
             {failed.map((row, index) => (
               <li key={index} className="break-all">
-                {t("guests.add.failedRow", { line: row.line, reason: t(row.reason) })}
+                {t("guests.add.failedRow", {
+                  line: row.line,
+                  reason: t(row.reason, { max: MAX_GUEST_ROWS }),
+                })}
               </li>
             ))}
           </ul>

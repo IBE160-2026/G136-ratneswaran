@@ -3,7 +3,13 @@ import { StatusLabel } from "@/components/status-label";
 import { createClient } from "@/lib/supabase/server";
 
 /** Shared by wizard step 2 and the Guests page. Oldest first; RLS shows only the Organizer's guests. */
-export async function GuestList({ eventId }: { eventId: string }) {
+export async function GuestList({
+  eventId,
+  readOnly = false,
+}: {
+  eventId: string;
+  readOnly?: boolean;
+}) {
   const t = await getTranslations("guests.list");
   const supabase = await createClient();
   const [guests, contacts] = await Promise.all([
@@ -11,15 +17,16 @@ export async function GuestList({ eventId }: { eventId: string }) {
       .from("guests")
       .select("id, name")
       .eq("event_id", eventId)
-      // One batch shares created_at, so the name keeps the order stable.
+      // created_at is clock_timestamp, so a batch keeps its typed order; id breaks any tie.
       .order("created_at")
-      .order("name"),
+      .order("id"),
     supabase.from("guest_contacts").select("guest_id, email").eq("event_id", eventId),
   ]);
   if (guests.error || contacts.error) throw new Error("Could not load guests");
   const email = new Map(contacts.data.map((contact) => [contact.guest_id, contact.email]));
 
-  if (guests.data.length === 0) return <p className="text-muted-foreground">{t("empty")}</p>;
+  if (guests.data.length === 0)
+    return <p className="text-muted-foreground">{t(readOnly ? "emptyReadOnly" : "empty")}</p>;
   return (
     <section aria-labelledby="guest-count" className="flex flex-col gap-2">
       <h2 id="guest-count" className="text-headline">
