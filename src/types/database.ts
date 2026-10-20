@@ -51,6 +51,52 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"guest_contacts": {
+                  Row: {
+                    "email": string,"event_id": string,"guest_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email": string,"event_id": string,"guest_id": string
+                  }
+                  Update: {
+                    "email"?: string,"event_id"?: string,"guest_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guest_contacts_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_contacts_guest_id_event_id_fkey"
+      columns: ["guest_id","event_id"]
+isOneToOne: false
+      referencedRelation: "guests"
+      referencedColumns: ["id","event_id"]
+    }
+                  ]
+                },"guests": {
+                  Row: {
+                    "created_at": string,"event_id": string,"id": string,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"event_id": string,"id"?: string,"name": string
+                  }
+                  Update: {
+                    "created_at"?: string,"event_id"?: string,"id"?: string,"name"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guests_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"roles": {
                   Row: {
                     "active": boolean,"event_id": string,"id": string,"key": Database["public"]['Enums']["role_key"],"toggled_at": string | null
@@ -100,6 +146,9 @@ isOneToOne: false
                            },
 "events_update_schedule":
 { Args: { "p_ends_local": string,"p_event_id": string,"p_language": string,"p_rsvp_due_date": string,"p_starts_local": string,"p_time_zone": string }; Returns: undefined
+                           },
+"guests_add":
+{ Args: { "p_event_id": string,"p_rows": Json }; Returns: (string)[]
                            },
 "is_organizer":
 { Args: { "p_event_id": string }; Returns: boolean

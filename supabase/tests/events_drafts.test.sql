@@ -1,5 +1,5 @@
 begin;
-select plan(19);
+select plan(20);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -132,6 +132,15 @@ select is(
   (select count(*) from public.events where published_at is null and name is null),
   1::bigint,
   'exactly one blank draft exists'
+);
+
+-- A draft with guests is not blank
+select public.guests_add((select id from drafts where tag = 'fourth'), '[{"name": "Ann", "email": "ann@x.no"}]');
+insert into drafts select 'after-guests', public.events_create();
+select isnt(
+  (select id from drafts where tag = 'after-guests'),
+  (select id from drafts where tag = 'fourth'),
+  'a draft with guests is not reused'
 );
 
 select * from finish();
