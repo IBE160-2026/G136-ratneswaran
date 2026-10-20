@@ -11,6 +11,7 @@
     "privacy": "Privacy notice",
     "closeMenu": "Close menu",
     "overview": "Overview",
+    "guests": "Guests",
     "questionnaire": "Questionnaire",
     "team": "Team & Roles",
     "settings": "Event settings"
@@ -32,7 +33,8 @@
     "obsolete": "Obsolete",
     "atRisk": "{count} at risk",
     "newItem": "{count, plural, one {# new item} other {# new items}}",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "notInvited": "Not invited yet"
   },
   "auth": {
     "signUp": {
@@ -315,6 +317,37 @@
       "errors": {
         "incomplete": "Some required details are missing."
       }
+    }
+  },
+  "guests": {
+    "surface": "Guests",
+    "title": "Guests",
+    "stepTitle": "Add your guests",
+    "readOnly": "This event is over or cancelled, so its guest list can no longer be changed.",
+    "add": {
+      "label": "Guests, one per line",
+      "hint": "Write a name and an email on each line, like \"Ann Berg, ann@example.com\" or \"Ann Berg '<'ann@example.com>\". You can paste rows from a spreadsheet. Up to {max} guests at a time.",
+      "submit": "Add guests",
+      "added": "{count, plural, =0 {No guests added} one {# guest added} other {# guests added}}",
+      "failedTitle": "{count, plural, one {# line wasn't added. Fix it and add it again.} other {# lines weren't added. Fix them and add them again.}}",
+      "failedRow": "{line}: {reason}",
+      "reasons": {
+        "format": "Write a name and an email, separated by a comma.",
+        "invalidName": "Enter a name of 1 to 200 characters.",
+        "invalidEmail": "Invalid email.",
+        "invalidCharacters": "Contains invalid characters.",
+        "duplicate": "Duplicate email.",
+        "alreadyListed": "Already on the list.",
+        "tooMany": "Too many rows. Add at most 200 at a time."
+      },
+      "errors": {
+        "empty": "Write at least one guest.",
+        "tooLong": "That's too much text at once. Add at most 200 guests at a time."
+      }
+    },
+    "list": {
+      "count": "{count, plural, one {# guest} other {# guests}}",
+      "empty": "No guests yet. Add them by name and email."
     }
   },
   "privacy": {

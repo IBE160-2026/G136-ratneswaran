@@ -67,7 +67,7 @@ export async function saveQuestionnaire(
     return unavailable;
   }
   revalidatePath("/events");
-  redirect(`${eventPath(answers.eventId)}/setup/description`);
+  redirect(`${eventPath(answers.eventId)}/setup/guests`);
 }
 
 const blankAsNull = (max: number, message: string) =>

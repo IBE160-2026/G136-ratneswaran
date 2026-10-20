@@ -93,7 +93,7 @@ function Choice({
  * offers Retry, which also runs once when the browser comes back online.
  */
 export function useSaveFeedback(
-  state: Result<null> | null,
+  state: Result<unknown> | null,
   formRef: React.RefObject<HTMLFormElement | null>,
   submit: (data: FormData) => void,
 ) {

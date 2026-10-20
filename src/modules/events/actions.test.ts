@@ -57,9 +57,9 @@ beforeEach(() => {
 });
 
 describe("saveQuestionnaire", () => {
-  it("calls the function with null for Not sure yet and opens step 3", async () => {
+  it("calls the function with null for Not sure yet and opens step 2", async () => {
     await expect(saveQuestionnaire(null, form(answers))).rejects.toThrow(
-      `REDIRECT /events/${answers.eventId}/setup/description`,
+      `REDIRECT /events/${answers.eventId}/setup/guests`,
     );
     expect(rpc).toHaveBeenCalledWith(
       "events_save_questionnaire",

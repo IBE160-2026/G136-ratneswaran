@@ -77,7 +77,7 @@ export function DescriptionForm({
 
       <div className="flex gap-3">
         <Link
-          href={setupPath(eventId)}
+          href={`${setupPath(eventId)}/guests`}
           className="min-h-touch border-input inline-flex items-center rounded-full border px-6"
         >
           {t("wizard.back")}
