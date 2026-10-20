@@ -6,6 +6,7 @@ import { startTransition, useActionState, useEffect, useRef, useState } from "re
 import { buttonClass, Failure, Field, FieldError, inputClass } from "@/components/form";
 import { toast } from "sonner";
 import { saveFailedToast } from "@/lib/feedback";
+import type { Result } from "@/lib/result";
 import { saveQuestionnaire } from "@/modules/events/actions";
 import { callSafely } from "@/modules/events/save";
 import {
@@ -87,6 +88,38 @@ function Choice({
   );
 }
 
+/**
+ * Shared by the wizard steps: focuses the first invalid field, and on a failed save keeps the input and
+ * offers Retry, which also runs once when the browser comes back online.
+ */
+export function useSaveFeedback(
+  state: Result<null> | null,
+  formRef: React.RefObject<HTMLFormElement | null>,
+  submit: (data: FormData) => void,
+) {
+  const tf = useTranslations("feedback");
+  useEffect(() => {
+    if (!state || state.ok) return;
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    if (state.error.code === "unavailable") {
+      // Retry sends what is in the form now, so edits made after the failure are not lost.
+      const retry = () => submit(new FormData(formRef.current!));
+      const toastId = saveFailedToast(tf("saveFailed"), retry, tf("retry"));
+      const onOnline = () => {
+        toast.dismiss(toastId);
+        retry();
+      };
+      window.addEventListener("online", onOnline, { once: true });
+      return () => {
+        window.removeEventListener("online", onOnline);
+        toast.dismiss(toastId);
+      };
+    }
+    // submit only wraps the stable dispatch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+}
+
 export function QuestionnaireForm({
   initial,
   timeZones,
@@ -95,7 +128,6 @@ export function QuestionnaireForm({
   timeZones: string[];
 }) {
   const t = useTranslations("events.wizard");
-  const tf = useTranslations("feedback");
   const [state, action, pending] = useActionState(
     (previous: Parameters<typeof saveQuestionnaire>[0], data: FormData) =>
       callSafely(() => saveQuestionnaire(previous, data)),
@@ -114,27 +146,7 @@ export function QuestionnaireForm({
     if (timeZones.includes(browser)) zoneRef.current.value = browser;
   }, [initial.timeZone, timeZones]);
 
-  useEffect(() => {
-    if (!state || state.ok) return;
-    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-    if (state.error.code === "unavailable") {
-      // Retry sends what is in the form now, so edits made after the failure are not lost.
-      const retry = () => submit(new FormData(formRef.current!));
-      const toastId = saveFailedToast(tf("saveFailed"), retry, tf("retry"));
-      // The browser coming back online retries once.
-      const onOnline = () => {
-        toast.dismiss(toastId);
-        retry();
-      };
-      window.addEventListener("online", onOnline, { once: true });
-      return () => {
-        window.removeEventListener("online", onOnline);
-        toast.dismiss(toastId);
-      };
-    }
-    // submit only wraps the stable dispatch.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  useSaveFeedback(state, formRef, submit);
 
   const describe = (name: string) => ({
     "aria-invalid": errors[name] ? (true as const) : undefined,

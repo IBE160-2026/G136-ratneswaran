@@ -23,7 +23,7 @@ test("the Organizer changes the schedule and language and gets them back in the 
     .check();
   await page.getByLabel("Reply by").fill("2027-05-20");
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page).toHaveURL(/\/events\?saved=1$/);
+  await expect(page).toHaveURL(/\/setup\/description$/);
 
   await page.goto(setup.replace(/\/setup$/, "/settings"));
   await expect(page).toHaveTitle("Event settings – New event – Arrangly");

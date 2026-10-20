@@ -74,8 +74,8 @@ export async function signedIn(page: Page, request: APIRequestContext) {
 }
 
 /**
- * An Event with all pool Roles switched off, dated `starts` from now, that the app cannot make yet
- * (publish is 2.8). Emails come from `unique()`, so no value holds a quote.
+ * An Event with all pool Roles switched off, dated `starts` from now, inserted directly so a test
+ * skips the wizard and can date it in the past. Emails come from `unique()`, so no value holds a quote.
  */
 export function seed(email: string, starts: string, published = true) {
   const id = psql(`insert into public.events

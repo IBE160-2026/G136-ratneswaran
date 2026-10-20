@@ -51,3 +51,10 @@ export function groupEvents(rows: ListedEvent[], now: Date) {
     past: cards.filter((card) => card.past).sort(byDate(-1)),
   };
 }
+
+const requiredForPublish = ["name", "starts_at", "ends_at", "time_zone", "language"] as const;
+export type PublishField = (typeof requiredForPublish)[number];
+
+/** Words the events_publishable CHECK, which alone decides: the required fields that are still empty. */
+export const missingForPublish = (event: Pick<Row, PublishField>): PublishField[] =>
+  requiredForPublish.filter((field) => event[field] === null);

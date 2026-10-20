@@ -39,14 +39,14 @@ export type Database = {
                   ]
                 },"events": {
                   Row: {
-                    "cancellation_note": string | null,"cancelled_at": string | null,"created_at": string,"duration_minutes": number | null,"ends_at": string | null,"event_type": string | null,"guest_count": number | null,"guest_list_method": string | null,"id": string,"language": string | null,"name": string | null,"organizer_id": string,"published_at": string | null,"rsvp_due_date": string | null,"rsvp_wanted": boolean | null,"starts_at": string | null,"time_zone": string | null,"unknown_answers": (string)[],"venue_known": boolean | null
+                    "cancellation_note": string | null,"cancelled_at": string | null,"created_at": string,"description": string | null,"duration_minutes": number | null,"ends_at": string | null,"event_type": string | null,"guest_count": number | null,"guest_list_method": string | null,"id": string,"language": string | null,"name": string | null,"organizer_id": string,"published_at": string | null,"rsvp_due_date": string | null,"rsvp_wanted": boolean | null,"starts_at": string | null,"time_zone": string | null,"unknown_answers": (string)[],"venue_known": boolean | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "cancellation_note"?: string | null,"cancelled_at"?: string | null,"created_at"?: string,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id": string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
+                    "cancellation_note"?: string | null,"cancelled_at"?: string | null,"created_at"?: string,"description"?: string | null,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id": string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
                   }
                   Update: {
-                    "cancellation_note"?: string | null,"cancelled_at"?: string | null,"created_at"?: string,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id"?: string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
+                    "cancellation_note"?: string | null,"cancelled_at"?: string | null,"created_at"?: string,"description"?: string | null,"duration_minutes"?: number | null,"ends_at"?: string | null,"event_type"?: string | null,"guest_count"?: number | null,"guest_list_method"?: string | null,"id"?: string,"language"?: string | null,"name"?: string | null,"organizer_id"?: string,"published_at"?: string | null,"rsvp_due_date"?: string | null,"rsvp_wanted"?: boolean | null,"starts_at"?: string | null,"time_zone"?: string | null,"unknown_answers"?: (string)[],"venue_known"?: boolean | null
                   }
                   Relationships: [
                     
@@ -87,6 +87,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: string
                            },
 "events_delete":
+{ Args: { "p_event_id": string }; Returns: undefined
+                           },
+"events_publish":
 { Args: { "p_event_id": string }; Returns: undefined
                            },
 "events_save_questionnaire":

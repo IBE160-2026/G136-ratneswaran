@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 async function saveType(page: Page, eventType: string) {
   await answerStep1(page, eventType);
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page).toHaveURL(/\/events\?saved=1$/);
+  await expect(page).toHaveURL(/\/setup\/description$/);
 }
 
 const roleSwitch = (page: Page, name: string) => page.getByRole("switch", { name, exact: true });

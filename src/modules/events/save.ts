@@ -1,6 +1,6 @@
 import { refuse, type Result } from "@/lib/result";
 
-/** Where a draft opens. Only step 1 exists; Stories 2.8 and 2.9 extend this to the first incomplete step. */
+/** Where a draft opens: step 1. A later story may open the first incomplete step instead. */
 export const setupPath = (eventId: string) => `/events/${eventId}/setup`;
 
 /**

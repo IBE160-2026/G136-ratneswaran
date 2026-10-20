@@ -48,7 +48,7 @@ select is(
   (select array_agg(attname::text order by attname) from pg_attribute
    where attrelid = 'public.events'::regclass and attnum > 0 and not attisdropped
      and has_column_privilege('authenticated', attrelid, attnum, 'UPDATE')),
-  array['name'],
+  array['description', 'name'],
   'authenticated gets no grant on cancellation_note or cancelled_at'
 );
 select is_empty(

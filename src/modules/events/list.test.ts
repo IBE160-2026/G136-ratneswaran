@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventDateFormat, groupEvents, isPast, type ListedEvent } from "./list";
+import { eventDateFormat, groupEvents, isPast, missingForPublish, type ListedEvent } from "./list";
 
 const now = new Date("2026-10-19T12:00:00Z");
 const event = (id: string, fields: Partial<ListedEvent> = {}): ListedEvent => ({
@@ -93,5 +93,27 @@ describe("eventDateFormat", () => {
       new Intl.DateTimeFormat("en", eventDateFormat({ time_zone: timeZone })).format(date);
     expect(format("Europe/Oslo")).toBe("Tue, Oct 20, 2026");
     expect(format(null)).toBe("Mon, Oct 19, 2026");
+  });
+});
+
+describe("missingForPublish", () => {
+  const complete = {
+    name: "Lucas 40",
+    starts_at: "2027-06-01T16:00:00Z",
+    ends_at: "2027-06-01T20:00:00Z",
+    time_zone: "Europe/Oslo",
+    language: "en",
+  };
+
+  it("finds nothing missing on a complete draft", () => {
+    expect(missingForPublish(complete)).toEqual([]);
+  });
+
+  it("lists the missing fields in order", () => {
+    expect(missingForPublish({ ...complete, language: null, name: null, ends_at: null })).toEqual([
+      "name",
+      "ends_at",
+      "language",
+    ]);
   });
 });
