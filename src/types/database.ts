@@ -150,6 +150,12 @@ isOneToOne: false
 "guests_add":
 { Args: { "p_event_id": string,"p_rows": Json }; Returns: (string)[]
                            },
+"guests_remove":
+{ Args: { "p_guest_id": string }; Returns: undefined
+                           },
+"guests_update":
+{ Args: { "p_email": string,"p_guest_id": string,"p_name": string }; Returns: undefined
+                           },
 "is_organizer":
 { Args: { "p_event_id": string }; Returns: boolean
                            }
