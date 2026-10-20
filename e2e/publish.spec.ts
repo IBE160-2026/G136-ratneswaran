@@ -16,6 +16,8 @@ test("step 3 saves the name and description and shows them again", async ({ page
   const setup = page.url();
   await answerStep1(page);
   await next(page).click();
+  await expect(page).toHaveURL(/\/setup\/guests$/);
+  await page.getByRole("link", { name: "Next", exact: true }).click();
   await expect(page).toHaveURL(/\/setup\/description$/);
   await expect(page.getByText("Step 3 of 6")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
@@ -32,7 +34,7 @@ test("step 3 saves the name and description and shows them again", async ({ page
   await expect(page.getByLabel("Event name")).toHaveValue("Lucas 40");
   await expect(description).toHaveValue("Dinner, speeches, a quiz and a DJ.");
   await page.getByRole("link", { name: "Back" }).click();
-  await expect(page).toHaveURL(setup);
+  await expect(page).toHaveURL(`${setup}/guests`);
 });
 
 test("an incomplete draft lists exactly what is missing and cannot be published", async ({

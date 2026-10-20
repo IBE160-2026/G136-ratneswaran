@@ -125,8 +125,10 @@ test("past published and cancelled Events are read-only, a past draft is not", a
   await page.goto(`/events/${dropped}/setup`);
   await expect(page).toHaveURL(new RegExp(`/events/${dropped}$`));
   for (const id of [over, off]) {
-    await page.goto(`/events/${id}/setup/description`);
-    await expect(page).toHaveURL(new RegExp(`/events/${id}$`));
+    for (const step of ["guests", "description"]) {
+      await page.goto(`/events/${id}/setup/${step}`);
+      await expect(page).toHaveURL(new RegExp(`/events/${id}$`));
+    }
   }
 
   await page.goto(`/events/${draft}/setup`);
