@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 10-19-2026 22:34
+last_updated: 10-20-2026 10:59
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -59,7 +59,7 @@ development_status:
   2-8-description-and-publish-to-the-team: done
   2-9-add-guests-by-hand: done
   2-10-edit-and-remove-guests: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   epic-3: backlog
   3-1-outbox-and-notifications_emit: backlog
@@ -193,7 +193,7 @@ action_items:
     action: "Extract shared form styles and the password-rules list before the first
       Epic 2 form"
     owner: "Aumgaran"
-    status: open
+    status: in-progress
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
   - id: "epic-1-retro-item-5-add-browser-tests-for-toast-reach-with-t"
     epic: 1
@@ -229,3 +229,79 @@ action_items:
     owner: "Aumgaran"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
+  - id: "epic-2-retro-item-10-make-githooks-test-sh-pass-on-main-so-ci"
+    epic: 2
+    action: "Make .githooks/test.sh pass on main so CI is green and deploy runs, before
+      Epic 3 starts"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-11-after-ci-is-green-on-main-confirm-supaba"
+    epic: 2
+    action: "After CI is green on main, confirm supabase db push applies every Epic
+      1 and Epic 2 migration and an Organizer can create and publish an Event in the
+      cloud"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-12-make-the-draft-card-open-the-first-incom"
+    epic: 2
+    action: "Make the draft card open the first incomplete wizard step, as Story 2.3
+      requires"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-13-replace-the-six-isdraft-and-ispast-copie"
+    epic: 2
+    action: "Replace the six isDraft-and-isPast copies with one isReadOnly(event)
+      in src/modules/events/list.ts"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-14-move-usesavefeedback-into-a-client-file"
+    epic: 2
+    action: "Move useSaveFeedback into a client file under src/components and drop
+      the cross-route imports"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-15-add-the-toast-reach-browser-test-f6-alt"
+    epic: 2
+    action: "Add the toast-reach browser test (F6, Alt+T, pause) on the guest Undo
+      toast"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-16-decide-whether-to-adopt-or-disable-the-n"
+    epic: 2
+    action: "Decide whether to adopt or disable the next dev rewrite of AGENTS.md"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-17-fill-the-13-nil-min-vurdering-fields-and"
+    epic: 2
+    action: "Fill the 13 NIL Min vurdering fields and offer reflection entries for
+      2.8, 2.9 and 2.10 design choices"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-18-when-a-spec-promises-a-later-story-will"
+    epic: 2
+    action: "When a spec promises a later story will extend something, add it as a
+      task in that story Code Map"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-19-replace-the-copied-events_create-body-wi"
+    epic: 2
+    action: "Replace the copied events_create body with a single draft-is-blank check
+      the next time draft blankness changes"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-2-retro-item-20-delete-the-stale-deferred-work-entries-c"
+    epic: 2
+    action: "Delete the stale deferred-work entries (CI type-check, CI e2e, host.docker.internal)"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
