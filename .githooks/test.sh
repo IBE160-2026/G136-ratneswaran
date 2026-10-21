@@ -23,7 +23,11 @@ check 1 "push to main"               push feat/4.3-task-status main
 check 1 "push bad branch name"       push my-stuff my-stuff
 check 1 "push feat without id"       push feat/new-thing feat/new-thing
 
-guard() { CLAUDE_PROJECT_DIR=$PWD .claude/hooks/git-guard.sh <<<"$1"; }
+# The guard reads the branch of CLAUDE_PROJECT_DIR, so run it against a throwaway repo: CI checks out main.
+scratch=$(mktemp -d); trap 'rm -rf "$scratch"' EXIT
+git init -q -b chore/hook-test "$scratch/branch" && git init -q -b main "$scratch/main"
+guard() { CLAUDE_PROJECT_DIR=$scratch/branch "$PWD/.claude/hooks/git-guard.sh" <<<"$1"; }
+on_main() { CLAUDE_PROJECT_DIR=$scratch/main "$PWD/.claude/hooks/git-guard.sh" <<<"$1"; }
 bash_in() { jq -n --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 merge_cmd="gh pr $(printf 'mer%s' ge) 3 --squash"   # built at runtime so this file's own commands never trip the guard
 check 2 "claude merges PR"           guard "$(bash_in "$merge_cmd")"
@@ -32,6 +36,7 @@ check 2 "commit without trailer"     guard "$(bash_in 'git commit -m "chore: tid
 check 0 "commit with trailer"        guard "$(bash_in $'git commit -m "chore: tidy up the hook test file\n\nCo-Authored-By: Claude <noreply@anthropic.com>"')"
 check 0 "flag only mentioned in text" guard "$(bash_in "echo 'never use --no-$(printf ver)ify' >> AGENTS.md")"
 check 2 "claude pushes main"         guard "$(bash_in 'git push origin main')"
+check 2 "commit while on main"       on_main "$(bash_in $'git commit -m "chore: tidy up the hook test file\n\nCo-Authored-By: Claude <noreply@anthropic.com>"')"
 check 0 "main only in message text"  guard "$(bash_in $'git commit -F - <<X\nchore: hooks say never push main\n\nCo-Authored-By: C <n@a.com>\nX')"
 check 0 "git and commit only in text" guard "$(bash_in $'cat > notes.md <<X\nsession: building git hooks enforcing commit rules\nX')"
 check 0 "merge only in text"         guard "$(bash_in "echo 'never run gh pr $(printf mer)ge yourself' >> notes.md")"
