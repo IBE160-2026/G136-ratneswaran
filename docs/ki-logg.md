@@ -290,3 +290,17 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Fire uavhengige subagenter (blind, kanttilfeller, verifiseringshull, samsvar med intensjonen) ga 26 funn, ingen høye eller middels. Tre av dem fant først ingen diff fordi Playwright tømte `test-results/`, så de ble kjørt på nytt mot en kopi i `out/`. KI rettet seks: fokus etter *Remove* faller tilbake til sidens `h1` når naborader mangler eller står åpne i redigering (og en død gren til listeoverskriften er fjernet), en fjerning som avvises som ikke tillatt eller skrivebeskyttet sier det i stedet for «prøv igjen», pgTAP dekker nå begge halvdeler av read-only-regelen i begge funksjonene, Vitest sjekker at fjern- og angre-loggene ikke har navn eller e-post, og e2e dekker *Undo* etter at e-posten er lagt inn på nytt og redigeringsskjemaet ved 320px. Åtte funn var feil (blant annet en gjest uten kontaktrad, som ikke kan oppstå) og tolv ble avvist med begrunnelse i spec-ens triage-logg, blant annet at *Undo* gir gjesten ny id og plass nederst i listen.
 **Min vurdering:** NIL
 **Spor:** branch `feat/2.10-edit-and-remove-guests`, issue #59
+
+## 2026-10-22 — Epic 2: retrospektiv og manuell test
+
+**Prompt:** Kjør retrospektiv på Epic 2, og gi meg en steg-for-steg-guide basert på README så jeg kan teste appen selv.
+**KI foreslo:** En retrospektiv med kilde til hvert funn (`epic-2-retro-2026-10-20.md`). Hovedfunnene var at CI på `main` har vært rød gjennom hele epicen, så ingenting er deployet, og at utkast-kortet ikke åpner det siste ufullførte steget. Elleve tiltak (B1–B11) og en verdict med åpne punkter fulgte. Deretter en guide fra README på en ny klone. Testen ga fem funn:
+- forsiden for besøkende som ikke er logget inn viser bare en tittel og én setning;
+- den hemmelige nøkkelen må kopieres for hånd fra `supabase status` til `.env.local`;
+- klonen deler `project_id` og Docker-volum med andre utsjekker, og en annen lokal Supabase kan holde portene;
+- innlogging med Google (`401 invalid_client`) og GitHub (`DNS_PROBE_FINISHED_NXDOMAIN`) virker ikke lokalt, fordi oppsettet bare er laget for de automatiske testene;
+- gjestesiden mangler mye, og det er planlagt i Epic 7 (Story 7.7).
+
+**Min vurdering:** Etter Epic 2 er skjelettet på plass. Det er likevel mye som gjenstår, både visuelt og funksjonelt. Visuelt ser det per nå primitivt ut og oppleves derfor lite brukervennlig. Dette blir avsluttende arbeid når funksjonene er på plass og virker, etter Epic 7. Vi holder oss til den opprinnelige planen.
+**Spor:** PR #61 (retrospektiv), PR #62 (B1), branch `docs/epic-2-owner-assessment`
+
