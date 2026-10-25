@@ -97,6 +97,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"invite_tokens": {
+                  Row: {
+                    "consumed_at": string | null,"created_at": string,"created_by": string | null,"event_id": string,"id": string,"kind": Database["public"]['Enums']["invite_kind"],"revoked_at": string | null,"role_id": string | null,"token_hash": string,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "consumed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id": string,"id"?: string,"kind": Database["public"]['Enums']["invite_kind"],"revoked_at"?: string | null,"role_id"?: string | null,"token_hash": string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "consumed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["invite_kind"],"revoked_at"?: string | null,"role_id"?: string | null,"token_hash"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invite_tokens_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invite_tokens_role_id_fkey"
+      columns: ["role_id"]
+isOneToOne: false
+      referencedRelation: "roles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"roles": {
                   Row: {
                     "active": boolean,"event_id": string,"id": string,"key": Database["public"]['Enums']["role_key"],"toggled_at": string | null
@@ -156,12 +182,23 @@ isOneToOne: false
 "guests_update":
 { Args: { "p_email": string,"p_guest_id": string,"p_name": string }; Returns: undefined
                            },
+"invite_tokens_create":
+{ Args: { "p_event_id": string,"p_kind": Database["public"]['Enums']["invite_kind"],"p_role_id"?: string,"p_user_id"?: string }; Returns: string
+                           },
+"invite_tokens_revoke_for_user":
+{ Args: { "p_user_id": string }; Returns: undefined
+                           },
+"invite_tokens_validate":
+{ Args: { "p_event_id": string,"p_kind": Database["public"]['Enums']["invite_kind"],"p_token": string }; Returns: {
+              "event_id": string,"kind": Database["public"]['Enums']["invite_kind"],"role_id": string,"status": string,"token_id": string,"user_id": string
+            }[]
+                           },
 "is_organizer":
 { Args: { "p_event_id": string }; Returns: boolean
                            }
           }
           Enums: {
-            "role_key": "venue"|"guests"|"food_beverage"|"entertainment"|"travel_logistics"|"program"
+            "invite_kind": "guest"|"role_holder"|"shared_event","role_key": "venue"|"guests"|"food_beverage"|"entertainment"|"travel_logistics"|"program"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -281,7 +318,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "role_key": ["venue", "guests", "food_beverage", "entertainment", "travel_logistics", "program"]
+            "invite_kind": ["guest", "role_holder", "shared_event"],"role_key": ["venue", "guests", "food_beverage", "entertainment", "travel_logistics", "program"]
           }
         }
 } as const
