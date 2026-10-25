@@ -25,7 +25,9 @@ export default async function EventsPage({
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("events")
-    .select("id, name, starts_at, ends_at, time_zone, published_at, cancelled_at")
+    .select(
+      "id, name, starts_at, ends_at, time_zone, published_at, cancelled_at, event_type, unknown_answers, guests(count)",
+    )
     // Newest first, so Events with the same or no date keep a stable order through the date sort.
     .order("created_at", { ascending: false });
   if (error) throw new Error("Could not load events");

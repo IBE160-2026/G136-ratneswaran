@@ -40,10 +40,27 @@ const byDate = (direction: 1 | -1) => (a: ListedEvent, b: ListedEvent) => {
   return direction * (new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
 };
 
-/** Upcoming by date with undated last, past newest first. Drafts open setup, everything else the home. */
-export function groupEvents(rows: ListedEvent[], now: Date) {
+/** What the draft card needs to know about the wizard: step 1's answers, any guest, and the name. */
+export type DraftProgress = Pick<Row, "event_type" | "unknown_answers"> & {
+  guests: { count: number }[];
+};
+
+/**
+ * The first incomplete wizard step (UX-DR7): step 1 until the questionnaire is saved, step 2 until a guest
+ * or a name exists, step 3 until the name is set, then the Event home, where the Organizer publishes.
+ */
+export const draftPath = (event: Pick<Row, "id" | "name"> & DraftProgress) => {
+  if (event.event_type === null && event.unknown_answers.length === 0) return setupPath(event.id);
+  if (event.name !== null) return eventPath(event.id);
+  return (event.guests[0]?.count ?? 0) > 0
+    ? `${setupPath(event.id)}/description`
+    : `${setupPath(event.id)}/guests`;
+};
+
+/** Upcoming by date with undated last, past newest first. Drafts open their next step, others the home. */
+export function groupEvents(rows: (ListedEvent & DraftProgress)[], now: Date) {
   const cards = rows.map((event): EventCard => {
-    const href = isDraft(event) ? setupPath(event.id) : eventPath(event.id);
+    const href = isDraft(event) ? draftPath(event) : eventPath(event.id);
     return { ...event, past: isPast(event, now), href };
   });
   return {

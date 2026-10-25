@@ -36,7 +36,10 @@ test("a double click makes one draft, and its link reopens the saved answers", a
   await expect(page).toHaveURL(/\/setup\/guests$/);
 
   await page.goto("/events");
+  // Step 1 is saved, so the card opens the first incomplete step, the guests.
   await page.getByRole("link", { name: /Draft · continue setup/ }).click();
+  await expect(page).toHaveURL(/\/setup\/guests$/);
+  await page.getByRole("link", { name: "Back" }).click();
   await expect(page.getByLabel("What kind of event is it?")).toHaveValue("birthday");
   await expect(page.getByLabel("How many guests?")).toHaveValue("80");
 });
