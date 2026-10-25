@@ -6,7 +6,20 @@
       "Bash(git fetch *)",
       "Bash(git checkout -b *)",
       "Bash(git push -u origin *)",
-      "Bash(gh pr create *)"
+      "Bash(gh pr create *)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm -s lint)",
+      "Bash(pnpm format:check)",
+      "Bash(pnpm -s format:check)",
+      "Bash(pnpm test)",
+      "Bash(pnpm -s test)",
+      "Bash(pnpm exec tsc --noEmit)",
+      "Bash(supabase test db)",
+      "Bash(supabase test db *)",
+      "Bash(supabase status)",
+      "Bash(supabase status *)",
+      "Bash(supabase gen types *)",
+      "Bash(.githooks/test.sh)"
     ]
   },
   "hooks": {
