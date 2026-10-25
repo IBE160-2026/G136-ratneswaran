@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 10-20-2026 10:59
+last_updated: 10-25-2026 14:03
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -172,7 +172,7 @@ action_items:
     action: "Make .githooks/test.sh independent of the checked-out branch so main
       CI passes and deploy runs"
     owner: "Aumgaran"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
   - id: "epic-1-retro-item-2-after-ci-is-green-on-main-confirm-the-fi"
     epic: 1
@@ -234,7 +234,7 @@ action_items:
     action: "Make .githooks/test.sh pass on main so CI is green and deploy runs, before
       Epic 3 starts"
     owner: "Aumgaran"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
   - id: "epic-2-retro-item-11-after-ci-is-green-on-main-confirm-supaba"
     epic: 2
@@ -249,7 +249,7 @@ action_items:
     action: "Make the draft card open the first incomplete wizard step, as Story 2.3
       requires"
     owner: "Aumgaran"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
   - id: "epic-2-retro-item-13-replace-the-six-isdraft-and-ispast-copie"
     epic: 2
