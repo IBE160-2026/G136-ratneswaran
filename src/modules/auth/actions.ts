@@ -1,9 +1,9 @@
 "use server";
 
-import { createHash } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { limit } from "@/lib/limit";
 import { fieldErrors, refuse, type Result } from "@/lib/result";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import {
@@ -19,33 +19,6 @@ import {
   themeSchema,
 } from "./schemas";
 
-const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
-
-/**
- * IP bucket first so a refused request never spends the email's budget (AD-4). Null means allowed.
- * Each flow counts in its own `<flow>_ip` and `<flow>_email` buckets, so one flow never spends another's budget (AD-21).
- */
-async function limit(flow: "signup" | "resend" | "forgot", email: string, errors: string) {
-  const supabase = await createClient();
-  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const hit = (bucket: string, key: string, max: number, windowSeconds: number) =>
-    supabase.rpc("abuse_hit", {
-      p_bucket: bucket,
-      p_key_hash: sha256(key),
-      p_max: max,
-      p_window_seconds: windowSeconds,
-    });
-  for (const [bucket, key, max, window] of [
-    [`${flow}_ip`, ip, 5, 60],
-    [`${flow}_email`, email.trim().toLowerCase(), 3, 3600],
-  ] as const) {
-    const answer = await hit(bucket, key, max, window);
-    if (answer.error) return refuse("unavailable", `${errors}.unavailable`);
-    if (!answer.data) return refuse("rate_limited", `${errors}.rateLimited`);
-  }
-  return null;
-}
-
 /** Same `{ ok: true }` whether or not the email already has an account (AD-4). */
 export async function signUp(
   _previous: Result<null> | null,
@@ -60,7 +33,7 @@ export async function signUp(
   }
   const { email, password } = parsed.data;
 
-  const refused = await limit("signup", email, "auth.signUp.errors");
+  const refused = await limit("signup", { email }, "auth.signUp.errors");
   if (refused) return refused;
 
   const supabase = await createClient();
@@ -116,7 +89,7 @@ export async function resendVerification(
     return refuse("invalid_input", "auth.logIn.errors.invalidInput", fieldErrors(parsed.error));
   }
   const { email } = parsed.data;
-  const refused = await limit("resend", email, "auth.logIn.errors");
+  const refused = await limit("resend", { email }, "auth.logIn.errors");
   if (refused) return refused;
 
   const supabase = await createClient();
@@ -137,7 +110,7 @@ export async function forgotPassword(
     return refuse("invalid_input", "auth.forgot.errors.invalidInput", fieldErrors(parsed.error));
   }
   const { email } = parsed.data;
-  const refused = await limit("forgot", email, "auth.forgot.errors");
+  const refused = await limit("forgot", { email }, "auth.forgot.errors");
   if (refused) return refused;
 
   const origin = (await headers()).get("origin");
