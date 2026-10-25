@@ -311,3 +311,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Min vurdering:** NIL
 **Spor:** branch `fix/2.3-draft-opens-first-incomplete-step`, issue #64
 
+
+## 2026-10-25 — Story 3.5: invitasjonstokens og regler
+
+**Prompt:** `/bmad-build-auto på story 3.5`. Spec-en `spec-3-5-invitation-tokens-and-rules.md` ble skrevet fra Epic 3-konteksten og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med tabellen `invite_tokens` (eid av events-modulen) og `kind ∈ {guest, role_holder, shared_event}`. Bare SHA-256 av tokenet lagres, og `authenticated` og `anon` har ingen rettigheter og ingen policyer på tabellen. Tre systemfunksjoner (AD-5): `invite_tokens_create` lager 32 tilfeldige byte og gir tokenet tilbake én gang; `invite_tokens_validate` slår opp på hashen og svarer `valid`, `used`, `expired` eller `invalid`, med id-er bare når tokenet er gyldig, så et ukjent token og et token for et annet arrangement ser like ut; `invite_tokens_revoke_for_user` trekker tilbake en brukers gjestelenker i kallerens transaksjon. Oppslag på hashen erstatter en eksplisitt konstant-tid-sammenligning, fordi klarteksten aldri sammenlignes. Taket på 30 invitasjoner per døgn gjelder bare Rolle-invitasjoner, fordi en gjesteliste på 150 ellers ville tatt fem dager. Et arrangement uten slutttid regnes som ikke utløpt. `limit()` fra Epic 1 er flyttet til `src/lib/limit.ts` og har fått en `invite`-flyt med egne bøtter `invite_ip` og `invite_token`.
+**Review:** Fire uavhengige subagenter (blind, kanttilfeller, verifiseringshull, samsvar med intensjonen) ga 35 funn, ingen høye. KI rettet fem: `validate` godtok ethvert levende token når forventet type eller arrangement var NULL; `create` sjekket ikke at kalleren er Organizer, og uten innlogget bruker ble taket hoppet over; tre CHECK-regler var ikke dekket av pgTAP; `p_user_id` og `p_role_id` er nå valgfrie, så de genererte typene tillater gjeste- og delte lenker; og fremmednøklene `event_id` og `role_id` har fått indekser. 22 funn ble avvist med begrunnelse i spec-ens triage-logg, blant annet at en deaktivert Rolle ikke er blant avvisningsgrunnene i storyen, og at det å trekke tilbake alle gjestelenker er slik AD-4 er ment.
+**Min vurdering:** NIL
+**Spor:** branch `feat/3.5-invitation-tokens-and-rules`, issue #69
