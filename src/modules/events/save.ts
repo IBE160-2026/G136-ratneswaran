@@ -1,6 +1,6 @@
 import { refuse, type Result } from "@/lib/result";
 
-/** Where a draft opens: step 1. A later story may open the first incomplete step instead. */
+/** Wizard step 1. The draft card opens the first incomplete step through `draftPath` in list.ts. */
 export const setupPath = (eventId: string) => `/events/${eventId}/setup`;
 
 /**

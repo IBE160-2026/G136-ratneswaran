@@ -304,3 +304,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Min vurdering:** Etter Epic 2 er skjelettet på plass. Det er likevel mye som gjenstår, både visuelt og funksjonelt. Visuelt ser det per nå primitivt ut og oppleves derfor lite brukervennlig. Dette blir avsluttende arbeid når funksjonene er på plass og virker, etter Epic 7. Vi holder oss til den opprinnelige planen.
 **Spor:** PR #61 (retrospektiv), PR #62 (B1), branch `docs/epic-2-owner-assessment`
 
+## 2026-10-25 — Story 2.3 (rettelse): utkast-kortet åpner første ufullførte steg
+
+**Prompt:** «kjør!» på tiltak B3 fra retrospektiven for Epic 2: utkast-kortet skal åpne det første ufullførte steget, slik story 2.3 lover.
+**KI foreslo:** En ren funksjon `draftPath` i `src/modules/events/list.ts` som leser utkastet. Den åpner steg 1 til spørreskjemaet er lagret (en type eller et «Not sure yet»), steg 2 til det finnes en gjest eller et navn, steg 3 til navnet er satt, og deretter arrangementets hjemside, der *Publish* ligger. Spørringen på *Alle arrangementer* henter `event_type`, `unknown_answers` og antall gjester. Appen lagrer ikke hvilket steg brukeren sist var på, så «første ufullførte steg» utledes av dataene. Vitest dekker hver regel, og e2e-testen for utkast følger nå kortet til steg 2.
+**Min vurdering:** NIL
+**Spor:** branch `fix/2.3-draft-opens-first-incomplete-step`, issue #64
+

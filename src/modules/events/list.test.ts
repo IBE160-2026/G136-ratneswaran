@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { eventDateFormat, groupEvents, isPast, missingForPublish, type ListedEvent } from "./list";
+import {
+  draftPath,
+  eventDateFormat,
+  groupEvents,
+  isPast,
+  missingForPublish,
+  type DraftProgress,
+  type ListedEvent,
+} from "./list";
 
 const now = new Date("2026-10-19T12:00:00Z");
-const event = (id: string, fields: Partial<ListedEvent> = {}): ListedEvent => ({
+type Listed = ListedEvent & DraftProgress;
+const event = (id: string, fields: Partial<Listed> = {}): Listed => ({
   id,
   name: id,
   starts_at: null,
@@ -10,6 +19,9 @@ const event = (id: string, fields: Partial<ListedEvent> = {}): ListedEvent => ({
   time_zone: "Europe/Oslo",
   published_at: null,
   cancelled_at: null,
+  event_type: null,
+  unknown_answers: [],
+  guests: [{ count: 0 }],
   ...fields,
 });
 const published = "2026-09-01T00:00:00Z";
@@ -82,6 +94,27 @@ describe("groupEvents", () => {
       "/events/past-draft/setup",
       "/events/cancelled-draft",
     ]);
+  });
+});
+
+describe("draftPath", () => {
+  const draft = (fields: Partial<Listed>) => draftPath(event("d", { name: null, ...fields }));
+
+  it("opens step 1 until the questionnaire is saved, even with a name", () => {
+    expect(draft({})).toBe("/events/d/setup");
+    expect(draft({ name: "Plan B" })).toBe("/events/d/setup");
+  });
+
+  it("counts a saved Not sure yet as an answered step 1", () => {
+    expect(draft({ unknown_answers: ["event_type"] })).toBe("/events/d/setup/guests");
+  });
+
+  it("opens step 2 without guests, step 3 with guests, and the home once named", () => {
+    expect(draft({ event_type: "birthday" })).toBe("/events/d/setup/guests");
+    expect(draft({ event_type: "birthday", guests: [{ count: 2 }] })).toBe(
+      "/events/d/setup/description",
+    );
+    expect(draft({ event_type: "birthday", name: "Lucas 40" })).toBe("/events/d");
   });
 });
 
