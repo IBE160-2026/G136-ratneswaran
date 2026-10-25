@@ -311,3 +311,10 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Min vurdering:** NIL
 **Spor:** branch `fix/2.3-draft-opens-first-incomplete-step`, issue #64
 
+## 2026-10-25 — B2: nøkler til skyen uten hemmeligheter i repoet
+
+**Prompt:** Hva betyr det for produktet at deploy aldri har kjørt, og hvordan fikser vi det? Er det å legge inn hemmeligheter i strid med sensorkriteriene?
+**KI foreslo:** At appen ikke finnes på nett ennå. `deploy`-jobben hopper over Supabase fordi repoet mangler `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` og `SUPABASE_PROJECT_ID`, og Vercel er ikke koblet til. Løsningen er å legge de tre inn som GitHub Secrets og miljøvariablene til appen i Vercel, aldri i en fil. KI gikk gjennom SK-7.3, SK-3.4 og F-beskrivelsen for repo-ryddighet og viste at GitHub Secrets er kryptert, ikke en del av git-historikken, ikke med i `git clone` og skjult som `***` i loggene. `ci.yml` inneholder bare navnet på hemmeligheten.
+**Min vurdering:** Jeg stilte spørsmål ved om det å legge inn hemmeligheter bryter med kriteriet «ingen hemmeligheter i repoet eller historikken». Gjennomgangen viste at det ikke gjør det. Kriteriet gjelder filer og commits, og GitHub Secrets ligger utenfor begge. F-beskrivelsen gjelder hemmeligheter «som ikke er håndtert», mens GitHub Secrets er nettopp en måte å håndtere dem på. Valget er bevisst: nøklene til skyen ligger i GitHub Secrets og i miljøvariablene i Vercel, `.env*` er gitignored, `.env.example` har bare lokale standardverdier, og gitleaks i CI stopper en hemmelighet som ved en feil blir committet. Deploy støtter også SK-6.8, en deployet app som plan B for sensor.
+**Spor:** Epic 2-retro tiltak B2, PR #62 (grønn CI på `main`), branch `docs/b2-secrets-assessment`
+
