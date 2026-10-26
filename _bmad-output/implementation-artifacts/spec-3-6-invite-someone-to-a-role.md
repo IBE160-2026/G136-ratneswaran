@@ -4,8 +4,8 @@ type: 'feature'
 created: '2026-10-26'
 status: 'done'
 baseline_revision: '302d8260847c698c8ba487de2ebb60909cc50b25'
-review_loop_iteration: 1
-followup_review_recommended: true
+review_loop_iteration: 0
+followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-3-context.md'
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-Arrangly-2026-09-27/DESIGN.md'
@@ -191,6 +191,48 @@ deferred:
   - `[false]` `[reject]` (intent) the Target 3 emailed invitation is left out — the spec's Never list and the Release scope note exclude it.
   - `[false]` `[reject]` (intent) the commit prefix ties the allowlist to the story — AGENTS.md requires the story prefix on story branches.
 
+### 2026-10-26 — Review pass (follow-up)
+- verdicts: 38 findings — high 0, medium 6, low 19, false 13, maybe-false 0
+- findings:
+  - `[false]` `[reject]` (intent R1) the action calls the rpc before `createUser` — carried: the loop-1 amendment; the Matrix's "nothing created" settles it.
+  - `[false]` `[reject]` (intent R2) a Role of another Event gives `forbidden`/`42501`, not `22023` — carried from pass 1.
+  - `[low]` `[reject]` (intent R3) the cap refuses `added`/`member`/`self` — carried: only at the cap.
+  - `[false]` `[reject]` (intent R4) 3.5's `invite_tokens_create` is redefined — the loop-1 Tasks require it so the cap rule exists once; `invite_tokens.test.sql` still passes against it.
+  - `[false]` `[reject]` (intent) form hidden on a cancelled Event untested — the `readOnly` rule is 2.5's code, covered by `e2e/roles.spec.ts`; pre-existing.
+  - `[low]` `[reject]` (intent) `added`/`self` UI text untested end to end — Vitest pins the mapping, pgTAP the statuses; the `member` e2e exercises the same no-token branch.
+  - `[low]` `[reject]` (intent) open choices (extra `invited` on New link, `joined` for `added`, `P0001`, name update, `23514`) — choices inside the intent's gap, each tested.
+  - `[medium]` `[patch]` (verification-gap) the Role-to-Event check in `inviteToRole` is unobserved — the mock ignores `eq` arguments; fixed: the test asserts both filters.
+  - `[medium]` `[patch]` (verification-gap) deleting an Event with members or log rows is untested and the catalog check exempts the log — fixed: the check pins `set null`, and an `events_delete` case seeds both tables.
+  - `[low]` `[reject]` (verification-gap) hidden actions on a switched-off Role untested — filed `defer`; the database refuses with `22023` (pgTAP), so the gate only saves a failing click.
+  - `[low]` `[reject]` (verification-gap, other) cap refuses no-token outcomes — carried.
+  - `[medium]` `[defer]` (edge) `createUser` then a failed retry or Correct email leaves an auth user — carried: already in `deferred`.
+  - `[low]` `[reject]` (edge) New link in a stale tab re-invites the corrected address — carried.
+  - `[medium]` `[patch]` (edge) a pending row on this Role while the person joined another Role gets a new link instead of `added` — verified at role_members.sql:220-231; fixed: the pending branch adds them and logs `joined` (pgTAP).
+  - `[low]` `[reject]` (edge) the re-invite path does not call `invite_tokens_revoke_for_user` — the row is not new, its insert already revoked; no guest-link issuer exists before Epic 7.
+  - `[false]` `[reject]` (edge) two auth users whose emails differ only by case — Supabase Auth stores emails lower-cased under a unique index.
+  - `[false]` `[reject]` (edge, claim) the intent says the user is created before the call — carried: R1 above.
+  - `[medium]` `[defer]` (blind) typo addresses keep orphan auth users — carried.
+  - `[low]` `[patch]` (blind) comments promise a user only for an invitation that will succeed — a refusal can still land between the calls; fixed: both comments reworded.
+  - `[low]` `[reject]` (blind) `admin.ts` lacks `import "server-only"` — the package is not installed; the lint guard covers direct, relative and re-export imports; adding a dependency is more than a direct fix.
+  - `[false]` `[reject]` (blind) log rows without an Event are never purged — carried: AC requires `ON DELETE SET NULL`.
+  - `[medium]` `[patch]` (blind) pgTAP does not test that log rows survive with null references — same group as the delete-Event gap row.
+  - `[low]` `[reject]` (blind) the `name` check (control characters, over 100) untested — the blank case pins the constraint; Zod rejects the others before the call.
+  - `[low]` `[patch]` (blind) the `added` path's guest-link revocation unasserted — fixed: pgTAP assertion.
+  - `[low]` `[patch]` (blind) a joined Role-holder calling the function untested — fixed: pgTAP `42501`.
+  - `[false]` `[reject]` (blind) reworked `invite_tokens_create` has no new allow/deny — `invite_tokens.test.sql` keeps its allow and deny cases and passes.
+  - `[low]` `[reject]` (blind) `stale_invitation` matched by message text — pgTAP asserts the message, so a reworded raise fails a test.
+  - `[low]` `[reject]` (blind) Access history unbounded — carried.
+  - `[low]` `[reject]` (blind) the link uses `window.location.origin` — previews are protected demo hosts; no public site URL exists in Core.
+  - `[low]` `[patch]` (blind) closing Correct email drops focus to body — fixed: focus returns to the row's button.
+  - `[low]` `[reject]` (blind) the rpc result is cast, not checked — carried.
+  - `[low]` `[reject]` (blind) Correct email with the same address logs revoke + invite — rare, and both rows are true of what happened.
+  - `[false]` `[reject]` (blind) cap checked twice — carried: idempotent under a re-entrant lock.
+  - `[low]` `[patch]` (blind) email input lacks `maxLength={254}` — fixed.
+  - `[false]` `[reject]` (blind) e2e `LINK` regex hard-codes localhost — Playwright's `baseURL` is that host by config.
+  - `[false]` `[reject]` (intent) "Role of another Event" — duplicate of R2.
+  - `[false]` `[reject]` (intent) `email_exists` race only in a mocked test — the race cannot be produced against local Auth deterministically; the real P0002 path runs in e2e.
+  - `[false]` `[reject]` (intent) matrix rows tested only at pgTAP or Vitest — each row has a running test at the surface it names.
+
 ## Design Notes
 
 AD-5 forbids a mutation function from taking a user id, so the function takes the email and resolves the user itself; the secret-key step only creates a missing user, and only after the function has refused everything it can refuse without one. A user is therefore created only when the invitation will succeed (barring a race), so the cap bounds account creation too.
@@ -224,3 +266,15 @@ AD-5 forbids a mutation function from taking a user id, so the function takes th
 **Verification:** `supabase db reset && supabase test db` -- 14 files, 387 tests, PASS. `pnpm test` -- 21 files, 314 tests. `pnpm lint`, `pnpm format:check`, `pnpm exec tsc --noEmit` -- clean. `.githooks/test.sh` -- 27/27. `pnpm test:e2e e2e/team-invite.spec.ts e2e/roles.spec.ts` -- 8/8.
 
 **Residual risks:** the two deferred items; `added` and `self` UI messages are covered by Vitest and pgTAP but not e2e; `next dev` keeps re-adding a block to `AGENTS.md`, which was restored and not committed.
+
+### Follow-up review pass (2026-10-26)
+
+**Patches applied (7):** medium 3 — a pending row for a person joined on another Role now becomes `added` instead of getting a link; the Event-delete path with members and log rows is tested and the catalog check pins `set null`; the action test asserts the Role read filters by both `id` and `event_id`. Low 4 — honest comments on the create-then-retry race, pgTAP for the `added` path's guest-link revocation and a joined Role-holder's `42501`, focus returns after closing *Correct email*, `maxLength={254}` on the email field.
+
+**Deferred:** none new (the two existing items stand). **Rejected:** 31, each with its reason in the Review Triage Log.
+
+**Follow-up review recommendation:** `false` — this follow-up pass patched no high finding (medium 3, low 4), so the work has converged.
+
+**Verification:** `supabase test db` -- 14 files, 396 tests, PASS. `pnpm test` -- 314. lint, format, tsc clean. `.githooks/test.sh` 27/27. `pnpm test:e2e e2e/team-invite.spec.ts e2e/roles.spec.ts` -- 8/8.
+
+**Residual risks:** the two deferred items; focus return after *Correct email* has no automated test.
