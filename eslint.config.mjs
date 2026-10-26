@@ -1,3 +1,4 @@
+import { dirname, join } from "node:path";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
@@ -11,21 +12,28 @@ const isClientComponent = (program) =>
   );
 
 const isEnvModule = (source) => /(^|\/)env(\.ts|\/index(\.ts)?)?$/.test(source);
+// The secret-key client: any import of it from a client component is a leak. Relative paths are resolved
+// against the importing file, so `./admin` next to it counts too.
+const ADMIN_MODULE = /(^|\/)supabase\/admin(\.ts)?$/;
+const isAdminModule = (source, filename) =>
+  ADMIN_MODULE.test(source.startsWith(".") ? join(dirname(filename), source) : source);
 
 const noServerEnvInClient = {
   meta: { type: "problem", schema: [] },
   create(context) {
     let client = false;
     const report = (node) => context.report({ node, message: AD5 });
+    const isAdmin = (source) => isAdminModule(source, context.filename);
     // Only named imports of the client section are allowed; anything else reaches the server section.
     const leaksServerSection = (node) =>
-      isEnvModule(node.source.value) &&
-      (node.specifiers ?? []).some(
-        (s) =>
-          s.type === "ImportNamespaceSpecifier" ||
-          s.type === "ExportNamespaceSpecifier" ||
-          SERVER_ENV_NAMES.includes((s.imported ?? s.local).name),
-      );
+      isAdmin(node.source.value) ||
+      (isEnvModule(node.source.value) &&
+        (node.specifiers ?? []).some(
+          (s) =>
+            s.type === "ImportNamespaceSpecifier" ||
+            s.type === "ExportNamespaceSpecifier" ||
+            SERVER_ENV_NAMES.includes((s.imported ?? s.local).name),
+        ));
     return {
       Program(node) {
         client = isClientComponent(node);
@@ -37,10 +45,14 @@ const noServerEnvInClient = {
         if (client && node.source && leaksServerSection(node)) report(node);
       },
       ExportAllDeclaration(node) {
-        if (client && isEnvModule(node.source.value)) report(node);
+        if (client && (isEnvModule(node.source.value) || isAdmin(node.source.value))) report(node);
       },
       ImportExpression(node) {
-        if (client && node.source.type === "Literal" && isEnvModule(node.source.value))
+        if (
+          client &&
+          node.source.type === "Literal" &&
+          (isEnvModule(node.source.value) || isAdmin(node.source.value))
+        )
           report(node);
       },
       Identifier(node) {
