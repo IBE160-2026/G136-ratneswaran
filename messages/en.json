@@ -214,7 +214,68 @@
         "unavailable": "Couldn't save the change. Try again.",
         "invalidInput": "That change wasn't accepted."
       },
-      "readOnly": "This event is over or cancelled, so its Roles can no longer be changed."
+      "readOnly": "This event is over or cancelled, so its Roles can no longer be changed.",
+      "invite": {
+        "title": "Invite someone",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "noActiveRoles": "Switch on a Role above to invite people to it.",
+        "continue": "Continue",
+        "confirm": "Is {email} the right address?",
+        "confirmHint": "The link only works for this address.",
+        "send": "Create invitation",
+        "back": "Change",
+        "cancel": "Cancel",
+        "linkLabel": "Invitation link",
+        "copy": "Copy link",
+        "copied": "Link copied",
+        "copyFailed": "Couldn't copy. Select the link and copy it.",
+        "sendTo": "Send this link to {name}",
+        "shownOnce": "The link is shown only now. Use New link if it gets lost.",
+        "done": "Done",
+        "status": {
+          "added": "{name} is already on the team, so they now also hold this Role.",
+          "member": "{name} is already on this Role.",
+          "self": "You already organize this event."
+        },
+        "errors": {
+          "nameRequired": "Enter a name.",
+          "nameTooLong": "Use at most 100 characters.",
+          "emailInvalid": "Enter a valid email address.",
+          "roleRequired": "Choose a Role.",
+          "invalidInput": "That invitation wasn't accepted.",
+          "forbidden": "You can't invite people to this event.",
+          "readOnly": "This event is over or cancelled, so no one can be invited.",
+          "roleInactive": "This Role is switched off. Switch it on to invite people.",
+          "cap": "You've reached the daily limit of 30 invitations. Try again tomorrow.",
+          "staleInvitation": "Someone changed this invitation meanwhile. Reload the page and try again.",
+          "unavailable": "Couldn't create the invitation. Try again."
+        }
+      },
+      "people": {
+        "title": "People",
+        "empty": "No one has been invited yet.",
+        "pending": "Invited · not joined yet",
+        "joined": "Joined",
+        "newLink": "New link",
+        "newLinkLabel": "New link for {name}",
+        "correctEmail": "Correct email",
+        "correctEmailLabel": "Correct email for {name}"
+      },
+      "history": {
+        "title": "Access history",
+        "empty": "No changes yet.",
+        "you": "You",
+        "formerInvitee": "Former invitee",
+        "entry": "{actor} · {action} · {name} · {role}",
+        "actions": {
+          "invited": "Invited",
+          "joined": "Joined",
+          "lead_changed": "Role lead changed",
+          "revoked": "Access removed"
+        }
+      }
     },
     "roles": {
       "venue": {
