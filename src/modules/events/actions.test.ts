@@ -5,7 +5,14 @@ const getClaims = vi.fn();
 const maybeSingle = vi.fn();
 const update = vi.fn();
 const updated = vi.fn();
-const filter = { eq: () => filter, maybeSingle };
+const eq = vi.fn();
+const filter = {
+  eq: (...args: unknown[]) => {
+    eq(...args);
+    return filter;
+  },
+  maybeSingle,
+};
 const from = () => ({
   select: () => filter,
   update: (values: unknown) => {
@@ -264,6 +271,9 @@ describe("inviteToRole", () => {
       p_email: "cleo@example.com",
     });
     expect(createUser).not.toHaveBeenCalled();
+    // The Role must belong to the Event in the URL.
+    expect(eq).toHaveBeenCalledWith("id", input.roleId);
+    expect(eq).toHaveBeenCalledWith("event_id", input.eventId);
   });
 
   it("creates the user only after the database finds no account, then invites again", async () => {

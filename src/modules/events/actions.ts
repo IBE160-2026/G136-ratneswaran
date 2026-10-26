@@ -191,9 +191,10 @@ const refuseInvite = (code: string, message?: string) => {
 
 /**
  * Team & Roles: invites a person to a Role (FR-1, FR-2) through one `events_invite_to_role` call under the
- * Organizer's session (AD-2). The function refuses everything it can before it needs the person's auth
- * user, so the secret key creates a passwordless user (AD-5) only when it answers P0002, and the call then
- * runs once more. The token goes back once and is never stored or logged. Logs carry ids and codes only.
+ * Organizer's session (AD-2). The function runs every refusal it can check without the person's auth user
+ * first, so the secret key creates a passwordless user (AD-5) only on P0002, when the invitation is
+ * expected to succeed (a cap or stale refusal can still follow on the second call), and the call then runs
+ * once more. The token goes back once and is never stored or logged. Logs carry ids and codes only.
  */
 export async function inviteToRole(
   input: z.input<typeof inviteSchema>,
