@@ -53,8 +53,9 @@ select is(
 );
 select is_empty(
   $$select conrelid::regclass::text from pg_constraint
-    where contype = 'f' and confrelid = 'public.events'::regclass and confdeltype <> 'c'$$,
-  'every foreign key to events is ON DELETE CASCADE'
+    where contype = 'f' and confrelid = 'public.events'::regclass and confdeltype <> 'c'
+      and conrelid <> 'public.role_membership_log'::regclass$$,
+  'every foreign key to events is ON DELETE CASCADE, except the append-only access history'
 );
 select isnt_empty(
   $$select 1 from pg_constraint where contype = 'f' and confrelid = 'public.events'::regclass$$,
