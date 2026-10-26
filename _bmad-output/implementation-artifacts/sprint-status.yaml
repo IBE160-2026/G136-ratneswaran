@@ -67,7 +67,7 @@ development_status:
   3-3-email-in-the-recipient-s-language: backlog
   3-4-retry-pacing-and-visible-queue: backlog
   3-5-invitation-tokens-and-rules: done
-  3-6-invite-someone-to-a-role: backlog
+  3-6-invite-someone-to-a-role: review
   3-7-join-through-the-invitation-link: backlog
   3-8-role-lead: backlog
   3-9-change-or-revoke-a-role: backlog
