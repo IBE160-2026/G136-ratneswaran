@@ -108,12 +108,13 @@ begin
 end;
 $$;
 
--- AD-2/AD-5 mutation function: the Organizer invites a person to a Role by email. It refuses everything it
--- can before it needs the person's auth user (P0002), so the Server Action creates a user only for an
--- invitation that will succeed. No user id is taken from the caller. Returns one status: invited (with the
--- link token, shown once), added (already joined another Role of this Event), member (already joined this
--- Role) or self (the Organizer's own email). p_replaces (Correct email) names a pending row of the same
--- Role; it is removed with its links in the same transaction, whatever the new address turns out to be.
+-- AD-2/AD-5 mutation function: the Organizer invites a person to a Role by email. Every refusal that can be
+-- checked without the person's auth user runs before P0002, so the Server Action creates a user only when
+-- the invitation is expected to succeed (a cap or stale refusal on the second call can still follow). No
+-- user id is taken from the caller. Returns one status: invited (with the link token, shown once), added
+-- (already joined another Role of this Event), member (already joined this Role) or self (the Organizer's
+-- own email). p_replaces (Correct email) names a pending row of the same Role; it is removed with its
+-- links in the same transaction, whatever the new address turns out to be.
 create function public.events_invite_to_role(
   p_role_id uuid,
   p_name text,
@@ -222,10 +223,21 @@ begin
 
   if v_existing.id is not null then
     -- New link: the earlier links for this Role stop working, and the row takes the name just entered.
-    update public.role_members set name = btrim(p_name) where id = v_existing.id;
     update public.invite_tokens set revoked_at = now()
     where user_id = v_user_id and role_id = p_role_id and kind = 'role_holder'
       and revoked_at is null and consumed_at is null;
+    if exists (
+      select 1 from public.role_members m
+      where m.event_id = v_event_id and m.user_id = v_user_id and m.joined_at is not null
+    ) then
+      -- Joined another Role since this invitation: joined at once, no link.
+      update public.role_members set name = btrim(p_name), joined_at = now() where id = v_existing.id;
+      insert into public.role_membership_log (event_id, role_id, user_id, action, actor_id)
+      values (v_event_id, p_role_id, v_user_id, 'joined', v_actor);
+      return query select 'added'::text, null::text;
+      return;
+    end if;
+    update public.role_members set name = btrim(p_name) where id = v_existing.id;
   end if;
 
   v_token := public.invite_tokens_create(v_event_id, 'role_holder', v_user_id, p_role_id);

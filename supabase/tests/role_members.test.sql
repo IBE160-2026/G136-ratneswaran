@@ -1,5 +1,5 @@
 begin;
-select plan(55);
+select plan(61);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -9,7 +9,8 @@ insert into auth.users (id, email) values
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'fixed-e@example.test'),
   ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'capped-f@example.test'),
   ('11111111-1111-1111-1111-111111111111', 'typo-g@example.test'),
-  ('22222222-2222-2222-2222-222222222222', 'typo-h@example.test');
+  ('22222222-2222-2222-2222-222222222222', 'typo-h@example.test'),
+  ('33333333-3333-3333-3333-333333333333', 'joined-since-i@example.test');
 
 -- A's Events: live (1), cancelled (2), published and ended (3); B's own Event (4)
 insert into public.events (id, organizer_id, name, starts_at, ends_at, time_zone, language, published_at, cancelled_at)
@@ -31,17 +32,26 @@ insert into public.roles (id, event_id, key, active) values
   ('63000000-0000-0000-0000-000000000005', '53000000-0000-0000-0000-000000000003', 'venue', true),
   ('63000000-0000-0000-0000-000000000006', '53000000-0000-0000-0000-000000000004', 'venue', true);
 
--- D has joined Venue; G and H are pending on Venue (typos to correct); C has a live guest link to Event 1
+-- D has joined Venue; G and H are pending on Venue (typos to correct); I is pending on Guests but has since
+-- joined Venue; C and D have live guest links to Event 1
 insert into public.role_members (id, event_id, role_id, user_id, name, email, joined_at) values
   ('73000000-0000-0000-0000-000000000001', '53000000-0000-0000-0000-000000000001',
    '63000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', 'member-d@example.test', now()),
   ('73000000-0000-0000-0000-000000000002', '53000000-0000-0000-0000-000000000001',
    '63000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Gina', 'typo-g@example.test', null),
   ('73000000-0000-0000-0000-000000000003', '53000000-0000-0000-0000-000000000001',
-   '63000000-0000-0000-0000-000000000001', '22222222-2222-2222-2222-222222222222', 'Hal', 'typo-h@example.test', null);
+   '63000000-0000-0000-0000-000000000001', '22222222-2222-2222-2222-222222222222', 'Hal', 'typo-h@example.test', null),
+  ('73000000-0000-0000-0000-000000000004', '53000000-0000-0000-0000-000000000001',
+   '63000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-333333333333', 'Ivo', 'joined-since-i@example.test', now()),
+  ('73000000-0000-0000-0000-000000000005', '53000000-0000-0000-0000-000000000001',
+   '63000000-0000-0000-0000-000000000002', '33333333-3333-3333-3333-333333333333', 'Ivo', 'joined-since-i@example.test', null);
 insert into public.invite_tokens (event_id, kind, token_hash, user_id, role_id) values
   ('53000000-0000-0000-0000-000000000001', 'guest', sha256(convert_to('tok-c-guest', 'UTF8')),
    'cccccccc-cccc-cccc-cccc-cccccccccccc', null),
+  ('53000000-0000-0000-0000-000000000001', 'guest', sha256(convert_to('tok-d-guest', 'UTF8')),
+   'dddddddd-dddd-dddd-dddd-dddddddddddd', null),
+  ('53000000-0000-0000-0000-000000000001', 'role_holder', sha256(convert_to('tok-i-role', 'UTF8')),
+   '33333333-3333-3333-3333-333333333333', '63000000-0000-0000-0000-000000000002'),
   ('53000000-0000-0000-0000-000000000001', 'role_holder', sha256(convert_to('tok-g-role', 'UTF8')),
    '11111111-1111-1111-1111-111111111111', '63000000-0000-0000-0000-000000000001');
 
@@ -147,6 +157,20 @@ select results_eq(
     where user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd'$$,
   $$values ('joined'::text, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid)$$,
   'the addition is logged as joined, once'
+);
+select results_eq(
+  $$select * from public.events_invite_to_role('63000000-0000-0000-0000-000000000002', 'Ivo', 'joined-since-i@example.test')$$,
+  $$values ('added'::text, null::text)$$,
+  'a pending person who has since joined another Role is added, with no link'
+);
+select ok(
+  (select joined_at is not null from public.role_members where id = '73000000-0000-0000-0000-000000000005'),
+  'their pending row is joined at once'
+);
+select results_eq(
+  $$select action from public.role_membership_log where user_id = '33333333-3333-3333-3333-333333333333'$$,
+  $$values ('joined'::text)$$,
+  'the change is logged as joined'
 );
 select results_eq(
   $$select * from public.events_invite_to_role('63000000-0000-0000-0000-000000000001', 'Me', 'Organizer-A@example.test')$$,
@@ -270,7 +294,8 @@ select results_eq(
 );
 select results_eq(
   $$select user_id from public.role_members where role_id = '63000000-0000-0000-0000-000000000001' order by user_id$$,
-  $$values ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid), ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid)$$,
+  $$values ('33333333-3333-3333-3333-333333333333'::uuid), ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid),
+           ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid)$$,
   'the wrong address''s row is gone'
 );
 select results_eq(
@@ -282,7 +307,7 @@ select results_eq(
 
 -- Visibility: Organizer, the person themselves, a stranger
 select is(
-  (select count(*) from public.role_members), 3::bigint, 'the Organizer sees every row of the Event'
+  (select count(*) from public.role_members), 5::bigint, 'the Organizer sees every row of the Event'
 );
 set local request.jwt.claims = '{"sub": "dddddddd-dddd-dddd-dddd-dddddddddddd", "role": "authenticated"}';
 select results_eq(
@@ -292,6 +317,10 @@ select results_eq(
 );
 select is(
   (select count(*) from public.role_membership_log), 0::bigint, 'a Role-holder reads no access history'
+);
+select throws_ok(
+  $$select * from public.events_invite_to_role('63000000-0000-0000-0000-000000000001', 'Eve', 'fixed-e@example.test')$$,
+  '42501', null, 'a joined Role-holder cannot invite'
 );
 set local request.jwt.claims = '{"sub": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "authenticated"}';
 select is((select count(*) from public.role_members), 0::bigint, 'a stranger sees no rows');
@@ -305,6 +334,14 @@ select throws_ok(
 reset role;
 
 -- Tokens: C's guest link and both Role links are revoked; E has one live Role link
+select ok(
+  (select revoked_at is not null from public.invite_tokens where user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd'),
+  'added revokes the person''s live guest link'
+);
+select ok(
+  (select revoked_at is not null from public.invite_tokens where user_id = '33333333-3333-3333-3333-333333333333'),
+  'the pending link of a person added since is revoked'
+);
 select results_eq(
   $$select kind, revoked_at is not null from public.invite_tokens
     where user_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc' order by kind, created_at$$,
@@ -322,7 +359,8 @@ select ok(
   'Correct email revoked the replaced person''s Role link'
 );
 select is(
-  (select count(*) from public.invite_tokens where user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd'),
+  (select count(*) from public.invite_tokens
+   where user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd' and kind = 'role_holder'),
   0::bigint,
   'member and added create no token'
 );

@@ -1,5 +1,5 @@
 begin;
-select plan(35);
+select plan(38);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -20,6 +20,14 @@ from (values
 insert into public.roles (event_id, key)
 select e.id, k.key from public.events e cross join unnest(enum_range(null::public.role_key)) as k (key)
 where e.organizer_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+-- Event 3 has a Role member and access history, which its delete must not trip over
+insert into public.role_members (event_id, role_id, user_id, name, email)
+select event_id, id, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Bea', 'user-b@example.test'
+from public.roles where event_id = '10000000-0000-0000-0000-000000000003' and key = 'venue';
+insert into public.role_membership_log (id, event_id, role_id, user_id, action, actor_id)
+select '90000000-0000-0000-0000-000000000001', event_id, id, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'invited',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+from public.roles where event_id = '10000000-0000-0000-0000-000000000003' and key = 'venue';
 
 -- Function attributes and grants
 select ok(
@@ -54,8 +62,16 @@ select is(
 select is_empty(
   $$select conrelid::regclass::text from pg_constraint
     where contype = 'f' and confrelid = 'public.events'::regclass and confdeltype <> 'c'
-      and conrelid <> 'public.role_membership_log'::regclass$$,
-  'every foreign key to events is ON DELETE CASCADE, except the append-only access history'
+      and not (conrelid = 'public.role_membership_log'::regclass and confdeltype = 'n')$$,
+  'every foreign key to events is ON DELETE CASCADE, except the access history''s SET NULL'
+);
+select results_eq(
+  $$select confrelid::regclass::text, confdeltype::text from pg_constraint
+    where contype = 'f' and conrelid = 'public.role_membership_log'::regclass
+      and confrelid in ('public.events'::regclass, 'public.roles'::regclass)
+    order by 1$$,
+  $$values ('events', 'n'), ('roles', 'n')$$,
+  'the access history''s foreign keys to events and roles are ON DELETE SET NULL'
 );
 select isnt_empty(
   $$select 1 from pg_constraint where contype = 'f' and confrelid = 'public.events'::regclass$$,
@@ -206,6 +222,17 @@ select is(
      '10000000-0000-0000-0000-000000000005')),
   0::bigint,
   'their Roles went with them'
+);
+select is(
+  (select count(*) from public.role_members where user_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+  0::bigint,
+  'their Role members went with them'
+);
+select results_eq(
+  $$select event_id, role_id, user_id from public.role_membership_log
+    where id = '90000000-0000-0000-0000-000000000001'$$,
+  $$values (null::uuid, null::uuid, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'::uuid)$$,
+  'the access history survives with the Event and Role cleared'
 );
 
 select * from finish();
