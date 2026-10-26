@@ -6,7 +6,8 @@ const MAILPIT = "http://127.0.0.1:54324/api/v1";
 export const unique = () =>
   `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
 
-export async function mailLink(request: APIRequestContext, email: string, count = 1) {
+/** The text of the newest of `count` mails to `email`. */
+async function mailText(request: APIRequestContext, email: string, count: number) {
   let id = "";
   await expect
     .poll(async () => {
@@ -16,8 +17,19 @@ export async function mailLink(request: APIRequestContext, email: string, count 
       return body.messages_count;
     })
     .toBe(count);
-  const message = await (await request.get(`${MAILPIT}/message/${id}`)).json();
-  return /https?:\/\/[^\s"<>]+/.exec(message.Text.replace(/&amp;/g, "&"))![0];
+  return (await (await request.get(`${MAILPIT}/message/${id}`)).json()).Text as string;
+}
+
+export async function mailLink(request: APIRequestContext, email: string, count = 1) {
+  const text = await mailText(request, email, count);
+  return /https?:\/\/[^\s"<>]+/.exec(text.replace(/&amp;/g, "&"))![0];
+}
+
+/** The 6-digit one-time code (Auth's magic_link template), which comes with no link. */
+export async function mailCode(request: APIRequestContext, email: string, count = 1) {
+  const text = await mailText(request, email, count);
+  expect(text).not.toMatch(/https?:\/\//);
+  return /\b\d{6}\b/.exec(text)![0];
 }
 
 export async function signUp(page: Page, email: string, password: string) {
