@@ -213,9 +213,19 @@ isOneToOne: false
 "events_delete":
 { Args: { "p_event_id": string }; Returns: undefined
                            },
+"events_invite_preview":
+{ Args: { "p_token": string }; Returns: {
+              "email": string,"event_id": string,"event_name": string,"has_account": boolean,"name": string,"role_key": Database["public"]['Enums']["role_key"],"status": string
+            }[]
+                           },
 "events_invite_to_role":
 { Args: { "p_email": string,"p_name": string,"p_replaces"?: string,"p_role_id": string }; Returns: {
               "status": string,"token": string
+            }[]
+                           },
+"events_join_role":
+{ Args: { "p_token": string,"p_user_id": string }; Returns: {
+              "event_id": string,"status": string
             }[]
                            },
 "events_publish":
@@ -244,6 +254,11 @@ isOneToOne: false
                            },
 "invite_tokens_create":
 { Args: { "p_event_id": string,"p_kind": Database["public"]['Enums']["invite_kind"],"p_role_id"?: string,"p_user_id"?: string }; Returns: string
+                           },
+"invite_tokens_lookup":
+{ Args: { "p_token": string }; Returns: {
+              "event_id": string,"kind": Database["public"]['Enums']["invite_kind"],"role_id": string,"status": string,"token_id": string,"user_id": string
+            }[]
                            },
 "invite_tokens_revoke_for_user":
 { Args: { "p_user_id": string }; Returns: undefined
