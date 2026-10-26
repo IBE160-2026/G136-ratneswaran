@@ -23,7 +23,7 @@ export default async function LogInPage({
     <div className="flex max-w-md flex-col gap-4 py-12">
       <h1 className="text-large-title">{t("title")}</h1>
       <LogInForm next={safeNext(next)} />
-      <OAuthButtons failure={failure} />
+      <OAuthButtons failure={failure} next={safeNext(next)} />
       <Link href="/forgot-password" className="text-primary min-h-touch inline-flex items-center">
         {t("forgot")}
       </Link>

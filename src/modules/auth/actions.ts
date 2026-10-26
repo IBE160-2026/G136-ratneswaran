@@ -125,7 +125,7 @@ export async function forgotPassword(
   return { ok: true, data: null };
 }
 
-/** Ends in `redirect()` to the provider; `/auth/callback` finishes the sign-in (AD-6). */
+/** Ends in `redirect()` to the provider; `/auth/callback` finishes the sign-in and returns to `next` (AD-6). */
 export async function signInWithProvider(
   _previous: Result<null> | null,
   formData: FormData,
@@ -140,8 +140,16 @@ export async function signInWithProvider(
     options: { redirectTo: `${origin}/auth/callback`, skipBrowserRedirect: true },
   });
   if (error || !data.url) return refuse("unavailable", "auth.oauth.errors.unavailable");
+  const store = await cookies();
   // A link attempt that was abandoned must not turn this sign-in into a return to /profile.
-  (await cookies()).delete("oauth_next");
+  store.delete("oauth_next");
+  // Where the sign-in returns to; `oauth_next` keeps meaning a link.
+  store.set("login_next", safeNext(formData.get("next")), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 600,
+  });
   redirect(data.url);
 }
 

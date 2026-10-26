@@ -6,16 +6,20 @@ import { safeNext } from "@/modules/auth/schemas";
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const next = request.cookies.get("oauth_next")?.value;
+  const loginNext = request.cookies.get("login_next")?.value;
   const to = (path: string) => {
     const response = NextResponse.redirect(new URL(path, request.url));
     response.cookies.delete("oauth_next");
+    response.cookies.delete("login_next");
     return response;
   };
   // A link attempt started on /profile; anything else is a sign-in.
   const fail = (reason: "cancelled" | "unverified" | "failed") =>
     next
       ? to(`${safeNext(next)}?link=${reason === "unverified" ? "failed" : reason}`)
-      : to(`/login?oauth=${reason}`);
+      : to(
+          `/login?oauth=${reason}${loginNext ? `&next=${encodeURIComponent(safeNext(loginNext))}` : ""}`,
+        );
   const providerError = params.get("error");
   if (providerError) {
     const description = (params.get("error_description") ?? "").toLowerCase();
@@ -26,5 +30,5 @@ export async function GET(request: NextRequest) {
   if (!code) return fail("failed");
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
-  return error ? fail("failed") : to(safeNext(next));
+  return error ? fail("failed") : to(safeNext(next ?? loginNext));
 }
