@@ -98,7 +98,7 @@ export default async function TeamPage({ params }: Props) {
       </ul>
 
       <section aria-labelledby="people" className="flex flex-col gap-3 pt-6">
-        <h2 id="people" className="text-headline">
+        <h2 id="people" tabIndex={-1} className="text-headline">
           {t("team.people.title")}
         </h2>
         {!readOnly && (

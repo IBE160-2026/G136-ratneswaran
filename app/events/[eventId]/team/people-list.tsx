@@ -40,7 +40,16 @@ export function PeopleList({
             roles={[{ id: correcting.roleId, name: correcting.roleName }]}
             initial={correcting}
             replaces={correcting.id}
-            onClose={() => setCorrecting(null)}
+            onClose={() => {
+              setCorrecting(null);
+              // Back to the row's Correct email; after a correction that row is gone, so to the list heading.
+              requestAnimationFrame(() =>
+                (
+                  document.getElementById(`correct-${correcting.id}`) ??
+                  document.getElementById("people")
+                )?.focus(),
+              );
+            }}
           />
         </section>
       )}
@@ -116,6 +125,7 @@ function PersonRow({
             </button>
             <button
               type="button"
+              id={`correct-${member.id}`}
               aria-label={t("events.team.people.correctEmailLabel", { name: member.name })}
               className={secondaryClass}
               onClick={onCorrect}

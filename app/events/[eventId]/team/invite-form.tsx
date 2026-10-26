@@ -143,6 +143,7 @@ export function InviteForm({
           {...fieldProps("email")}
           type="email"
           defaultValue={draft.email}
+          maxLength={254}
           autoFocus={Boolean(replaces)}
           autoComplete="off"
           className={inputClass}
