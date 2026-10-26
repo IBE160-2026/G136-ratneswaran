@@ -11,7 +11,7 @@ const sha256 = (value: string) => createHash("sha256").update(value).digest("hex
  * spends another's budget (AD-21). Server-only: no `"use server"`, so it never becomes an action.
  */
 export async function limit(
-  flow: "signup" | "resend" | "forgot" | "invite",
+  flow: "signup" | "resend" | "forgot" | "invite" | "join_code",
   subject: { email: string } | { token: string },
   errors: string,
 ) {

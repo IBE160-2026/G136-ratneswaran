@@ -517,5 +517,36 @@
       "dark": "Mørk",
       "system": "System"
     }
+  },
+  "invite": {
+    "surface": "Bli med",
+    "title": "Bli med i {event}",
+    "intro": "Du er invitert til rollen {role}.",
+    "name": "Navn",
+    "email": "E-post",
+    "codeIntro": "For å bli med bekrefter du e-posten med en kode. Vi sender den til denne adressen.",
+    "sendCode": "Send meg en kode",
+    "codeSent": "Vi har sendt en sekssifret kode til {email}.",
+    "code": "Kode",
+    "verify": "Fortsett",
+    "resend": "Send en ny kode",
+    "password": "Velg et passord",
+    "passwordIntro": "E-posten din er bekreftet. Velg et passord du kan logge inn med senere.",
+    "submit": "Bli med",
+    "logInIntro": "Du har allerede en konto. Logg inn for å bli med.",
+    "logIn": "Logg inn for å bli med",
+    "joinIntro": "Du er logget inn med kontoen som ble invitert.",
+    "join": "Bli med",
+    "used": "Denne invitasjonen er allerede brukt. Logg inn i stedet.",
+    "usedLogIn": "Logg inn",
+    "expired": "Denne invitasjonen har utløpt. Be arrangøren om en ny lenke.",
+    "mismatch": "Denne invitasjonen ble sendt til en annen e-postadresse.",
+    "logOut": "Logg ut",
+    "errors": {
+      "invalidInput": "Sjekk feltene nedenfor.",
+      "code": "Koden er feil eller har utløpt. Sjekk den eller send en ny.",
+      "rateLimited": "For mange forsøk. Vent litt og prøv igjen.",
+      "unavailable": "Kunne ikke fortsette akkurat nå. Prøv igjen om litt."
+    }
   }
 }

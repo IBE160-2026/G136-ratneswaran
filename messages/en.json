@@ -517,5 +517,36 @@
       "dark": "Dark",
       "system": "System"
     }
+  },
+  "invite": {
+    "surface": "Join",
+    "title": "Join {event}",
+    "intro": "You are invited to the {role} Role.",
+    "name": "Name",
+    "email": "Email",
+    "codeIntro": "To join, confirm your email with a code. We send it to this address.",
+    "sendCode": "Send me a code",
+    "codeSent": "We sent a 6-digit code to {email}.",
+    "code": "Code",
+    "verify": "Continue",
+    "resend": "Send a new code",
+    "password": "Choose a password",
+    "passwordIntro": "Your email is confirmed. Choose a password to log in with later.",
+    "submit": "Join",
+    "logInIntro": "You already have an account. Log in to join.",
+    "logIn": "Log in to join",
+    "joinIntro": "You are logged in with the invited account.",
+    "join": "Join",
+    "used": "This invite has already been used. Log in instead.",
+    "usedLogIn": "Log in",
+    "expired": "This invite has expired. Ask the organizer for a new link.",
+    "mismatch": "This invite was sent to another email address.",
+    "logOut": "Log out",
+    "errors": {
+      "invalidInput": "Check the fields below.",
+      "code": "That code is wrong or has expired. Check it or send a new one.",
+      "rateLimited": "Too many attempts. Wait a little and try again.",
+      "unavailable": "Couldn't continue right now. Try again shortly."
+    }
   }
 }
