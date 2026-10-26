@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props) {
 export default async function EventHomePage({ params, searchParams }: Props) {
   const { eventId } = await params;
   const { published } = await searchParams;
-  if (!(await getClaims())) redirect(`/login?next=/events/${eventId}`);
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=/events/${eventId}`);
   const event = await loadEvent(eventId);
   const t = await getTranslations("events");
   const format = await getFormatter();
@@ -47,7 +48,10 @@ export default async function EventHomePage({ params, searchParams }: Props) {
         <p>{t(event.published_at ? "home.published" : "home.draft")}</p>
       )}
       {published === "1" && event.published_at && <p role="status">{t("home.publishedStatus")}</p>}
-      {isDraft(event) && <PublishBanner eventId={eventId} missing={missingForPublish(event)} />}
+      {/* A joined member reads the Event too (3.7); only the Organizer publishes. */}
+      {isDraft(event) && event.organizer_id === claims.sub && (
+        <PublishBanner eventId={eventId} missing={missingForPublish(event)} />
+      )}
     </div>
   );
 }

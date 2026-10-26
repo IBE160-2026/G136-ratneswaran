@@ -6,10 +6,11 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth }),
   getClaims: vi.fn(),
 }));
+const setCookie = vi.fn();
 const headerValues = new Headers({ origin: "http://x.test" });
 vi.mock("next/headers", () => ({
   headers: async () => headerValues,
-  cookies: async () => ({ delete: vi.fn() }),
+  cookies: async () => ({ delete: vi.fn(), set: setCookie }),
 }));
 vi.mock("next/navigation", () => ({
   redirect: (to: string) => {
@@ -20,9 +21,10 @@ vi.mock("next/navigation", () => ({
 const { signInWithProvider } = await import("./actions");
 const { GET } = await import("../../../app/auth/callback/route");
 
-const form = (provider: string) => {
+const form = (provider: string, next?: string) => {
   const data = new FormData();
   data.set("provider", provider);
+  if (next) data.set("next", next);
   return data;
 };
 
@@ -32,6 +34,7 @@ beforeEach(() => {
     .mockResolvedValue({ data: { url: "http://p.test/a" }, error: null });
   auth.exchangeCodeForSession.mockReset().mockResolvedValue({ error: null });
   headerValues.set("origin", "http://x.test");
+  setCookie.mockReset();
 });
 
 describe("signInWithProvider", () => {
@@ -43,6 +46,15 @@ describe("signInWithProvider", () => {
       provider,
       options: { redirectTo: "http://x.test/auth/callback", skipBrowserRedirect: true },
     });
+  });
+
+  it("keeps a safe return path in login_next", async () => {
+    await expect(signInWithProvider(null, form("github", "/invite"))).rejects.toThrow("REDIRECT");
+    expect(setCookie).toHaveBeenCalledWith("login_next", "/invite", expect.any(Object));
+    await expect(signInWithProvider(null, form("github", "//evil.test"))).rejects.toThrow(
+      "REDIRECT",
+    );
+    expect(setCookie).toHaveBeenLastCalledWith("login_next", "/events", expect.any(Object));
   });
 
   it("rejects an unknown provider without calling Auth", async () => {
@@ -70,8 +82,10 @@ describe("signInWithProvider", () => {
 });
 
 describe("/auth/callback", () => {
-  const call = async (query: string) => {
-    const response = await GET(new NextRequest(`http://x.test/auth/callback?${query}`));
+  const call = async (query: string, cookie = "") => {
+    const response = await GET(
+      new NextRequest(`http://x.test/auth/callback?${query}`, { headers: { cookie } }),
+    );
     const location = new URL(response.headers.get("location")!);
     return location.pathname + location.search;
   };
@@ -91,6 +105,14 @@ describe("/auth/callback", () => {
   ])("maps %s", async (query, expected) => {
     expect(await call(query)).toBe(expected);
     expect(auth.exchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
+  it("returns a sign-in to login_next, and a link to oauth_next", async () => {
+    expect(await call("code=abc", "login_next=/invite")).toBe("/invite");
+    expect(await call("code=abc", "login_next=/invite; oauth_next=/profile")).toBe("/profile");
+    expect(await call("error=access_denied", "login_next=/invite")).toBe(
+      "/login?oauth=cancelled&next=%2Finvite",
+    );
   });
 
   it("fails a bad exchange", async () => {

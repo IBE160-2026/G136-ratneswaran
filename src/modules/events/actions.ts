@@ -231,8 +231,12 @@ export async function inviteToRole(
     });
   let { data, error } = await invite();
   if (error?.code === "P0002") {
+    // Confirmed now, so the join's email OTP sends a code and no signUp can set a password first (3.7).
+    // Auth sets a random password nobody knows; password_pending tells the join flow to ask for one.
     const { error: createError } = await createAdminClient().auth.admin.createUser({
       email,
+      email_confirm: true,
+      app_metadata: { password_pending: true },
       user_metadata: { name },
     });
     if (createError && createError.code !== "email_exists") {

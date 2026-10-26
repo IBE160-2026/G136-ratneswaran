@@ -251,6 +251,12 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# The email one-time code (signInWithOtp, Story 3.7): shows the code only, never a sign-in link.
+# CI does not sync templates; apply this one to the cloud project by hand.
+[auth.email.template.magic_link]
+subject = "Your Arrangly code"
+content_path = "./supabase/templates/magic_link.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

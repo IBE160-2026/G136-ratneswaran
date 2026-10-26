@@ -35,3 +35,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-5-roles-from-the-branch-pool.md`
   summary: Prove that the 2.5 backfill gives Events created before the migration six Roles with the base three active.
   evidence: pgTAP and e2e run on a freshly migrated database with no Events before `20261019170000_roles.sql`, so the backfill touches zero rows in every test (low). A pre-migration fixture or a check against the cloud data after deploy would settle it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-7-join-through-the-invitation-link.md`
+  summary: No test checks that the OAuth form on `/invite` (and `/login?next=…`) posts `next`, so an OAuth invitee could silently return to `/events` instead of `/invite`.
+  evidence: Review pass 1 (verification gap): `oauth.test.ts` covers both ends with hand-built input; real OAuth cannot run in e2e, but an assertion on the hidden `next` input on `/invite` would cover the form.
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-7-join-through-the-invitation-link.md`
+  summary: The magic-link email template (`supabase/templates/magic_link.html`, a code only) must be applied to the cloud project by hand before invitations work there; nothing tracks it.
+  evidence: CI runs only `supabase db push`; without the template, cloud invitees get Supabase's default link mail and no code, so the join flow cannot complete.

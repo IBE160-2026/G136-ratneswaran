@@ -261,3 +261,12 @@ export const inviteSchema = z.object({
     .pipe(z.email(`${I}.emailInvalid`)),
   replaces: z.uuid().optional(),
 });
+
+/** The 43-character base64url token `invite_tokens_create` issues (3.5). */
+export const inviteTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
+
+/** The Auth email one-time code (`otp_length` in supabase/config.toml). */
+export const joinCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{6}$/, "invite.errors.code");

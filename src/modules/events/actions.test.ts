@@ -286,6 +286,8 @@ describe("inviteToRole", () => {
     });
     expect(createUser).toHaveBeenCalledExactlyOnceWith({
       email: "cleo@example.com",
+      email_confirm: true,
+      app_metadata: { password_pending: true },
       user_metadata: { name: "Cleo Example" },
     });
     expect(rpc).toHaveBeenCalledTimes(2);
