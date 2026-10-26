@@ -214,7 +214,68 @@
         "unavailable": "Kunne ikke lagre endringen. Prøv igjen.",
         "invalidInput": "Endringen ble ikke godtatt."
       },
-      "readOnly": "Arrangementet er over eller avlyst, så rollene kan ikke endres lenger."
+      "readOnly": "Arrangementet er over eller avlyst, så rollene kan ikke endres lenger.",
+      "invite": {
+        "title": "Inviter noen",
+        "name": "Navn",
+        "email": "E-post",
+        "role": "Rolle",
+        "noActiveRoles": "Slå på en rolle over for å invitere folk til den.",
+        "continue": "Fortsett",
+        "confirm": "Er {email} riktig adresse?",
+        "confirmHint": "Lenken virker bare for denne adressen.",
+        "send": "Lag invitasjon",
+        "back": "Endre",
+        "cancel": "Avbryt",
+        "linkLabel": "Invitasjonslenke",
+        "copy": "Kopier lenke",
+        "copied": "Lenken er kopiert",
+        "copyFailed": "Kunne ikke kopiere. Merk lenken og kopier den.",
+        "sendTo": "Send denne lenken til {name}",
+        "shownOnce": "Lenken vises bare nå. Bruk Ny lenke hvis den blir borte.",
+        "done": "Ferdig",
+        "status": {
+          "added": "{name} er allerede med i teamet, så hen har nå også denne rollen.",
+          "member": "{name} har allerede denne rollen.",
+          "self": "Du er allerede arrangør for dette arrangementet."
+        },
+        "errors": {
+          "nameRequired": "Skriv inn et navn.",
+          "nameTooLong": "Bruk høyst 100 tegn.",
+          "emailInvalid": "Skriv inn en gyldig e-postadresse.",
+          "roleRequired": "Velg en rolle.",
+          "invalidInput": "Invitasjonen ble ikke godtatt.",
+          "forbidden": "Du kan ikke invitere folk til dette arrangementet.",
+          "readOnly": "Arrangementet er over eller avlyst, så ingen kan inviteres.",
+          "roleInactive": "Denne rollen er slått av. Slå den på for å invitere folk.",
+          "cap": "Du har nådd grensen på 30 invitasjoner per døgn. Prøv igjen i morgen.",
+          "staleInvitation": "Invitasjonen er endret i mellomtiden. Last inn siden på nytt og prøv igjen.",
+          "unavailable": "Kunne ikke lage invitasjonen. Prøv igjen."
+        }
+      },
+      "people": {
+        "title": "Personer",
+        "empty": "Ingen er invitert ennå.",
+        "pending": "Invitert · ikke blitt med ennå",
+        "joined": "Med",
+        "newLink": "Ny lenke",
+        "newLinkLabel": "Ny lenke for {name}",
+        "correctEmail": "Rett e-post",
+        "correctEmailLabel": "Rett e-post for {name}"
+      },
+      "history": {
+        "title": "Tilgangshistorikk",
+        "empty": "Ingen endringer ennå.",
+        "you": "Du",
+        "formerInvitee": "Tidligere invitert",
+        "entry": "{actor} · {action} · {name} · {role}",
+        "actions": {
+          "invited": "Invitert",
+          "joined": "Ble med",
+          "lead_changed": "Rolleleder endret",
+          "revoked": "Tilgang fjernet"
+        }
+      }
     },
     "roles": {
       "venue": {

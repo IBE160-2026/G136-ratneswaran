@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { fieldErrors, refuse, type Result } from "@/lib/result";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { eventPath, isDraft, missingForPublish } from "./list";
 import { defaultRoles } from "./roles";
 import { setupPath } from "./save";
 import {
+  inviteSchema,
   questionnaireFromForm,
   questionnaireSchema,
   scheduleFromForm,
@@ -170,6 +172,79 @@ export async function setRoleActive(input: z.input<typeof roleSwitch>): Promise<
   }
   revalidatePath(`/events/${eventId}/team`);
   return { ok: true, data: null };
+}
+
+export type InviteStatus = "invited" | "added" | "member" | "self";
+
+const inviteErrors = "events.team.invite.errors";
+const refuseInvite = (code: string, message?: string) => {
+  if (code === "42501") return refuse("forbidden", `${inviteErrors}.forbidden`);
+  if (code === "55000") return refuse("read_only", `${inviteErrors}.readOnly`);
+  if (code === "22023") return refuse("role_inactive", `${inviteErrors}.roleInactive`);
+  if (code === "53400") return refuse("cap", `${inviteErrors}.cap`);
+  if (code === "23514") return refuse("invalid_input", `${inviteErrors}.invalidInput`);
+  if (code === "P0001" && message === "stale_invitation") {
+    return refuse("stale_invitation", `${inviteErrors}.staleInvitation`);
+  }
+  return refuse("unavailable", `${inviteErrors}.unavailable`);
+};
+
+/**
+ * Team & Roles: invites a person to a Role (FR-1, FR-2) through one `events_invite_to_role` call under the
+ * Organizer's session (AD-2). The function runs every refusal it can check without the person's auth user
+ * first, so the secret key creates a passwordless user (AD-5) only on P0002, when the invitation is
+ * expected to succeed (a cap or stale refusal can still follow on the second call), and the call then runs
+ * once more. The token goes back once and is never stored or logged. Logs carry ids and codes only.
+ */
+export async function inviteToRole(
+  input: z.input<typeof inviteSchema>,
+): Promise<Result<{ status: InviteStatus; token: string | null }>> {
+  const parsed = inviteSchema.safeParse(input);
+  if (!parsed.success) {
+    return refuse("invalid_input", `${inviteErrors}.invalidInput`, fieldErrors(parsed.error));
+  }
+  const { eventId, roleId, name, email, replaces } = parsed.data;
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=/events/${eventId}/team`);
+  const fail = (step: string, code: string, message?: string) => {
+    console.error("inviteToRole failed", { eventId, roleId, userId: claims.sub, step, code });
+    return refuseInvite(code, message);
+  };
+
+  const supabase = await createClient();
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id")
+    .eq("id", roleId)
+    .eq("event_id", eventId)
+    .maybeSingle();
+  if (roleError) return fail("role", roleError.code);
+  // The function only knows the Role; this checks it belongs to the Event in the URL (RLS hides others').
+  if (!role) return refuseInvite("42501");
+
+  const invite = () =>
+    supabase.rpc("events_invite_to_role", {
+      p_role_id: roleId,
+      p_name: name,
+      p_email: email,
+      ...(replaces && { p_replaces: replaces }),
+    });
+  let { data, error } = await invite();
+  if (error?.code === "P0002") {
+    const { error: createError } = await createAdminClient().auth.admin.createUser({
+      email,
+      user_metadata: { name },
+    });
+    if (createError && createError.code !== "email_exists") {
+      return fail("createUser", createError.code ?? "unknown");
+    }
+    ({ data, error } = await invite());
+  }
+  if (error) return fail("invite", error.code, error.message);
+  const [row] = data ?? [];
+  if (!row) return fail("invite", "no_row");
+  revalidatePath(`/events/${eventId}/team`);
+  return { ok: true, data: { status: row.status as InviteStatus, token: row.token } };
 }
 
 /** Shared by cancel and delete: a stale tab meets the database's read-only rule (55000). */

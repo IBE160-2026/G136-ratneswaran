@@ -5,14 +5,26 @@ const getClaims = vi.fn();
 const maybeSingle = vi.fn();
 const update = vi.fn();
 const updated = vi.fn();
+const eq = vi.fn();
+const filter = {
+  eq: (...args: unknown[]) => {
+    eq(...args);
+    return filter;
+  },
+  maybeSingle,
+};
 const from = () => ({
-  select: () => ({ eq: () => ({ maybeSingle }) }),
+  select: () => filter,
   update: (values: unknown) => {
     update(values);
     return { eq: () => ({ select: updated }) };
   },
 });
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ rpc, from }), getClaims }));
+const createUser = vi.fn();
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({ auth: { admin: { createUser } } }),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: (to: string) => {
@@ -24,6 +36,7 @@ const {
   cancelEvent,
   createEvent,
   deleteEvent,
+  inviteToRole,
   publishEvent,
   saveDescription,
   saveQuestionnaire,
@@ -230,6 +243,147 @@ describe("setRoleActive", () => {
   ])("maps database error %s to %s", async (code, expected) => {
     rpc.mockResolvedValue({ data: null, error: { code } });
     expect(await setRoleActive(input)).toMatchObject({ ok: false, error: { code: expected } });
+  });
+});
+
+describe("inviteToRole", () => {
+  const input = {
+    eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    roleId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    name: "  Cleo Example ",
+    email: " cleo@example.com ",
+  };
+
+  beforeEach(() => {
+    maybeSingle.mockResolvedValue({ data: { id: input.roleId }, error: null });
+    createUser.mockResolvedValue({ data: {}, error: null });
+    rpc.mockResolvedValue({ data: [{ status: "invited", token: "tok" }], error: null });
+  });
+
+  it("invites an existing account under the Organizer's session, creating no user", async () => {
+    expect(await inviteToRole(input)).toEqual({
+      ok: true,
+      data: { status: "invited", token: "tok" },
+    });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("events_invite_to_role", {
+      p_role_id: input.roleId,
+      p_name: "Cleo Example",
+      p_email: "cleo@example.com",
+    });
+    expect(createUser).not.toHaveBeenCalled();
+    // The Role must belong to the Event in the URL.
+    expect(eq).toHaveBeenCalledWith("id", input.roleId);
+    expect(eq).toHaveBeenCalledWith("event_id", input.eventId);
+  });
+
+  it("creates the user only after the database finds no account, then invites again", async () => {
+    rpc
+      .mockResolvedValueOnce({ data: null, error: { code: "P0002" } })
+      .mockResolvedValueOnce({ data: [{ status: "invited", token: "tok" }], error: null });
+    expect(await inviteToRole(input)).toEqual({
+      ok: true,
+      data: { status: "invited", token: "tok" },
+    });
+    expect(createUser).toHaveBeenCalledExactlyOnceWith({
+      email: "cleo@example.com",
+      user_metadata: { name: "Cleo Example" },
+    });
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("passes the row Correct email replaces", async () => {
+    const replaces = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    await inviteToRole({ ...input, replaces });
+    expect(rpc).toHaveBeenCalledWith(
+      "events_invite_to_role",
+      expect.objectContaining({ p_replaces: replaces }),
+    );
+  });
+
+  it("treats an account created meanwhile as success", async () => {
+    rpc
+      .mockResolvedValueOnce({ data: null, error: { code: "P0002" } })
+      .mockResolvedValueOnce({ data: [{ status: "added", token: null }], error: null });
+    createUser.mockResolvedValue({ data: {}, error: { code: "email_exists" } });
+    expect(await inviteToRole(input)).toEqual({ ok: true, data: { status: "added", token: null } });
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("creates no user when the Role read shows nothing", async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: null });
+    expect(await inviteToRole(input)).toMatchObject({ ok: false, error: { code: "forbidden" } });
+    expect(createUser).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("stops when the user cannot be created", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "P0002" } });
+    createUser.mockResolvedValue({ data: {}, error: { code: "unexpected_failure" } });
+    expect(await inviteToRole(input)).toMatchObject({ ok: false, error: { code: "unavailable" } });
+    expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks only once more after creating the user", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "P0002" } });
+    expect(await inviteToRole(input)).toMatchObject({ ok: false, error: { code: "unavailable" } });
+    expect(createUser).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("refuses bad input with field keys, calling nothing", async () => {
+    expect(
+      await inviteToRole({ ...input, roleId: "nope", name: " ", email: "not-an-email" }),
+    ).toEqual({
+      ok: false,
+      error: {
+        code: "invalid_input",
+        message: "events.team.invite.errors.invalidInput",
+        fields: {
+          roleId: "events.team.invite.errors.roleRequired",
+          name: "events.team.invite.errors.nameRequired",
+          email: "events.team.invite.errors.emailInvalid",
+        },
+      },
+    });
+    expect(maybeSingle).not.toHaveBeenCalled();
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("sends a signed-out caller to log in", async () => {
+    getClaims.mockResolvedValue(null);
+    await expect(inviteToRole(input)).rejects.toThrow(
+      `REDIRECT /login?next=/events/${input.eventId}/team`,
+    );
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["42501", "forbidden", "forbidden", undefined],
+    ["55000", "read_only", "readOnly", undefined],
+    ["22023", "role_inactive", "roleInactive", undefined],
+    ["53400", "cap", "cap", undefined],
+    ["23514", "invalid_input", "invalidInput", undefined],
+    ["P0001", "stale_invitation", "staleInvitation", "stale_invitation"],
+    ["P0001", "unavailable", "unavailable", "some other raise"],
+    ["XX000", "unavailable", "unavailable", undefined],
+  ])("maps database error %s to %s, creating no user", async (code, expected, key, message) => {
+    rpc.mockResolvedValue({ data: null, error: { code, message } });
+    expect(await inviteToRole(input)).toEqual({
+      ok: false,
+      error: { code: expected, message: `events.team.invite.errors.${key}` },
+    });
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("logs ids and the code, never the name or email", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    rpc.mockResolvedValue({ data: null, error: { code: "53400" } });
+    await inviteToRole(input);
+    const logged = JSON.stringify(log.mock.calls);
+    expect(logged).toContain(input.roleId);
+    expect(logged).toContain("53400");
+    expect(logged).not.toMatch(/cleo/i);
+    log.mockRestore();
   });
 });
 

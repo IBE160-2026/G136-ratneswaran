@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 export const inputClass =
   "min-h-touch border-input bg-background w-full rounded-lg border px-3 aria-[invalid=true]:border-destructive";
 export const buttonClass = "bg-primary text-primary-foreground min-h-touch rounded-full px-6";
+export const secondaryClass = "min-h-touch border-input rounded-full border px-4";
 
 /** Alert for a failure with no field to blame. */
 export function Failure({

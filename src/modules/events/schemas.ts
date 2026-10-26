@@ -246,3 +246,18 @@ export function toLocalInput(iso: string, timeZone: string) {
     .format(new Date(iso))
     .replace(" ", "T");
 }
+
+const I = "events.team.invite.errors";
+
+/** Team & Roles: invite a person to a Role. `replaces` is the pending row *Correct email* swaps out. */
+export const inviteSchema = z.object({
+  eventId: z.uuid(),
+  roleId: z.uuid(`${I}.roleRequired`),
+  name: z.string().trim().min(1, `${I}.nameRequired`).max(100, `${I}.nameTooLong`),
+  email: z
+    .string()
+    .trim()
+    .max(254, `${I}.emailInvalid`)
+    .pipe(z.email(`${I}.emailInvalid`)),
+  replaces: z.uuid().optional(),
+});

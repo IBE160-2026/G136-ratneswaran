@@ -123,6 +123,58 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"role_members": {
+                  Row: {
+                    "created_at": string,"email": string,"event_id": string,"id": string,"invited_by": string | null,"joined_at": string | null,"name": string,"role_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"email": string,"event_id": string,"id"?: string,"invited_by"?: string | null,"joined_at"?: string | null,"name": string,"role_id": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"email"?: string,"event_id"?: string,"id"?: string,"invited_by"?: string | null,"joined_at"?: string | null,"name"?: string,"role_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "role_members_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "role_members_role_id_fkey"
+      columns: ["role_id"]
+isOneToOne: false
+      referencedRelation: "roles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"role_membership_log": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"created_at": string,"event_id": string | null,"id": string,"role_id": string | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"created_at"?: string,"event_id"?: string | null,"id"?: string,"role_id"?: string | null,"user_id"?: string | null
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"created_at"?: string,"event_id"?: string | null,"id"?: string,"role_id"?: string | null,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "role_membership_log_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "role_membership_log_role_id_fkey"
+      columns: ["role_id"]
+isOneToOne: false
+      referencedRelation: "roles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"roles": {
                   Row: {
                     "active": boolean,"event_id": string,"id": string,"key": Database["public"]['Enums']["role_key"],"toggled_at": string | null
@@ -161,6 +213,11 @@ isOneToOne: false
 "events_delete":
 { Args: { "p_event_id": string }; Returns: undefined
                            },
+"events_invite_to_role":
+{ Args: { "p_email": string,"p_name": string,"p_replaces"?: string,"p_role_id": string }; Returns: {
+              "status": string,"token": string
+            }[]
+                           },
 "events_publish":
 { Args: { "p_event_id": string }; Returns: undefined
                            },
@@ -181,6 +238,9 @@ isOneToOne: false
                            },
 "guests_update":
 { Args: { "p_email": string,"p_guest_id": string,"p_name": string }; Returns: undefined
+                           },
+"invite_tokens_check_cap":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "invite_tokens_create":
 { Args: { "p_event_id": string,"p_kind": Database["public"]['Enums']["invite_kind"],"p_role_id"?: string,"p_user_id"?: string }; Returns: string
