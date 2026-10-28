@@ -14,6 +14,7 @@ export function RoleSwitch({
   name,
   description,
   hint,
+  lead,
 }: {
   eventId: string;
   roleId: string;
@@ -22,6 +23,7 @@ export function RoleSwitch({
   name: string;
   description: string;
   hint: string | null;
+  lead: string | null;
 }) {
   const t = useTranslations();
   const id = useId();
@@ -59,6 +61,11 @@ export function RoleSwitch({
       {hint && (
         <p id={`${id}-hint`} className="text-subhead text-primary">
           {hint}
+        </p>
+      )}
+      {active && (
+        <p className="text-subhead">
+          {lead ? t("events.team.lead.current", { name: lead }) : t("events.team.lead.none")}
         </p>
       )}
       {failure && (
