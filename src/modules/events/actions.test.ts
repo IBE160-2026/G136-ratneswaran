@@ -41,6 +41,7 @@ const {
   saveDescription,
   saveQuestionnaire,
   setRoleActive,
+  setRoleLead,
   updateSchedule,
 } = await import("./actions");
 
@@ -243,6 +244,64 @@ describe("setRoleActive", () => {
   ])("maps database error %s to %s", async (code, expected) => {
     rpc.mockResolvedValue({ data: null, error: { code } });
     expect(await setRoleActive(input)).toMatchObject({ ok: false, error: { code: expected } });
+  });
+});
+
+describe("setRoleLead", () => {
+  const input = {
+    eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    roleId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    memberId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  };
+
+  beforeEach(() => {
+    maybeSingle.mockResolvedValue({ data: { id: input.roleId }, error: null });
+  });
+
+  it("makes the member lead through events_set_role_lead", async () => {
+    expect(await setRoleLead(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("events_set_role_lead", {
+      p_role_id: input.roleId,
+      p_member_id: input.memberId,
+    });
+    // The Role must belong to the Event in the URL.
+    expect(eq).toHaveBeenCalledWith("event_id", input.eventId);
+  });
+
+  it("clears the lead when the member is null", async () => {
+    expect(await setRoleLead({ ...input, memberId: null })).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("events_set_role_lead", {
+      p_role_id: input.roleId,
+    });
+  });
+
+  it("refuses a Role of another Event without calling the function", async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: null });
+    expect(await setRoleLead(input)).toMatchObject({
+      ok: false,
+      error: { code: "forbidden", message: "events.team.lead.errors.forbidden" },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses a malformed id without calling the database", async () => {
+    expect(await setRoleLead({ ...input, memberId: "nope" })).toMatchObject({
+      ok: false,
+      error: { code: "invalid_input" },
+    });
+    expect(maybeSingle).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["42501", undefined, "events.team.lead.errors.forbidden"],
+    ["22023", "role_inactive", "events.team.lead.errors.roleInactive"],
+    ["22023", "not_a_member", "events.team.lead.errors.unavailable"],
+    ["55000", undefined, "events.settings.errors.readOnly"],
+    ["XX000", undefined, "events.team.lead.errors.unavailable"],
+  ])("maps database error %s (%s) to %s", async (code, message, expected) => {
+    rpc.mockResolvedValue({ data: null, error: { code, message } });
+    expect(await setRoleLead(input)).toMatchObject({ ok: false, error: { message: expected } });
   });
 });
 

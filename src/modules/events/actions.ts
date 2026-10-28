@@ -174,6 +174,47 @@ export async function setRoleActive(input: z.input<typeof roleSwitch>): Promise<
   return { ok: true, data: null };
 }
 
+const leadInput = z.object({ eventId: z.uuid(), roleId: z.uuid(), memberId: z.uuid().nullable() });
+const leadErrors = "events.team.lead.errors";
+
+/**
+ * Team & Roles: makes a member the Role lead, or clears the lead with a null `memberId` (Undo), through
+ * `events_set_role_lead` (FR-1, AD-2, AD-19). Logs carry ids and codes only.
+ */
+export async function setRoleLead(input: z.input<typeof leadInput>): Promise<Result<null>> {
+  const parsed = leadInput.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "events.team.errors.invalidInput");
+  const { eventId, roleId, memberId } = parsed.data;
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=/events/${eventId}/team`);
+  const fail = (code: string, message?: string) => {
+    console.error("setRoleLead failed", { eventId, roleId, userId: claims.sub, code });
+    if (code === "42501") return refuse("forbidden", `${leadErrors}.forbidden`);
+    if (code === "22023" && message === "role_inactive") {
+      return refuse("role_inactive", `${leadErrors}.roleInactive`);
+    }
+    if (code === "55000") return refuse("read_only", "events.settings.errors.readOnly");
+    return refuse("unavailable", `${leadErrors}.unavailable`);
+  };
+  const supabase = await createClient();
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id")
+    .eq("id", roleId)
+    .eq("event_id", eventId)
+    .maybeSingle();
+  if (roleError) return fail(roleError.code);
+  // The function only knows the Role; this checks it belongs to the Event in the URL (RLS hides others').
+  if (!role) return refuse("forbidden", `${leadErrors}.forbidden`);
+  const { error } = await supabase.rpc("events_set_role_lead", {
+    p_role_id: roleId,
+    ...(memberId && { p_member_id: memberId }),
+  });
+  if (error) return fail(error.code, error.message);
+  revalidatePath(`/events/${eventId}/team`);
+  return { ok: true, data: null };
+}
+
 export type InviteStatus = "invited" | "added" | "member" | "self";
 
 const inviteErrors = "events.team.invite.errors";
