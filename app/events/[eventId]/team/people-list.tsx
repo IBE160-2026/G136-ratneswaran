@@ -96,8 +96,10 @@ function PersonRow({
     token: string | null;
   }> | null>(null);
   const [pending, startTransition] = useTransition();
+  const [leadFailure, setLeadFailure] = useState<string | null>(null);
   const newLink = () =>
     startTransition(async () => {
+      setLeadFailure(null);
       setOutcome(
         await callSafely(() =>
           inviteToRole({
@@ -109,10 +111,10 @@ function PersonRow({
         ),
       );
     });
-  const [leadFailure, setLeadFailure] = useState<string | null>(null);
   const changeLead = (memberId: string | null, onDone?: () => void) =>
     startTransition(async () => {
       setLeadFailure(null);
+      setOutcome((previous) => (previous?.ok ? previous : null));
       const result = await callSafely(() =>
         setRoleLead({ eventId, roleId: member.roleId, memberId }),
       );
