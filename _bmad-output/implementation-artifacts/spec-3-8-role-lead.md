@@ -5,7 +5,7 @@ created: '2026-10-28'
 status: 'done'
 baseline_commit: '886253004e53e74de487a7da0534cf90aa0bf73b'
 review_loop_iteration: 0
-followup_review_recommended: true
+followup_review_recommended: false
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-3-context.md'
 warnings: [oversized]
@@ -108,6 +108,37 @@ deferred: []
   - `[low]` `[reject]` (intent) Undo-to-zero UI path never runs end to end — same as the blind e2e row above.
   - `[false]` `[reject]` (intent) Reviewed diff omits types, `AGENTS.md`, spec and KI-logg — same refutation as the blind diff-scope row.
 
+### 2026-10-28 — Review pass (follow-up)
+- verdicts: 27 findings — high 0, medium 3, low 17, false 7, maybe-false 0
+- findings:
+  - `[low]` `[reject]` (edge) Older Undo toast clears or replaces a newer lead — carried: same as the pass-1 stale-Undo row.
+  - `[low]` `[reject]` (edge) `previousLeadId` stale after a change in another tab — carried: same root cause as the stale-Undo row.
+  - `[low]` `[reject]` (edge) A lead revives when its Role is switched back on — carried: keeping `is_lead` while a Role is off follows AD-19 (deactivation is a flag); the badge part was patched in pass 1.
+  - `[low]` `[reject]` (edge) Undo failure shows inline under a row that may be gone — carried: same as the pass-1 row.
+  - `[low]` `[reject]` (edge) Correct email on the lead writes no `lead_changed` — carried: `revoked` is already logged for that person.
+  - `[false]` `[reject]` (edge) The aria-label differs from the Code Map wording — the label was changed on purpose in pass 1 for WCAG 2.5.3; the fix would edit the spec.
+  - `[medium]` `[patch]` (verification-gap) The read-only Team test does not assert that *Make lead* is hidden — added a `/^Make lead/` count-0 assertion in `e2e/team-invite.spec.ts`.
+  - `[medium]` `[patch]` (verification-gap) No test that a switched-off Role hides its badge, lead line and *Make lead* (a pass-1 patch) — `e2e/team-lead.spec.ts` now switches Venue off, asserts all three are hidden, then switches it back on.
+  - `[low]` `[reject]` (intent) Undo of a first lead (UI → clear → "No lead yet") is not end to end — carried: same as the pass-1 e2e row.
+  - `[low]` `[reject]` (intent) Nothing asserts what Undo writes to Access history — same root cause as the row above; the log rows are proven in pgTAP.
+  - `[false]` `[reject]` (intent) Non-Organizer refusal has no e2e — the database is the boundary (AD-19), and pgTAP covers a stranger, a member and anon.
+  - `[low]` `[reject]` (intent) Refusal keys are never shown in a UI test — the UI hides the button in those states; the mapping is unit-tested; only a race reaches them.
+  - `[false]` `[reject]` (intent) "Same lead" cannot be reached from the UI — not a defect: the current lead's row has no button, and the database no-op is tested.
+  - `[false]` `[reject]` (intent) Concurrency not tested; the lock comes after the auth read — carried: the index is the invariant; the auth read does not depend on the lock.
+  - `[low]` `[reject]` (intent) The lead-removed e2e deletes with psql instead of the Correct email UI — pgTAP runs the real Correct email path; the e2e checks the render.
+  - `[false]` `[reject]` (intent) The swap's in-between state is never observed — it cannot be observed inside one statement by design; the physical-order case proves the statement succeeds.
+  - `[false]` `[reject]` (blind) No `docs/ki-logg.md` entry — carried: delivered at PR time.
+  - `[low]` `[reject]` (blind) Correct email silently drops the lead — carried.
+  - `[low]` `[reject]` (blind) A lead outlives switching the Role off — carried (AD-19).
+  - `[false]` `[reject]` (blind) The not-found checks rely on `user_id` being non-null — `role_members.user_id` is `not null`, so the outcome cannot happen.
+  - `[low]` `[reject]` (blind) The CTE swap is more complex than two statements — the intent contract asks for one statement; the fix would edit the spec.
+  - `[low]` `[reject]` (blind) The log names only the new lead, and a clear reads like an appointment — carried: reported to the owner in pass 1.
+  - `[low]` `[reject]` (blind) Undo can overwrite another session's change — carried: same as the stale-Undo row.
+  - `[low]` `[patch]` (blind) `outcome` and `leadFailure` never clear each other, so an old alert stays up — `changeLead` clears a failed `outcome` (a shown invite link is kept, since it appears only once), and `newLink` clears `leadFailure`.
+  - `[medium]` `[patch]` (blind) e2e gaps: *Make lead* hidden on read-only and inactive, plus a first-lead Undo, a real Correct email and `PersonRow` unit tests — grouped with the two verification-gap rows (patched); the rest carried or rejected as above.
+  - `[low]` `[reject]` (blind) Routine refusals are logged with `console.error`, and the cross-Event Role is not logged — this matches `inviteToRole`'s existing pattern; no named harm.
+  - `[low]` `[reject]` (blind) The current lead is computed twice, quadratic per row — a Role has a handful of members; this is negligible.
+
 ## Auto Run Result
 
 **Summary:** The Organizer can name one Role lead per Role on Team & Roles. `role_members.is_lead` is guarded by a partial unique index. `events_set_role_lead` sets the lead with a single-statement swap (a data-modifying CTE), or clears it for Undo, and logs `lead_changed`. Each active Role card shows "Lead: {name}" or "No lead yet". Person rows get a "Role lead" badge and *Make lead* with an Undo toast. Epic 4's `tasks_assign_role_owned_to_lead` call site is marked in the function.
@@ -136,6 +167,12 @@ deferred: []
 **Residual risks:**
 - The CTE ordering relies on the scalar subquery running as an initplan, which Postgres documents as unspecified order for `WITH` sub-statements. The physical-order pgTAP case catches a regression.
 - The full e2e suite is flaky under parallel load. This is pre-existing.
+
+**Follow-up pass (2026-10-28):** 27 findings (high 0, medium 3, low 17, false 7). Most were carried from pass 1.
+- Patched (3 entries): an e2e assertion that *Make lead* is hidden on a read-only Event (medium), an e2e step that hides the lead on a switched-off Role (medium), and stale alerts clearing each other on a row (low).
+- Deferred: none.
+- Follow-up review recommended: false. No high was patched, so the work has converged.
+- Verification: pgTAP 478/478, lint, format and Vitest (348) pass. `pnpm test:e2e --workers=2` passed 84/84. The earlier timeouts were caused by parallel load.
 
 ## Design Notes
 
