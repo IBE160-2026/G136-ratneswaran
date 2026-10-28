@@ -53,6 +53,18 @@ test("the Organizer makes a lead, changes it and undoes the change", async ({ pa
   await expect(ada).toContainText("Role lead");
   await expect(bo).not.toContainText("Role lead");
 
+  // A switched-off Role shows no lead, on its card or in People.
+  const venueSwitch = page.getByRole("switch", { name: "Venue" });
+  await venueSwitch.click();
+  await expect(venueSwitch).not.toBeChecked();
+  await expect(ada).not.toContainText("Role lead");
+  await expect(ada.getByRole("button", { name: /^Make lead/ })).toHaveCount(0);
+  await expect(venue).not.toContainText("Lead:");
+  await expect(venue).not.toContainText("No lead yet");
+  await venueSwitch.click();
+  await expect(venueSwitch).toBeChecked();
+  await expect(venue).toContainText("Lead: Ada Pending");
+
   // The lead's row is removed (Correct email today, revoke in 3.9): the Role has no lead.
   psql(`delete from public.role_members where event_id = '${id}' and is_lead`);
   await page.reload();
