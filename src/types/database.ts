@@ -125,14 +125,14 @@ isOneToOne: false
                   ]
                 },"role_members": {
                   Row: {
-                    "created_at": string,"email": string,"event_id": string,"id": string,"invited_by": string | null,"joined_at": string | null,"name": string,"role_id": string,"user_id": string
+                    "created_at": string,"email": string,"event_id": string,"id": string,"invited_by": string | null,"is_lead": boolean,"joined_at": string | null,"name": string,"role_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email": string,"event_id": string,"id"?: string,"invited_by"?: string | null,"joined_at"?: string | null,"name": string,"role_id": string,"user_id": string
+                    "created_at"?: string,"email": string,"event_id": string,"id"?: string,"invited_by"?: string | null,"is_lead"?: boolean,"joined_at"?: string | null,"name": string,"role_id": string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string,"event_id"?: string,"id"?: string,"invited_by"?: string | null,"joined_at"?: string | null,"name"?: string,"role_id"?: string,"user_id"?: string
+                    "created_at"?: string,"email"?: string,"event_id"?: string,"id"?: string,"invited_by"?: string | null,"is_lead"?: boolean,"joined_at"?: string | null,"name"?: string,"role_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -236,6 +236,9 @@ isOneToOne: false
                            },
 "events_set_role_active":
 { Args: { "p_active": boolean,"p_role_id": string }; Returns: undefined
+                           },
+"events_set_role_lead":
+{ Args: { "p_member_id"?: string,"p_role_id": string }; Returns: undefined
                            },
 "events_update_schedule":
 { Args: { "p_ends_local": string,"p_event_id": string,"p_language": string,"p_rsvp_due_date": string,"p_starts_local": string,"p_time_zone": string }; Returns: undefined
