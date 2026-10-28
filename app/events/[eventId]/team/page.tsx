@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props) {
   return { title: `${t("team.surface")} – ${event.name ?? t("draft.untitled")} – Arrangly` };
 }
 
-// Team & Roles, for the Organizer: switch Roles (2.5), invite people (3.6) and read the Access history.
+// Team & Roles, for the Organizer: switch Roles (2.5), invite people (3.6), set Role leads (3.8) and read the Access history.
 export default async function TeamPage({ params }: Props) {
   const { eventId } = await params;
   const claims = await getClaims();
@@ -30,7 +30,7 @@ export default async function TeamPage({ params }: Props) {
     supabase.from("roles").select("id, key, active, toggled_at").eq("event_id", eventId),
     supabase
       .from("role_members")
-      .select("id, role_id, user_id, name, email, joined_at")
+      .select("id, role_id, user_id, name, email, joined_at, is_lead")
       .eq("event_id", eventId)
       .order("created_at"),
     supabase
@@ -62,6 +62,7 @@ export default async function TeamPage({ params }: Props) {
       name: member.name,
       email: member.email,
       joined: member.joined_at !== null,
+      isLead: member.is_lead,
     }))
     .toSorted(
       (a, b) =>
@@ -71,6 +72,9 @@ export default async function TeamPage({ params }: Props) {
   const activeRoles = roles
     .filter((role) => role.active)
     .map((role) => ({ id: role.id, name: roleName.get(role.id) ?? "" }));
+  const leadName = new Map(
+    membersResult.data.filter((member) => member.is_lead).map((m) => [m.role_id, m.name]),
+  );
   const former = t("team.history.formerInvitee");
   // Published past and cancelled Events are read-only; the database refuses their changes too.
   const readOnly = !isDraft(event) && isPast(event, new Date());
@@ -91,6 +95,7 @@ export default async function TeamPage({ params }: Props) {
                 name={t(`roles.${role.key}.name`)}
                 description={t(roleDescriptionKey(role.key, event.event_type))}
                 hint={hint && t(`team.suggested.${hint}`)}
+                lead={leadName.get(role.id) ?? null}
               />
             </li>
           );

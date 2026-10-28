@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 10-26-2026 21:41
+last_updated: 10-26-2026 22:18
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -68,7 +68,7 @@ development_status:
   3-4-retry-pacing-and-visible-queue: backlog
   3-5-invitation-tokens-and-rules: done
   3-6-invite-someone-to-a-role: done
-  3-7-join-through-the-invitation-link: review
+  3-7-join-through-the-invitation-link: done
   3-8-role-lead: backlog
   3-9-change-or-revoke-a-role: backlog
   3-10-the-role-holder-s-scoped-view: backlog

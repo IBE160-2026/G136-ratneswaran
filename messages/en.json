@@ -263,6 +263,19 @@
         "correctEmail": "Correct email",
         "correctEmailLabel": "Correct email for {name}"
       },
+      "lead": {
+        "none": "No lead yet",
+        "current": "Lead: {name}",
+        "badge": "Role lead",
+        "make": "Make lead",
+        "makeLabel": "Make lead: {name}, {role}",
+        "changed": "{name} is now lead of {role}",
+        "errors": {
+          "forbidden": "You can't set the Role lead for this event.",
+          "roleInactive": "This Role is switched off. Switch it on to choose a lead.",
+          "unavailable": "Couldn't change the Role lead. Reload the page and try again."
+        }
+      },
       "history": {
         "title": "Access history",
         "empty": "No changes yet.",

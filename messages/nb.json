@@ -263,6 +263,19 @@
         "correctEmail": "Rett e-post",
         "correctEmailLabel": "Rett e-post for {name}"
       },
+      "lead": {
+        "none": "Ingen leder ennå",
+        "current": "Leder: {name}",
+        "badge": "Rolleleder",
+        "make": "Gjør til leder",
+        "makeLabel": "Gjør til leder: {name}, {role}",
+        "changed": "{name} er nå leder for {role}",
+        "errors": {
+          "forbidden": "Du kan ikke velge rolleleder for dette arrangementet.",
+          "roleInactive": "Denne rollen er slått av. Slå den på for å velge en leder.",
+          "unavailable": "Kunne ikke endre rolleleder. Last inn siden på nytt og prøv igjen."
+        }
+      },
       "history": {
         "title": "Tilgangshistorikk",
         "empty": "Ingen endringer ennå.",

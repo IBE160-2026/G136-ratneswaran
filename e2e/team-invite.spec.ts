@@ -126,4 +126,5 @@ test("a read-only Event hides the invite form and the pending row's actions", as
   await expect(page.getByLabel("Name")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /New link/ })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Correct email/ })).toHaveCount(0);
+  await expect(row.getByRole("button", { name: /^Make lead/ })).toHaveCount(0);
 });
