@@ -276,6 +276,18 @@
           "unavailable": "Kunne ikke endre rolleleder. Last inn siden på nytt og prøv igjen."
         }
       },
+      "revoke": {
+        "open": "Fjern tilgang",
+        "openLabel": "Fjern tilgang: {name}, {role}",
+        "title": "Fjerne {name} fra {role}?",
+        "description": "{name} mister tilgangen til {role} med en gang, og invitasjonslenker slutter å virke. Du kan invitere personen på nytt senere.",
+        "confirm": "Fjern fra {role}",
+        "keep": "Behold",
+        "errors": {
+          "forbidden": "Du kan ikke fjerne tilgang for dette arrangementet.",
+          "unavailable": "Kunne ikke fjerne personen. Last inn siden på nytt og prøv igjen."
+        }
+      },
       "history": {
         "title": "Tilgangshistorikk",
         "empty": "Ingen endringer ennå.",

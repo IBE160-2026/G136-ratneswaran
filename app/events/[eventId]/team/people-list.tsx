@@ -1,10 +1,11 @@
 "use client";
 
+import { Dialog } from "@base-ui/react/dialog";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { Result } from "@/lib/result";
 import { undoToast } from "@/lib/feedback";
-import { inviteToRole, setRoleLead, type InviteStatus } from "@/modules/events/actions";
+import { inviteToRole, revokeRole, setRoleLead, type InviteStatus } from "@/modules/events/actions";
 import { callSafely } from "@/modules/events/save";
 import { secondaryClass } from "@/components/form";
 import { InviteForm, InviteLink } from "./invite-form";
@@ -158,6 +159,7 @@ function PersonRow({
             {t("events.team.lead.make")}
           </button>
         )}
+        {!readOnly && <RevokeButton eventId={eventId} member={member} />}
         {!readOnly && !member.joined && member.roleActive && (
           <span className="flex flex-wrap gap-2">
             <button
@@ -202,5 +204,65 @@ function PersonRow({
         </p>
       )}
     </li>
+  );
+}
+
+const destructiveClass =
+  "bg-destructive text-background min-h-touch rounded-full px-6 font-semibold disabled:opacity-60";
+
+/** *Revoke* behind a confirmation dialog (UX-DR23). Offered for any Role state, since access is what goes. */
+function RevokeButton({ eventId, member }: { eventId: string; member: Member }) {
+  const t = useTranslations("events.team.revoke");
+  const tRoot = useTranslations();
+  const [open, setOpen] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const values = { name: member.name, role: member.roleName };
+  const confirm = () =>
+    startTransition(async () => {
+      setFailure(null);
+      const result = await callSafely(() => revokeRole({ eventId, memberId: member.id }));
+      if (result.ok) {
+        setOpen(false);
+        // The row is gone with the dialog's trigger, so focus goes to the list heading, as after Correct email.
+        requestAnimationFrame(() => document.getElementById("people")?.focus());
+      } else setFailure(result.error.message);
+    });
+  return (
+    <Dialog.Root open={open} onOpenChange={(next) => !pending && setOpen(next)}>
+      <Dialog.Trigger
+        aria-label={t("openLabel", values)}
+        className={secondaryClass}
+        onClick={() => setFailure(null)}
+      >
+        {t("open")}
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs" />
+        <Dialog.Popup className="bg-popover text-popover-foreground fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg p-6 shadow-lg">
+          <Dialog.Title className="text-headline">{t("title", values)}</Dialog.Title>
+          <Dialog.Description className="text-muted-foreground">
+            {t("description", values)}
+          </Dialog.Description>
+          {failure && (
+            <p role="alert" className="text-destructive">
+              {tRoot(failure)}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              className={destructiveClass}
+              onClick={confirm}
+              aria-busy={pending}
+              disabled={pending}
+            >
+              {t("confirm", values)}
+            </button>
+            <Dialog.Close className={secondaryClass}>{t("keep")}</Dialog.Close>
+          </div>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
