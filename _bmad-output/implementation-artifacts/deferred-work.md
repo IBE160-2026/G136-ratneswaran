@@ -45,3 +45,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-9-change-or-revoke-a-role.md`
   summary: The role-revoked `role="alert"` toast "Your access to {Role} was changed by {Organizer}" and its redirect (Story 3.9, UX-DR24) are built in Story 3.10.
   evidence: It needs a holder-readable record of the revoke (log reads are Organizer-only), a source for the Organizer's name (no profile table) and a landing page for the holder, none of which exist before 3.10. Owner chose this on 2026-10-28.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-10-the-role-holders-scoped-view.md`
+  summary: is_team_member is an invoker helper read inside role_members_select, so it relies on the planner applying the leakproof user_id equality before the policy.
+  evidence: pgTAP passes with five rows visible to a holder, but a plan that evaluates the policy first would recurse; settle it with a larger-table plan check or a different non-recursive shape.
