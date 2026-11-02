@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { psql, seed, signedIn, unique } from "./support";
+import { addContacts, psql, seed, signedIn, unique } from "./support";
 
 // Limiter buckets are per IP and shared by every test, so give each its own.
 test.beforeEach(async ({ page }) => {
@@ -11,9 +11,10 @@ function addPending(eventId: string, name: string, lead = false) {
   const user = psql(
     `insert into auth.users (id, email) values (gen_random_uuid(), '${unique()}') returning id`,
   ).split("\n")[0];
-  psql(`insert into public.role_members (event_id, role_id, user_id, name, email, is_lead)
-    select '${eventId}', r.id, u.id, '${name}', u.email, ${lead}
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, is_lead)
+    select '${eventId}', r.id, u.id, '${name}', ${lead}
     from public.roles r, auth.users u where r.event_id = '${eventId}' and r.key = 'venue' and u.id = '${user}'`);
+  addContacts(eventId);
 }
 
 test("the Organizer revokes a pending member and the lead", async ({ page, request }) => {

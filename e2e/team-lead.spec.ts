@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { psql, seed, signedIn, unique } from "./support";
+import { addContacts, psql, seed, signedIn, unique } from "./support";
 
 // Limiter buckets are per IP and shared by every test, so give each its own.
 test.beforeEach(async ({ page }) => {
@@ -15,10 +15,11 @@ test("the Organizer makes a lead, changes it and undoes the change", async ({ pa
     const user = psql(
       `insert into auth.users (id, email) values (gen_random_uuid(), '${unique()}') returning id`,
     ).split("\n")[0];
-    psql(`insert into public.role_members (event_id, role_id, user_id, name, email)
-      select '${id}', r.id, u.id, '${name}', u.email
+    psql(`insert into public.role_members (event_id, role_id, user_id, name)
+      select '${id}', r.id, u.id, '${name}'
       from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.id = '${user}'`);
   }
+  addContacts(id);
 
   await page.goto(`/events/${id}/team`);
   const venue = page

@@ -85,6 +85,14 @@ export async function signedIn(page: Page, request: APIRequestContext) {
   return email;
 }
 
+/** Gives every Team row of the Event its Organizer-only contact row, with the account's email (3.10). */
+export function addContacts(eventId: string) {
+  psql(`insert into public.role_member_contacts (role_member_id, event_id, email)
+    select m.id, m.event_id, u.email from public.role_members m join auth.users u on u.id = m.user_id
+    where m.event_id = '${eventId}'
+      and not exists (select 1 from public.role_member_contacts c where c.role_member_id = m.id)`);
+}
+
 /**
  * An Event with all pool Roles switched off, dated `starts` from now, inserted directly so a test
  * skips the wizard and can date it in the past. Emails come from `unique()`, so no value holds a quote.
