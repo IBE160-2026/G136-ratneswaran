@@ -29,23 +29,27 @@ insert into public.roles (id, event_id, key, active) values
 
 -- 1 C joined lead on Venue, 2 D pending on Venue, 3 C on Guests, 4 E joined on Venue, 5 E on Program (off),
 -- 6 C on the cancelled Event, 7 C on the ended Event, 8 F joined on Venue and nothing else
-insert into public.role_members (id, event_id, role_id, user_id, name, email, joined_at, is_lead) values
-  ('79000000-0000-0000-0000-000000000001', '59000000-0000-0000-0000-000000000001',
-   '69000000-0000-0000-0000-000000000001', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'joined-c@example.test', now(), true),
-  ('79000000-0000-0000-0000-000000000002', '59000000-0000-0000-0000-000000000001',
-   '69000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', 'pending-d@example.test', null, false),
-  ('79000000-0000-0000-0000-000000000003', '59000000-0000-0000-0000-000000000001',
-   '69000000-0000-0000-0000-000000000002', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'joined-c@example.test', now(), false),
-  ('79000000-0000-0000-0000-000000000004', '59000000-0000-0000-0000-000000000001',
-   '69000000-0000-0000-0000-000000000001', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', 'shared-e@example.test', now(), false),
-  ('79000000-0000-0000-0000-000000000005', '59000000-0000-0000-0000-000000000001',
-   '69000000-0000-0000-0000-000000000003', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', 'shared-e@example.test', now(), false),
-  ('79000000-0000-0000-0000-000000000006', '59000000-0000-0000-0000-000000000002',
-   '69000000-0000-0000-0000-000000000004', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'joined-c@example.test', now(), false),
-  ('79000000-0000-0000-0000-000000000007', '59000000-0000-0000-0000-000000000003',
-   '69000000-0000-0000-0000-000000000005', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'joined-c@example.test', now(), false),
-  ('79000000-0000-0000-0000-000000000008', '59000000-0000-0000-0000-000000000001',
-   '69000000-0000-0000-0000-000000000001', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'Finn', 'solo-f@example.test', now(), false);
+insert into public.role_members (id, event_id, role_id, user_id, name, joined_at, is_lead) values
+  ('79000000-0000-0000-0000-000000000001', '59000000-0000-0000-0000-000000000001', '69000000-0000-0000-0000-000000000001', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', now(), true),
+  ('79000000-0000-0000-0000-000000000002', '59000000-0000-0000-0000-000000000001', '69000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', null, false),
+  ('79000000-0000-0000-0000-000000000003', '59000000-0000-0000-0000-000000000001', '69000000-0000-0000-0000-000000000002', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', now(), false),
+  ('79000000-0000-0000-0000-000000000004', '59000000-0000-0000-0000-000000000001', '69000000-0000-0000-0000-000000000001', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', now(), false),
+  ('79000000-0000-0000-0000-000000000005', '59000000-0000-0000-0000-000000000001', '69000000-0000-0000-0000-000000000003', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', now(), false),
+  ('79000000-0000-0000-0000-000000000006', '59000000-0000-0000-0000-000000000002', '69000000-0000-0000-0000-000000000004', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', now(), false),
+  ('79000000-0000-0000-0000-000000000007', '59000000-0000-0000-0000-000000000003', '69000000-0000-0000-0000-000000000005', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', now(), false),
+  ('79000000-0000-0000-0000-000000000008', '59000000-0000-0000-0000-000000000001', '69000000-0000-0000-0000-000000000001', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'Finn', now(), false);
+insert into public.role_member_contacts (role_member_id, event_id, email)
+select m.id, m.event_id, v.email from (values
+  ('59000000-0000-0000-0000-000000000001'::uuid, '69000000-0000-0000-0000-000000000001'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'joined-c@example.test'),
+  ('59000000-0000-0000-0000-000000000001'::uuid, '69000000-0000-0000-0000-000000000001'::uuid, 'dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, 'pending-d@example.test'),
+  ('59000000-0000-0000-0000-000000000001'::uuid, '69000000-0000-0000-0000-000000000002'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'joined-c@example.test'),
+  ('59000000-0000-0000-0000-000000000001'::uuid, '69000000-0000-0000-0000-000000000001'::uuid, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid, 'shared-e@example.test'),
+  ('59000000-0000-0000-0000-000000000001'::uuid, '69000000-0000-0000-0000-000000000003'::uuid, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid, 'shared-e@example.test'),
+  ('59000000-0000-0000-0000-000000000002'::uuid, '69000000-0000-0000-0000-000000000004'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'joined-c@example.test'),
+  ('59000000-0000-0000-0000-000000000003'::uuid, '69000000-0000-0000-0000-000000000005'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'joined-c@example.test'),
+  ('59000000-0000-0000-0000-000000000001'::uuid, '69000000-0000-0000-0000-000000000001'::uuid, 'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid, 'solo-f@example.test')
+) as v (event_id, role_id, user_id, email)
+join public.role_members m on m.role_id = v.role_id and m.user_id = v.user_id;
 
 -- D's open link for Venue; C's open links for Venue and Guests
 insert into public.invite_tokens (event_id, kind, token_hash, user_id, role_id, created_by) values

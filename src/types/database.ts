@@ -123,16 +123,42 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"role_members": {
+                },"role_member_contacts": {
                   Row: {
-                    "created_at": string,"email": string,"event_id": string,"id": string,"invited_by": string | null,"is_lead": boolean,"joined_at": string | null,"name": string,"role_id": string,"user_id": string
+                    "email": string,"event_id": string,"role_member_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email": string,"event_id": string,"id"?: string,"invited_by"?: string | null,"is_lead"?: boolean,"joined_at"?: string | null,"name": string,"role_id": string,"user_id": string
+                    "email": string,"event_id": string,"role_member_id": string
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string,"event_id"?: string,"id"?: string,"invited_by"?: string | null,"is_lead"?: boolean,"joined_at"?: string | null,"name"?: string,"role_id"?: string,"user_id"?: string
+                    "email"?: string,"event_id"?: string,"role_member_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "role_member_contacts_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "role_member_contacts_role_member_id_fkey"
+      columns: ["role_member_id"]
+isOneToOne: true
+      referencedRelation: "role_members"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"role_members": {
+                  Row: {
+                    "created_at": string,"event_id": string,"id": string,"invited_by": string | null,"is_lead": boolean,"joined_at": string | null,"name": string,"role_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"event_id": string,"id"?: string,"invited_by"?: string | null,"is_lead"?: boolean,"joined_at"?: string | null,"name": string,"role_id": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"event_id"?: string,"id"?: string,"invited_by"?: string | null,"is_lead"?: boolean,"joined_at"?: string | null,"name"?: string,"role_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -255,6 +281,9 @@ isOneToOne: false
 "guests_update":
 { Args: { "p_email": string,"p_guest_id": string,"p_name": string }; Returns: undefined
                            },
+"holds_role":
+{ Args: { "p_role_id": string }; Returns: boolean
+                           },
 "invite_tokens_check_cap":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
@@ -275,6 +304,9 @@ isOneToOne: false
             }[]
                            },
 "is_organizer":
+{ Args: { "p_event_id": string }; Returns: boolean
+                           },
+"is_team_member":
 { Args: { "p_event_id": string }; Returns: boolean
                            }
           }

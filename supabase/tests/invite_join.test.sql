@@ -38,23 +38,27 @@ insert into public.roles (id, event_id, key, active) values
   ('64000000-0000-0000-0000-000000000004', '54000000-0000-0000-0000-000000000003', 'venue', true);
 
 -- Pending invitations
-insert into public.role_members (event_id, role_id, user_id, name, email) values
-  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001',
-   'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'invitee-c@example.test'),
-  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001',
-   'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', 'password-d@example.test'),
-  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001',
-   'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', 'github-e@example.test'),
-  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001',
-   'ffffffff-ffff-ffff-ffff-ffffffffffff', 'Fay', 'unconfirmed-f@example.test'),
-  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001',
-   '99999999-9999-9999-9999-999999999999', 'Gus', 'pending-g@example.test'),
-  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001',
-   '88888888-8888-8888-8888-888888888888', 'Hal', 'legacy-h@example.test'),
-  ('54000000-0000-0000-0000-000000000002', '64000000-0000-0000-0000-000000000003',
-   'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'invitee-c@example.test'),
-  ('54000000-0000-0000-0000-000000000003', '64000000-0000-0000-0000-000000000004',
-   'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'invitee-c@example.test');
+insert into public.role_members (event_id, role_id, user_id, name) values
+  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo'),
+  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana'),
+  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli'),
+  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'Fay'),
+  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001', '99999999-9999-9999-9999-999999999999', 'Gus'),
+  ('54000000-0000-0000-0000-000000000001', '64000000-0000-0000-0000-000000000001', '88888888-8888-8888-8888-888888888888', 'Hal'),
+  ('54000000-0000-0000-0000-000000000002', '64000000-0000-0000-0000-000000000003', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo'),
+  ('54000000-0000-0000-0000-000000000003', '64000000-0000-0000-0000-000000000004', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo');
+insert into public.role_member_contacts (role_member_id, event_id, email)
+select m.id, m.event_id, v.email from (values
+  ('54000000-0000-0000-0000-000000000001'::uuid, '64000000-0000-0000-0000-000000000001'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'invitee-c@example.test'),
+  ('54000000-0000-0000-0000-000000000001'::uuid, '64000000-0000-0000-0000-000000000001'::uuid, 'dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, 'password-d@example.test'),
+  ('54000000-0000-0000-0000-000000000001'::uuid, '64000000-0000-0000-0000-000000000001'::uuid, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid, 'github-e@example.test'),
+  ('54000000-0000-0000-0000-000000000001'::uuid, '64000000-0000-0000-0000-000000000001'::uuid, 'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid, 'unconfirmed-f@example.test'),
+  ('54000000-0000-0000-0000-000000000001'::uuid, '64000000-0000-0000-0000-000000000001'::uuid, '99999999-9999-9999-9999-999999999999'::uuid, 'pending-g@example.test'),
+  ('54000000-0000-0000-0000-000000000001'::uuid, '64000000-0000-0000-0000-000000000001'::uuid, '88888888-8888-8888-8888-888888888888'::uuid, 'legacy-h@example.test'),
+  ('54000000-0000-0000-0000-000000000002'::uuid, '64000000-0000-0000-0000-000000000003'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'invitee-c@example.test'),
+  ('54000000-0000-0000-0000-000000000003'::uuid, '64000000-0000-0000-0000-000000000004'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'invitee-c@example.test')
+) as v (event_id, role_id, user_id, email)
+join public.role_members m on m.role_id = v.role_id and m.user_id = v.user_id;
 
 insert into public.invite_tokens (event_id, kind, token_hash, user_id, role_id, revoked_at, consumed_at) values
   ('54000000-0000-0000-0000-000000000001', 'role_holder', sha256(convert_to('tok-c', 'UTF8')),
