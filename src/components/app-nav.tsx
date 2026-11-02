@@ -49,13 +49,17 @@ function NavLink({
 // Shared by the desktop sidebar and the phone Sheet.
 export function AppNav({
   profileLabel,
+  organizedEventIds,
   onNavigate,
 }: {
   profileLabel: string;
+  organizedEventIds: string[];
   onNavigate?: () => void;
 }) {
   const t = useTranslations("shell");
   const { eventId } = useParams<{ eventId?: string }>();
+  // A Role-holder is rendered a shorter list; the database refuses the rest anyway.
+  const organizer = eventId !== undefined && organizedEventIds.includes(eventId);
   return (
     <nav aria-label={t("navLabel")} className="flex h-full flex-col gap-1 p-3">
       {/* The event group: only the items that exist so far. Later epics add theirs here. */}
@@ -64,18 +68,28 @@ export function AppNav({
           <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
             {t("overview")}
           </NavLink>
-          <NavLink href={`${eventPath(eventId)}/guests`} icon={Contact} onNavigate={onNavigate}>
-            {t("guests")}
-          </NavLink>
+          {organizer && (
+            <NavLink href={`${eventPath(eventId)}/guests`} icon={Contact} onNavigate={onNavigate}>
+              {t("guests")}
+            </NavLink>
+          )}
           <NavLink href={`${eventPath(eventId)}/team`} icon={Users} onNavigate={onNavigate}>
             {t("team")}
           </NavLink>
-          <NavLink href={setupPath(eventId)} icon={ClipboardList} onNavigate={onNavigate}>
-            {t("questionnaire")}
-          </NavLink>
-          <NavLink href={`${eventPath(eventId)}/settings`} icon={Settings} onNavigate={onNavigate}>
-            {t("settings")}
-          </NavLink>
+          {organizer && (
+            <>
+              <NavLink href={setupPath(eventId)} icon={ClipboardList} onNavigate={onNavigate}>
+                {t("questionnaire")}
+              </NavLink>
+              <NavLink
+                href={`${eventPath(eventId)}/settings`}
+                icon={Settings}
+                onNavigate={onNavigate}
+              >
+                {t("settings")}
+              </NavLink>
+            </>
+          )}
         </>
       )}
       <NavLink href="/events" icon={CalendarDays} onNavigate={onNavigate}>

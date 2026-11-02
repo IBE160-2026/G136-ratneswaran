@@ -6,7 +6,7 @@ import { eventPath, isDraft, isPast } from "@/modules/events/list";
 import { setupPath } from "@/modules/events/save";
 import { AddGuestsForm } from "../../guests/add-guests-form";
 import { GuestList } from "../../guests/guest-list";
-import { loadEvent } from "../../load-event";
+import { loadEvent, organizerOnly } from "../../load-event";
 
 type Props = { params: Promise<{ eventId: string }> };
 
@@ -24,8 +24,10 @@ export async function generateMetadata({ params }: Props) {
 /** Wizard step 2. Adding guests saves on its own, so Next only moves on. */
 export default async function GuestsStepPage({ params }: Props) {
   const { eventId } = await params;
-  if (!(await getClaims())) redirect(`/login?next=${setupPath(eventId)}/guests`);
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=${setupPath(eventId)}/guests`);
   const event = await loadEvent(eventId);
+  organizerOnly(event, claims);
   // Published past and cancelled Events are read-only; the database refuses their changes too.
   if (!isDraft(event) && isPast(event, new Date())) redirect(eventPath(eventId));
   const t = await getTranslations();

@@ -6,6 +6,7 @@ export default function EventNotFound() {
   return (
     <div className="py-12">
       <h1 className="text-large-title">{t("noAccess")}</h1>
+      <p className="text-muted-foreground mt-2">{t("noAccessHint")}</p>
     </div>
   );
 }

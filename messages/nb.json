@@ -195,6 +195,7 @@
     "organizer": "Arrangør",
     "past": "Tidligere arrangementer ({count})",
     "noAccess": "Du har ikke tilgang til denne delen av arrangementet.",
+    "noAccessHint": "Spør arrangøren hvis du trenger det.",
     "home": {
       "surface": "Oversikt",
       "draft": "Utkast",
@@ -300,7 +301,8 @@
           "lead_changed": "Rolleleder endret",
           "revoked": "Tilgang fjernet"
         }
-      }
+      },
+      "holderIntro": "Hvem som er med på teamet og hvem som leder hver rolle."
     },
     "roles": {
       "venue": {

@@ -18,7 +18,8 @@ export default async function EventsPage({
 }: {
   searchParams: Promise<{ deleted?: string }>;
 }) {
-  if (!(await getClaims())) redirect("/login?next=/events");
+  const claims = await getClaims();
+  if (!claims) redirect("/login?next=/events");
   const t = await getTranslations("events");
   const { deleted } = await searchParams;
   // RLS limits this to the Organizer's own Events.
@@ -26,11 +27,28 @@ export default async function EventsPage({
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, name, starts_at, ends_at, time_zone, published_at, cancelled_at, event_type, unknown_answers, guests(count)",
+      "id, organizer_id, name, starts_at, ends_at, time_zone, published_at, cancelled_at, event_type, unknown_answers, guests(count)",
     )
     // Newest first, so Events with the same or no date keep a stable order through the date sort.
     .order("created_at", { ascending: false });
   if (error) throw new Error("Could not load events");
+  // An Event the viewer does not organize is one they hold Roles on: label it with those Roles.
+  const { data: held, error: heldError } = await supabase
+    .from("role_members")
+    .select("event_id, roles(key)")
+    .eq("user_id", claims.sub)
+    .not("joined_at", "is", null)
+    .order("created_at");
+  if (heldError) throw new Error("Could not load events");
+  const organized = new Set(data.filter((e) => e.organizer_id === claims.sub).map((e) => e.id));
+  const roleLabels = new Map<string, string[]>();
+  for (const row of held) {
+    if (organized.has(row.event_id) || !row.roles) continue;
+    roleLabels.set(row.event_id, [
+      ...(roleLabels.get(row.event_id) ?? []),
+      t(`roles.${row.roles.key}.name`),
+    ]);
+  }
   const { upcoming, past } = groupEvents(data, new Date());
   return (
     <div className="flex flex-col gap-4 py-12">
@@ -42,7 +60,7 @@ export default async function EventsPage({
       <ul role="list" className={gridClass}>
         {upcoming.map((card) => (
           <li key={card.id}>
-            <EventCard card={card} />
+            <EventCard card={card} roleLabels={roleLabels.get(card.id)} />
           </li>
         ))}
         <li>
@@ -57,7 +75,7 @@ export default async function EventsPage({
           <ul role="list" className={`${gridClass} mt-3`}>
             {past.map((card) => (
               <li key={card.id}>
-                <EventCard card={card} />
+                <EventCard card={card} roleLabels={roleLabels.get(card.id)} />
               </li>
             ))}
           </ul>

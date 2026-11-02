@@ -8,7 +8,13 @@ import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/com
 import { AppNav } from "@/components/app-nav";
 
 // Rendered after {children} in main so it follows the page h1 in DOM order; CSS puts it top right.
-export function MobileMenu({ profileLabel }: { profileLabel: string }) {
+export function MobileMenu({
+  profileLabel,
+  organizedEventIds,
+}: {
+  profileLabel: string;
+  organizedEventIds: string[];
+}) {
   const t = useTranslations("shell");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -27,7 +33,11 @@ export function MobileMenu({ profileLabel }: { profileLabel: string }) {
       </SheetTrigger>
       <SheetContent side="right" className="bg-sidebar w-72">
         <SheetTitle className="sr-only">{t("navLabel")}</SheetTitle>
-        <AppNav profileLabel={profileLabel} onNavigate={() => setOpen(false)} />
+        <AppNav
+          profileLabel={profileLabel}
+          organizedEventIds={organizedEventIds}
+          onNavigate={() => setOpen(false)}
+        />
         <SheetClose
           aria-label={t("closeMenu")}
           className="min-h-touch min-w-touch absolute top-2 right-2 inline-flex items-center justify-center rounded-sm"
