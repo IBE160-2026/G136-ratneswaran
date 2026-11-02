@@ -215,6 +215,42 @@ export async function setRoleLead(input: z.input<typeof leadInput>): Promise<Res
   return { ok: true, data: null };
 }
 
+const revokeInput = z.object({ eventId: z.uuid(), memberId: z.uuid() });
+const revokeErrors = "events.team.revoke.errors";
+
+/**
+ * Team & Roles: removes one person from one Role through `events_revoke_role` (FR-1, AD-2). Logs carry ids
+ * and codes only.
+ */
+export async function revokeRole(input: z.input<typeof revokeInput>): Promise<Result<null>> {
+  const parsed = revokeInput.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "events.team.errors.invalidInput");
+  const { eventId, memberId } = parsed.data;
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=/events/${eventId}/team`);
+  const fail = (code: string) => {
+    console.error("revokeRole failed", { eventId, memberId, userId: claims.sub, code });
+    if (code === "42501") return refuse("forbidden", `${revokeErrors}.forbidden`);
+    if (code === "55000") return refuse("read_only", "events.settings.errors.readOnly");
+    return refuse("unavailable", `${revokeErrors}.unavailable`);
+  };
+  const supabase = await createClient();
+  const { data: member, error: memberError } = await supabase
+    .from("role_members")
+    .select("id")
+    .eq("id", memberId)
+    .eq("event_id", eventId)
+    .maybeSingle();
+  if (memberError) return fail(memberError.code);
+  // The function only knows the row; this checks it belongs to the Event in the URL. A row already gone
+  // (double click, second tab) reads as unavailable, as the function answers 42501 for it.
+  if (!member) return refuse("unavailable", `${revokeErrors}.unavailable`);
+  const { error } = await supabase.rpc("events_revoke_role", { p_member_id: memberId });
+  if (error) return fail(error.code);
+  revalidatePath(`/events/${eventId}/team`);
+  return { ok: true, data: null };
+}
+
 export type InviteStatus = "invited" | "added" | "member" | "self";
 
 const inviteErrors = "events.team.invite.errors";

@@ -276,6 +276,18 @@
           "unavailable": "Couldn't change the Role lead. Reload the page and try again."
         }
       },
+      "revoke": {
+        "open": "Revoke",
+        "openLabel": "Revoke: {name}, {role}",
+        "title": "Remove {name} from {role}?",
+        "description": "{name} loses access to {role} right away, and any invitation link stops working. You can invite them again later.",
+        "confirm": "Remove from {role}",
+        "keep": "Keep",
+        "errors": {
+          "forbidden": "You can't revoke access for this event.",
+          "unavailable": "Couldn't remove this person. Reload the page and try again."
+        }
+      },
       "history": {
         "title": "Access history",
         "empty": "No changes yet.",

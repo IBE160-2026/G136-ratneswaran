@@ -41,3 +41,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-7-join-through-the-invitation-link.md`
   summary: The magic-link email template (`supabase/templates/magic_link.html`, a code only) must be applied to the cloud project by hand before invitations work there; nothing tracks it.
   evidence: CI runs only `supabase db push`; without the template, cloud invitees get Supabase's default link mail and no code, so the join flow cannot complete.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-9-change-or-revoke-a-role.md`
+  summary: The role-revoked `role="alert"` toast "Your access to {Role} was changed by {Organizer}" and its redirect (Story 3.9, UX-DR24) are built in Story 3.10.
+  evidence: It needs a holder-readable record of the revoke (log reads are Organizer-only), a source for the Organizer's name (no profile table) and a landing page for the holder, none of which exist before 3.10. Owner chose this on 2026-10-28.

@@ -38,6 +38,7 @@ const {
   deleteEvent,
   inviteToRole,
   publishEvent,
+  revokeRole,
   saveDescription,
   saveQuestionnaire,
   setRoleActive,
@@ -302,6 +303,51 @@ describe("setRoleLead", () => {
   ])("maps database error %s (%s) to %s", async (code, message, expected) => {
     rpc.mockResolvedValue({ data: null, error: { code, message } });
     expect(await setRoleLead(input)).toMatchObject({ ok: false, error: { message: expected } });
+  });
+});
+
+describe("revokeRole", () => {
+  const input = {
+    eventId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    memberId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  };
+
+  beforeEach(() => {
+    maybeSingle.mockResolvedValue({ data: { id: input.memberId }, error: null });
+  });
+
+  it("revokes through events_revoke_role for a row of the Event", async () => {
+    expect(await revokeRole(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("events_revoke_role", {
+      p_member_id: input.memberId,
+    });
+    expect(eq).toHaveBeenCalledWith("event_id", input.eventId);
+  });
+
+  it("answers unavailable for a row that is gone, without calling the function", async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: null });
+    expect(await revokeRole(input)).toMatchObject({
+      ok: false,
+      error: { message: "events.team.revoke.errors.unavailable" },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses a malformed id without calling the database", async () => {
+    expect(await revokeRole({ ...input, memberId: "nope" })).toMatchObject({
+      ok: false,
+      error: { code: "invalid_input" },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["42501", "events.team.revoke.errors.forbidden"],
+    ["55000", "events.settings.errors.readOnly"],
+    ["XX000", "events.team.revoke.errors.unavailable"],
+  ])("maps database error %s to %s", async (code, expected) => {
+    rpc.mockResolvedValue({ data: null, error: { code, message: "" } });
+    expect(await revokeRole(input)).toMatchObject({ ok: false, error: { message: expected } });
   });
 });
 
