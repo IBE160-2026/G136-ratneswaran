@@ -4,3 +4,5 @@
 - [x] 2026-10-28 [story-3-8-rolleleder](997-2026-10-28-07-05-00-story-3-8-rolleleder.md) — avgjør egen Access history-tekst når rolleleder fjernes (Undo av første leder) (løst 2026-10-28: nåværende tekst beholdes)
 - [x] 2026-10-28 [story-3-8-rolleleder](997-2026-10-28-07-05-00-story-3-8-rolleleder.md) — oppfølgende review av Story 3.8 anbefalt (låser mot samtidig Correct email) (løst 2026-10-28)
 - [ ] 2026-10-28 [story-3-8-rolleleder](997-2026-10-28-07-05-00-story-3-8-rolleleder.md) — full e2e-suite er ustabil under parallell last
+- [ ] 2026-11-02 [story-3-9-fjern-rolle](996-2026-11-02-06-42-10-story-3-9-fjern-rolle.md) — toast og redirect for fjernet innehaver (UX-DR24) bygges i Story 3.10
+- [ ] 2026-11-02 [story-3-9-fjern-rolle](996-2026-11-02-06-42-10-story-3-9-fjern-rolle.md) — KI-logg-oppføring for 3.9 skrives ved push og PR
