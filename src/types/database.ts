@@ -223,14 +223,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "accepted_at": string | null,"confirmed_at": string | null,"created_by": string | null,"deadline": string | null,"delegated_at": string | null,"description": string | null,"event_id": string,"id": string,"lifecycle": string,"obsolete": boolean,"owner_user_id": string | null,"role_id": string,"status": string,"title": string,"updated_at": string
+                    "accepted_at": string | null,"confirmed_at": string | null,"created_by": string | null,"days_before": number | null,"deadline": string | null,"delegated_at": string | null,"description": string | null,"event_id": string,"guest_label": string | null,"guest_time": string | null,"id": string,"lifecycle": string,"obsolete": boolean,"owner_user_id": string | null,"role_id": string,"show_on_guest_program": boolean,"status": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id": string,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id": string,"status"?: string,"title": string,"updated_at"?: string
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id": string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id": string,"show_on_guest_program"?: boolean,"status"?: string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id"?: string,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id"?: string,"status"?: string,"title"?: string,"updated_at"?: string
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id"?: string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id"?: string,"show_on_guest_program"?: boolean,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -358,6 +358,9 @@ isOneToOne: false
 "is_organizer":
 { Args: { "p_event_id": string }; Returns: boolean
                            },
+"is_role_lead":
+{ Args: { "p_role_id": string }; Returns: boolean
+                           },
 "is_team_member":
 { Args: { "p_event_id": string }; Returns: boolean
                            },
@@ -366,6 +369,27 @@ isOneToOne: false
                            },
 "tasks_check_expected":
 { Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
+                           },
+"tasks_create":
+{ Args: { "p_days_before"?: number,"p_deadline"?: string,"p_description"?: string,"p_id": string,"p_role_id": string,"p_title": string }; Returns: undefined
+                           },
+"tasks_dismiss":
+{ Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
+                           },
+"tasks_recalculate_deadlines":
+{ Args: { "p_event_id": string }; Returns: undefined
+                           },
+"tasks_resolve_deadline":
+{ Args: { "p_days_before": number,"p_deadline": string,"p_event_id": string }; Returns: string
+                           },
+"tasks_restore":
+{ Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
+                           },
+"tasks_set_deadline":
+{ Args: { "p_days_before"?: number,"p_deadline"?: string,"p_expected": string,"p_task_id": string }; Returns: string
+                           },
+"tasks_set_lifecycle":
+{ Args: { "p_expected": string,"p_from": string,"p_task_id": string,"p_to": string }; Returns: undefined
                            }
           }
           Enums: {

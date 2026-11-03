@@ -14,7 +14,8 @@
     "guests": "Guests",
     "questionnaire": "Questionnaire",
     "team": "Team & Roles",
-    "settings": "Event settings"
+    "settings": "Event settings",
+    "tasks": "Tasks"
   },
   "home": {
     "surface": "Home",
@@ -574,6 +575,68 @@
       "code": "That code is wrong or has expired. Check it or send a new one.",
       "rateLimited": "Too many attempts. Wait a little and try again.",
       "unavailable": "Couldn't continue right now. Try again shortly."
+    }
+  },
+  "tasks": {
+    "surface": "Tasks",
+    "title": "Tasks",
+    "intro": "The work of this event, by Role.",
+    "empty": "No tasks yet.",
+    "readOnly": "This event is over or cancelled, so its tasks can no longer be changed.",
+    "count": "{count, plural, one {# task} other {# tasks}}",
+    "showDismissed": "Show dismissed ({count})",
+    "create": {
+      "title": "New task",
+      "role": "Role",
+      "noRoles": "You can add a task once you lead a Role, or the Organizer switches one on.",
+      "name": "Title",
+      "description": "Description (optional)",
+      "deadline": "Deadline",
+      "kindDate": "On a date",
+      "kindDays": "Days before the event",
+      "date": "Date",
+      "days": "Days before the event starts",
+      "noStart": "Set the event's start time to count days before it.",
+      "submit": "Create task"
+    },
+    "row": {
+      "notDelegated": "Not delegated",
+      "due": "Due {date}"
+    },
+    "status": {
+      "not_started": "Not started"
+    },
+    "detail": {
+      "back": "All tasks",
+      "role": "Role",
+      "deadline": "Deadline",
+      "daysBefore": "{date} ({days, plural, =0 {on the event day} one {# day before the event} other {# days before the event}})",
+      "owner": "Owner",
+      "description": "Description",
+      "noDescription": "No description.",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "dismiss": "Dismiss",
+      "restore": "Restore",
+      "dismissedNote": "This task is dismissed.",
+      "dismissedToast": "Task dismissed.",
+      "restoredToast": "Task restored.",
+      "actions": "Task actions",
+      "undo": "Undo",
+      "status": "Status"
+    },
+    "errors": {
+      "title": "Enter a title of 1 to 120 characters.",
+      "description": "Keep the description under 2000 characters.",
+      "deadline": "Enter a valid date.",
+      "daysBefore": "Enter a whole number from 0 to 365.",
+      "invalidInput": "Check the highlighted fields.",
+      "forbidden": "You can't change this task.",
+      "readOnly": "This event is over or cancelled, so its tasks can no longer be changed.",
+      "concurrent": "Someone else changed this task. Reload to see their version.",
+      "unavailable": "Couldn't save right now. Try again shortly.",
+      "actionFailed": "Couldn't do that. Try again."
     }
   }
 }
