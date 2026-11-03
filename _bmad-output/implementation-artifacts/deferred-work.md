@@ -63,3 +63,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-2-create-edit-and-open-a-task.md`
   summary: Show the owner's name on the Task detail page and in the row.
   evidence: The owner cell renders blank when `owner_user_id` is set; it is always null until Story 4.5 delegates.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-3-subtasks-and-dependencies.md`
+  summary: Show a Subtask to its owner in a list of their own.
+  evidence: The Tasks list hides every Subtask, so an owner who was given one reaches it only through the parent; Story 4.9 (*My tasks*) is the place to list it.

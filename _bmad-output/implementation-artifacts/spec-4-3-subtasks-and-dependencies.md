@@ -2,7 +2,8 @@
 title: 'Subtasks and dependencies'
 type: 'feature'
 created: '2026-11-03'
-status: 'in-progress'
+status: 'done'
+baseline_commit: 'e6ee5ed8850226c2cfc8c89c2fe77ad31b7bc510'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -95,6 +96,28 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| Finding | Layer | Verdict | Route | Evidence |
+|---------|-------|---------|-------|----------|
+| `blocks_count` counts Done and obsolete dependents | blind, edge | medium | patch | The view counts every active dependent, so a blocker shows "Blocks N tasks" for work that is finished and waits for nothing. |
+| Parent/dependency checks read lifecycle before any lock | blind, edge | medium | patch | A concurrent dismiss can commit between the check and the write, leaving an active Subtask or dependent under a dismissed Task; two concurrent parent updates can also nest two levels. Take the Event advisory lock first in `tasks_check_parent`, `tasks_check_dependency` and the dismiss path. |
+| Race e2e hardcodes the container name and relies on 600 ms sleeps | blind, edge | medium | patch | It fails on another project id and can pass or fail without proving the lock. Find the container by prefix and hold the first transaction open with `pg_sleep`. |
+| No test that a Done or dismissed waiting Task shows no "Waits for" | gap | medium | patch | Dropping `status !== "done"` from either page passes every test. |
+| Restore failure toast has no test; 22023 on restore maps to the generic message | gap, edge | medium | patch | Reverting `restore-button.tsx` to the old translator breaks the toast unnoticed; the user restoring under a dismissed parent sees "invalid input". |
+| `hasLinks` text says "finish those first" and is shared with the move refusal | blind | low | patch | Finishing a Subtask does not unblock the dismiss (spec: active means lifecycle). Reword neutrally: dismiss or unlink them. |
+| Done Subtasks and dependents still block a dismiss | blind, edge | low | rejected | The spec and `epics.md` say "active"; a finished child is dismissed first. |
+| Restoring a Task leaves an active Task depending on a dismissed one | blind, edge | low | rejected | A dismissed Task never blocks (spec), so the stale edge has no effect. |
+| Dependency between a parent and its own Subtask | edge | low | rejected | Allowed by the spec; the blocked state ends when the other Task is done. |
+| Null `p_depends_on_id` gives 23502 and the generic message | edge | low | rejected | No caller sends null; the Zod schema requires a uuid. |
+| Owner removes a dismissed Task's dependency | edge | low | rejected | "Rows stay" means no automatic removal; the owner may still unlink. |
+| Hard delete of a parent with Subtasks fails the FK | edge | low | rejected | No user or job hard-deletes a Task; an Event delete cascades all rows. |
+| `canLink` / stale candidate / blank blocker title | edge | low | rejected | The database refuses the call and the toast shows; no data is wrong. |
+| `tasks_promote_subtask` repeat skips `tasks_check_expected` | edge | low | rejected | Idempotent by design, as the spec says for a repeat. |
+| Race test is not in pgTAP | edge | low | rejected | pgTAP runs in one transaction; the spec allows this fallback. |
+| `tasks_move_to_role` has no action or UI | blind | low | rejected | The spec says function only. |
+| `roleId` sent from the client; Subtasks date-only; form reset effect; className space; peers load; process notes | blind | low | rejected | Cosmetic or stated in the spec; no harm named. The epic text itself records the no-rollup simplification, so no course correction. |
+| More tests (task_state RLS, three blockers, remove on a read-only Event) | blind | low | rejected | The view's RLS is covered since Story 4.1; the rest are variations of covered rules. |
+| Subtasks hidden from their owner's list | blind | low | defer | The spec hides Subtasks at top level; Story 4.9 (*My tasks*) lists a person's own Tasks including Subtasks. |
 
 ## Design Notes
 
