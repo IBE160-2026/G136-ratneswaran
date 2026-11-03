@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { getClaims } from "@/lib/supabase/server";
+import { createClient, getClaims } from "@/lib/supabase/server";
 import { AppNav } from "@/components/app-nav";
 import { MobileMenu } from "@/components/mobile-menu";
 import { OfflineNotice } from "@/components/offline-notice";
@@ -20,6 +20,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const claims = await getClaims();
   const profileLabel =
     [claims?.user_metadata?.name, claims?.email].find((v) => typeof v === "string" && v) ?? "";
+  // Which Events the viewer organizes, for the sidebar. RLS shows an Organizer their own Events and a holder theirs.
+  const organized = claims
+    ? await (await createClient()).from("events").select("id").eq("organizer_id", claims.sub)
+    : { data: [], error: null };
+  // Failing closed would hand an Organizer the holder sidebar, so a failed query is an error page.
+  if (organized.error) throw new Error("Could not load the sidebar");
+  const organizedEventIds = organized.data.map((event) => event.id);
   const theme = claims?.user_metadata?.theme;
   return (
     <html lang={locale} data-theme={theme === "light" || theme === "dark" ? theme : undefined}>
@@ -59,7 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <div className="flex flex-1">
             {claims && (
               <div className="bg-sidebar w-sidebar hidden shrink-0 lg:block">
-                <AppNav profileLabel={profileLabel} />
+                <AppNav profileLabel={profileLabel} organizedEventIds={organizedEventIds} />
               </div>
             )}
             <main
@@ -72,7 +79,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             >
               {children}
-              {claims && <MobileMenu profileLabel={profileLabel} />}
+              {claims && (
+                <MobileMenu profileLabel={profileLabel} organizedEventIds={organizedEventIds} />
+              )}
             </main>
           </div>
           <footer className="px-gutter py-3">

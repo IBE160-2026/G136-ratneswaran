@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
+/** Organizer-only pages: a Role-holder gets the no-access page before any data is fetched. The database stays the boundary. */
+export function organizerOnly(event: { organizer_id: string }, claims: { sub: string }) {
+  if (event.organizer_id !== claims.sub) notFound();
+}
+
 /** Shared by the Event's pages. A foreign, unknown or malformed id renders this segment's not-found page. */
 export const loadEvent = cache(async (eventId: string) => {
   if (!z.uuid().safeParse(eventId).success) notFound();

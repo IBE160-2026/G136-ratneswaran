@@ -34,17 +34,21 @@ insert into public.roles (id, event_id, key, active) values
 
 -- D has joined Venue; G and H are pending on Venue (typos to correct); I is pending on Guests but has since
 -- joined Venue; C and D have live guest links to Event 1
-insert into public.role_members (id, event_id, role_id, user_id, name, email, joined_at) values
-  ('73000000-0000-0000-0000-000000000001', '53000000-0000-0000-0000-000000000001',
-   '63000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', 'member-d@example.test', now()),
-  ('73000000-0000-0000-0000-000000000002', '53000000-0000-0000-0000-000000000001',
-   '63000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Gina', 'typo-g@example.test', null),
-  ('73000000-0000-0000-0000-000000000003', '53000000-0000-0000-0000-000000000001',
-   '63000000-0000-0000-0000-000000000001', '22222222-2222-2222-2222-222222222222', 'Hal', 'typo-h@example.test', null),
-  ('73000000-0000-0000-0000-000000000004', '53000000-0000-0000-0000-000000000001',
-   '63000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-333333333333', 'Ivo', 'joined-since-i@example.test', now()),
-  ('73000000-0000-0000-0000-000000000005', '53000000-0000-0000-0000-000000000001',
-   '63000000-0000-0000-0000-000000000002', '33333333-3333-3333-3333-333333333333', 'Ivo', 'joined-since-i@example.test', null);
+insert into public.role_members (id, event_id, role_id, user_id, name, joined_at) values
+  ('73000000-0000-0000-0000-000000000001', '53000000-0000-0000-0000-000000000001', '63000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', now()),
+  ('73000000-0000-0000-0000-000000000002', '53000000-0000-0000-0000-000000000001', '63000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Gina', null),
+  ('73000000-0000-0000-0000-000000000003', '53000000-0000-0000-0000-000000000001', '63000000-0000-0000-0000-000000000001', '22222222-2222-2222-2222-222222222222', 'Hal', null),
+  ('73000000-0000-0000-0000-000000000004', '53000000-0000-0000-0000-000000000001', '63000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-333333333333', 'Ivo', now()),
+  ('73000000-0000-0000-0000-000000000005', '53000000-0000-0000-0000-000000000001', '63000000-0000-0000-0000-000000000002', '33333333-3333-3333-3333-333333333333', 'Ivo', null);
+insert into public.role_member_contacts (role_member_id, event_id, email)
+select m.id, m.event_id, v.email from (values
+  ('53000000-0000-0000-0000-000000000001'::uuid, '63000000-0000-0000-0000-000000000001'::uuid, 'dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, 'member-d@example.test'),
+  ('53000000-0000-0000-0000-000000000001'::uuid, '63000000-0000-0000-0000-000000000001'::uuid, '11111111-1111-1111-1111-111111111111'::uuid, 'typo-g@example.test'),
+  ('53000000-0000-0000-0000-000000000001'::uuid, '63000000-0000-0000-0000-000000000001'::uuid, '22222222-2222-2222-2222-222222222222'::uuid, 'typo-h@example.test'),
+  ('53000000-0000-0000-0000-000000000001'::uuid, '63000000-0000-0000-0000-000000000001'::uuid, '33333333-3333-3333-3333-333333333333'::uuid, 'joined-since-i@example.test'),
+  ('53000000-0000-0000-0000-000000000001'::uuid, '63000000-0000-0000-0000-000000000002'::uuid, '33333333-3333-3333-3333-333333333333'::uuid, 'joined-since-i@example.test')
+) as v (event_id, role_id, user_id, email)
+join public.role_members m on m.role_id = v.role_id and m.user_id = v.user_id;
 insert into public.invite_tokens (event_id, kind, token_hash, user_id, role_id) values
   ('53000000-0000-0000-0000-000000000001', 'guest', sha256(convert_to('tok-c-guest', 'UTF8')),
    'cccccccc-cccc-cccc-cccc-cccccccccccc', null),
@@ -99,8 +103,9 @@ select ok(
   'a new invitee is invited and gets a link token'
 );
 select results_eq(
-  $$select name, email, joined_at is null, invited_by from public.role_members
-    where role_id = '63000000-0000-0000-0000-000000000001' and user_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'$$,
+  $$select m.name, c.email, m.joined_at is null, m.invited_by from public.role_members m
+    join public.role_member_contacts c on c.role_member_id = m.id
+    where m.role_id = '63000000-0000-0000-0000-000000000001' and m.user_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'$$,
   $$values ('Cleo', 'invitee-c@example.test', true, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid)$$,
   'a pending row with the trimmed name, the lower-cased email and A as inviter'
 );
@@ -230,9 +235,9 @@ select throws_ok(
 
 -- Direct writes are refused
 select throws_ok(
-  $$insert into public.role_members (event_id, role_id, user_id, name, email)
+  $$insert into public.role_members (event_id, role_id, user_id, name)
     values ('53000000-0000-0000-0000-000000000001', '63000000-0000-0000-0000-000000000002',
-            'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eve', 'fixed-e@example.test')$$,
+            'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eve')$$,
   '42501', null, 'authenticated cannot insert role_members'
 );
 select throws_ok(
@@ -310,10 +315,9 @@ select is(
   (select count(*) from public.role_members), 5::bigint, 'the Organizer sees every row of the Event'
 );
 set local request.jwt.claims = '{"sub": "dddddddd-dddd-dddd-dddd-dddddddddddd", "role": "authenticated"}';
-select results_eq(
-  $$select user_id from public.role_members group by user_id$$,
-  $$values ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid)$$,
-  'a Role-holder sees only their own rows'
+select is(
+  (select count(*) from public.role_members), 5::bigint,
+  'a joined Role-holder sees the Team rows of their Event (3.10)'
 );
 select is(
   (select count(*) from public.role_membership_log), 0::bigint, 'a Role-holder reads no access history'

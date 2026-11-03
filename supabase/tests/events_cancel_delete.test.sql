@@ -21,9 +21,12 @@ insert into public.roles (event_id, key)
 select e.id, k.key from public.events e cross join unnest(enum_range(null::public.role_key)) as k (key)
 where e.organizer_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 -- Event 3 has a Role member and access history, which its delete must not trip over
-insert into public.role_members (event_id, role_id, user_id, name, email)
-select event_id, id, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Bea', 'user-b@example.test'
+insert into public.role_members (event_id, role_id, user_id, name)
+select event_id, id, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Bea'
 from public.roles where event_id = '10000000-0000-0000-0000-000000000003' and key = 'venue';
+insert into public.role_member_contacts (role_member_id, event_id, email)
+select id, event_id, 'user-b@example.test' from public.role_members
+where event_id = '10000000-0000-0000-0000-000000000003';
 insert into public.role_membership_log (id, event_id, role_id, user_id, action, actor_id)
 select '90000000-0000-0000-0000-000000000001', event_id, id, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'invited',
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'

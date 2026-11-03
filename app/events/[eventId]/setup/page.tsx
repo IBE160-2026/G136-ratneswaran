@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getClaims } from "@/lib/supabase/server";
 import { eventPath, isDraft, isPast } from "@/modules/events/list";
 import { timeZoneNames, toLocalInput } from "@/modules/events/schemas";
-import { loadEvent } from "../load-event";
+import { loadEvent, organizerOnly } from "../load-event";
 import { QuestionnaireForm } from "./form";
 
 type Props = { params: Promise<{ eventId: string }> };
@@ -18,8 +18,10 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function SetupPage({ params }: Props) {
   const { eventId } = await params;
-  if (!(await getClaims())) redirect(`/login?next=/events/${eventId}/setup`);
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=/events/${eventId}/setup`);
   const event = await loadEvent(eventId);
+  organizerOnly(event, claims);
   // Published past and cancelled Events are read-only; the database refuses their changes too.
   if (!isDraft(event) && isPast(event, new Date())) redirect(eventPath(eventId));
   const locale = await getLocale();

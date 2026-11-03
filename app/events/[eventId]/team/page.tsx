@@ -4,6 +4,7 @@ import { createClient, getClaims } from "@/lib/supabase/server";
 import { isDraft, isPast } from "@/modules/events/list";
 import { roleDescriptionKey, roleKeys, suggestion } from "@/modules/events/roles";
 import { loadEvent } from "../load-event";
+import { HolderTeam } from "./holder-team";
 import { InviteForm } from "./invite-form";
 import { PeopleList } from "./people-list";
 import { RoleSwitch } from "./role-switch";
@@ -23,6 +24,7 @@ export default async function TeamPage({ params }: Props) {
   const claims = await getClaims();
   if (!claims) redirect(`/login?next=/events/${eventId}/team`);
   const event = await loadEvent(eventId);
+  if (event.organizer_id !== claims.sub) return <HolderTeam eventId={eventId} />;
   const t = await getTranslations("events");
   const format = await getFormatter();
   const supabase = await createClient();
@@ -30,7 +32,7 @@ export default async function TeamPage({ params }: Props) {
     supabase.from("roles").select("id, key, active, toggled_at").eq("event_id", eventId),
     supabase
       .from("role_members")
-      .select("id, role_id, user_id, name, email, joined_at, is_lead")
+      .select("id, role_id, user_id, name, joined_at, is_lead, role_member_contacts(email)")
       .eq("event_id", eventId)
       .order("created_at"),
     supabase
@@ -60,7 +62,7 @@ export default async function TeamPage({ params }: Props) {
       roleName: roleName.get(member.role_id) ?? "",
       roleActive: roles.some((role) => role.id === member.role_id && role.active),
       name: member.name,
-      email: member.email,
+      email: member.role_member_contacts?.email ?? "",
       joined: member.joined_at !== null,
       isLead: member.is_lead,
     }))

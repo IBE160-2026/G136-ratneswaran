@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getClaims } from "@/lib/supabase/server";
 import { isDraft, isPast } from "@/modules/events/list";
 import { DEFAULT_TIME_ZONE, timeZoneNames, toLocalInput } from "@/modules/events/schemas";
-import { loadEvent } from "../load-event";
+import { loadEvent, organizerOnly } from "../load-event";
 import { EventActions } from "./event-actions";
 import { SettingsForm } from "./form";
 
@@ -19,8 +19,10 @@ export async function generateMetadata({ params }: Props) {
 // Event settings: the schedule, the Guest-facing language, and cancel or delete.
 export default async function SettingsPage({ params }: Props) {
   const { eventId } = await params;
-  if (!(await getClaims())) redirect(`/login?next=/events/${eventId}/settings`);
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=/events/${eventId}/settings`);
   const event = await loadEvent(eventId);
+  organizerOnly(event, claims);
   // Shown in the Event's own time zone, so the values match what the Organizer typed.
   const timeZone = event.time_zone ?? DEFAULT_TIME_ZONE;
   // A stored zone the runtime no longer lists (an ICU rename) is still offered, so saving never moves the Event.

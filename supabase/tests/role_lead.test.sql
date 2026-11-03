@@ -29,19 +29,23 @@ insert into public.roles (id, event_id, key, active) values
   ('68000000-0000-0000-0000-000000000006', '58000000-0000-0000-0000-000000000002', 'program', false);
 
 -- On Venue, C (joined) is inserted before D (pending): making C lead after D is the physical-order case.
-insert into public.role_members (id, event_id, role_id, user_id, name, email, joined_at) values
-  ('78000000-0000-0000-0000-000000000001', '58000000-0000-0000-0000-000000000001',
-   '68000000-0000-0000-0000-000000000001', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'joined-c@example.test', now()),
-  ('78000000-0000-0000-0000-000000000002', '58000000-0000-0000-0000-000000000001',
-   '68000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', 'pending-d@example.test', null),
-  ('78000000-0000-0000-0000-000000000003', '58000000-0000-0000-0000-000000000001',
-   '68000000-0000-0000-0000-000000000002', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', 'guests-e@example.test', now()),
-  ('78000000-0000-0000-0000-000000000004', '58000000-0000-0000-0000-000000000001',
-   '68000000-0000-0000-0000-000000000003', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', 'guests-e@example.test', now()),
-  ('78000000-0000-0000-0000-000000000005', '58000000-0000-0000-0000-000000000002',
-   '68000000-0000-0000-0000-000000000004', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'joined-c@example.test', now()),
-  ('78000000-0000-0000-0000-000000000006', '58000000-0000-0000-0000-000000000003',
-   '68000000-0000-0000-0000-000000000005', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', 'joined-c@example.test', now());
+insert into public.role_members (id, event_id, role_id, user_id, name, joined_at) values
+  ('78000000-0000-0000-0000-000000000001', '58000000-0000-0000-0000-000000000001', '68000000-0000-0000-0000-000000000001', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', now()),
+  ('78000000-0000-0000-0000-000000000002', '58000000-0000-0000-0000-000000000001', '68000000-0000-0000-0000-000000000001', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Dana', null),
+  ('78000000-0000-0000-0000-000000000003', '58000000-0000-0000-0000-000000000001', '68000000-0000-0000-0000-000000000002', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', now()),
+  ('78000000-0000-0000-0000-000000000004', '58000000-0000-0000-0000-000000000001', '68000000-0000-0000-0000-000000000003', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Eli', now()),
+  ('78000000-0000-0000-0000-000000000005', '58000000-0000-0000-0000-000000000002', '68000000-0000-0000-0000-000000000004', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', now()),
+  ('78000000-0000-0000-0000-000000000006', '58000000-0000-0000-0000-000000000003', '68000000-0000-0000-0000-000000000005', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Cleo', now());
+insert into public.role_member_contacts (role_member_id, event_id, email)
+select m.id, m.event_id, v.email from (values
+  ('58000000-0000-0000-0000-000000000001'::uuid, '68000000-0000-0000-0000-000000000001'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'joined-c@example.test'),
+  ('58000000-0000-0000-0000-000000000001'::uuid, '68000000-0000-0000-0000-000000000001'::uuid, 'dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, 'pending-d@example.test'),
+  ('58000000-0000-0000-0000-000000000001'::uuid, '68000000-0000-0000-0000-000000000002'::uuid, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid, 'guests-e@example.test'),
+  ('58000000-0000-0000-0000-000000000001'::uuid, '68000000-0000-0000-0000-000000000003'::uuid, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid, 'guests-e@example.test'),
+  ('58000000-0000-0000-0000-000000000002'::uuid, '68000000-0000-0000-0000-000000000004'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'joined-c@example.test'),
+  ('58000000-0000-0000-0000-000000000003'::uuid, '68000000-0000-0000-0000-000000000005'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'joined-c@example.test')
+) as v (event_id, role_id, user_id, email)
+join public.role_members m on m.role_id = v.role_id and m.user_id = v.user_id;
 
 create temp view leads as
   select m.role_id, m.id from public.role_members m where m.is_lead;

@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { getClaims } from "@/lib/supabase/server";
 import { eventPath, isDraft, isPast } from "@/modules/events/list";
-import { loadEvent } from "../load-event";
+import { loadEvent, organizerOnly } from "../load-event";
 import { AddGuestsForm } from "./add-guests-form";
 import { GuestList } from "./guest-list";
 
@@ -20,8 +20,10 @@ export async function generateMetadata({ params }: Props) {
 // Guests: in 2.9 the Organizer adds guests by hand; Epic 7 adds invitations and RSVP.
 export default async function GuestsPage({ params }: Props) {
   const { eventId } = await params;
-  if (!(await getClaims())) redirect(`/login?next=${eventPath(eventId)}/guests`);
+  const claims = await getClaims();
+  if (!claims) redirect(`/login?next=${eventPath(eventId)}/guests`);
   const event = await loadEvent(eventId);
+  organizerOnly(event, claims);
   const t = await getTranslations("guests");
   // Published past and cancelled Events are read-only; guests_add refuses them too.
   const readOnly = !isDraft(event) && isPast(event, new Date());

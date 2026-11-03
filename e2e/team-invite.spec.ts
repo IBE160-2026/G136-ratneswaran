@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { psql, seed, signedIn, unique } from "./support";
+import { addContacts, psql, seed, signedIn, unique } from "./support";
 
 // Limiter buckets are per IP and shared by every test, so give each its own.
 test.beforeEach(async ({ page }) => {
@@ -84,9 +84,10 @@ test("inviting someone already on the Role says so and shows no link", async ({
   const memberId = psql(
     `insert into auth.users (id, email) values (gen_random_uuid(), '${member}') returning id`,
   ).split("\n")[0];
-  psql(`insert into public.role_members (event_id, role_id, user_id, name, email, joined_at)
-    select '${id}', id, '${memberId}', 'Per Joined', '${member}', now()
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at)
+    select '${id}', id, '${memberId}', 'Per Joined', now()
     from public.roles where event_id = '${id}' and key = 'venue'`);
+  addContacts(id);
 
   await page.goto(`/events/${id}/team`);
   await page.getByLabel("Name").fill("Per Joined");
@@ -110,9 +111,10 @@ test("a read-only Event hides the invite form and the pending row's actions", as
   const invitee = psql(
     `insert into auth.users (id, email) values (gen_random_uuid(), '${unique()}') returning id`,
   ).split("\n")[0];
-  psql(`insert into public.role_members (event_id, role_id, user_id, name, email)
-    select '${id}', r.id, '${invitee}', 'Kari Pending', u.email
-    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.id = '${invitee}'`);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name)
+    select '${id}', r.id, '${invitee}', 'Kari Pending'
+    from public.roles r where r.event_id = '${id}' and r.key = 'venue'`);
+  addContacts(id);
   psql(`update public.events set starts_at = now() - interval '30 days',
     ends_at = now() - interval '30 days' + interval '4 hours' where id = '${id}'`);
 
