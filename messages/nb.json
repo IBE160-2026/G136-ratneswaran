@@ -14,7 +14,8 @@
     "guests": "Gjester",
     "questionnaire": "Spørsmål",
     "team": "Team og roller",
-    "settings": "Arrangementsinnstillinger"
+    "settings": "Arrangementsinnstillinger",
+    "tasks": "Oppgaver"
   },
   "home": {
     "surface": "Hjem",
@@ -574,6 +575,68 @@
       "code": "Koden er feil eller har utløpt. Sjekk den eller send en ny.",
       "rateLimited": "For mange forsøk. Vent litt og prøv igjen.",
       "unavailable": "Kunne ikke fortsette akkurat nå. Prøv igjen om litt."
+    }
+  },
+  "tasks": {
+    "surface": "Oppgaver",
+    "title": "Oppgaver",
+    "intro": "Arbeidet i dette arrangementet, fordelt på Roller.",
+    "empty": "Ingen oppgaver ennå.",
+    "readOnly": "Dette arrangementet er over eller avlyst, så oppgavene kan ikke lenger endres.",
+    "count": "{count, plural, one {# oppgave} other {# oppgaver}}",
+    "showDismissed": "Vis avviste ({count})",
+    "create": {
+      "title": "Ny oppgave",
+      "role": "Rolle",
+      "noRoles": "Du kan legge til en oppgave når du leder en Rolle, eller arrangøren slår på en.",
+      "name": "Tittel",
+      "description": "Beskrivelse (valgfritt)",
+      "deadline": "Frist",
+      "kindDate": "På en dato",
+      "kindDays": "Dager før arrangementet",
+      "date": "Dato",
+      "days": "Dager før arrangementet starter",
+      "noStart": "Sett starttidspunktet for arrangementet for å telle dager før det.",
+      "submit": "Opprett oppgave"
+    },
+    "row": {
+      "notDelegated": "Ikke delegert",
+      "due": "Frist {date}"
+    },
+    "status": {
+      "not_started": "Ikke startet"
+    },
+    "detail": {
+      "back": "Alle oppgaver",
+      "role": "Rolle",
+      "deadline": "Frist",
+      "daysBefore": "{date} ({days, plural, =0 {på arrangementsdagen} one {# dag før arrangementet} other {# dager før arrangementet}})",
+      "owner": "Ansvarlig",
+      "description": "Beskrivelse",
+      "noDescription": "Ingen beskrivelse.",
+      "edit": "Rediger",
+      "save": "Lagre",
+      "cancel": "Avbryt",
+      "dismiss": "Avvis",
+      "restore": "Gjenopprett",
+      "dismissedNote": "Denne oppgaven er avvist.",
+      "dismissedToast": "Oppgaven er avvist.",
+      "restoredToast": "Oppgaven er gjenopprettet.",
+      "actions": "Oppgavehandlinger",
+      "undo": "Angre",
+      "status": "Status"
+    },
+    "errors": {
+      "title": "Skriv en tittel på 1 til 120 tegn.",
+      "description": "Hold beskrivelsen under 2000 tegn.",
+      "deadline": "Skriv en gyldig dato.",
+      "daysBefore": "Skriv et helt tall fra 0 til 365.",
+      "invalidInput": "Sjekk de merkede feltene.",
+      "forbidden": "Du kan ikke endre denne oppgaven.",
+      "readOnly": "Dette arrangementet er over eller avlyst, så oppgavene kan ikke lenger endres.",
+      "concurrent": "Noen andre har endret denne oppgaven. Last inn siden på nytt for å se versjonen deres.",
+      "unavailable": "Kunne ikke lagre akkurat nå. Prøv igjen om litt.",
+      "actionFailed": "Kunne ikke gjøre det. Prøv igjen."
     }
   }
 }

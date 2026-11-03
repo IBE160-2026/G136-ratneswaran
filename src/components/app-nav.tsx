@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Contact,
   House,
+  ListChecks,
   Settings,
   UserRound,
   Users,
@@ -73,6 +74,9 @@ export function AppNav({
               {t("guests")}
             </NavLink>
           )}
+          <NavLink href={`${eventPath(eventId)}/tasks`} icon={ListChecks} onNavigate={onNavigate}>
+            {t("tasks")}
+          </NavLink>
           <NavLink href={`${eventPath(eventId)}/team`} icon={Users} onNavigate={onNavigate}>
             {t("team")}
           </NavLink>
