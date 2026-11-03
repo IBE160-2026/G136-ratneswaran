@@ -375,3 +375,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Tre uavhengige subagenter ga 28 funn. KI rettet sju: `tasks_check_expected` låser nå raden (`for update`), tittelen kan ikke være blank, en oppdatering uten endring flytter ikke `updated_at`, og pgTAP dekker avlyst arrangement, eier uten innmelding, anon-nektelser og eier som ikke er Organizer. Implementeringsagenten la også til en `tasks_update`-policy (kun Organizer), som spec-en ikke nevnte, men som `UPDATE`-tilgangen trenger. Flere funn ble avvist med begrunnelse, og to ble utsatt i `deferred-work.md`: mikrosekundpresisjon i `updated_at` mot JS `Date`, og foreldet `accepted_at` når en eier slettes.
 **Min vurdering:** NIL
 **Spor:** branch `feat/4.1-tasks-table-and-role-scoped-access`, issue #81
+
+## 2026-11-03 — Story 4.2: opprett, rediger og åpne en Task
+
+**Prompt:** `/bmad-build på story 4.2`. Spec-en `spec-4-2-create-edit-and-open-a-task.md` ble implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med kolonnene `days_before` og gjesteprogramfeltene, `is_role_lead`, en utvidet `tasks_update`-policy og en utløser som holder gjesteprogramfeltene Organizer-only. Funksjonene `tasks_create`, `tasks_set_deadline`, `tasks_dismiss` og `tasks_restore` er `security definer`; `tasks_recalculate_deadlines` er en systemfunksjon som `events_update_schedule` kaller etter at Event-raden er oppdatert, siden den leser den nye starten. Dismiss og restore deler den interne hjelperen `tasks_set_lifecycle` (security invoker, ikke kallbar for `authenticated`). Server Actions redigerer tittel og beskrivelse med `updated_at` som filter og setter fristen med den ferske verdien. Listen, opprettingsskjemaet og detaljsiden er nye ruter under `/events/[eventId]/tasks`.
+**Valg som må forklares:** Gjesteprogramfeltene har kolonner og utløser, men ingen skjema i UI; Epic 7 eier dem. Tilbakeknappen er en lenke til listen, ikke en historikk-tilbakeknapp.
+**Min vurdering:** NIL
+**Spor:** branch `feat/4.2-create-edit-and-open-a-task`

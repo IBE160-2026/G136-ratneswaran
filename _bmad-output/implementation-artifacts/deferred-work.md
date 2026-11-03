@@ -56,3 +56,10 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-1-tasks-table-and-role-scoped-access.md`
   summary: Deleting a Task owner's auth user nulls `owner_user_id` but keeps `delegated_at` and `accepted_at`, so the Task reads as pending with stale acceptance.
   evidence: A CHECK tying them together would make `ON DELETE SET NULL` fail; the reset belongs to the account-deletion path and Story 4.7's `tasks_release_owner` (low).
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-2-create-edit-and-open-a-task.md`
+  summary: Add `tasks.status.in_progress`, `waiting_external` and `done` to both message files.
+  evidence: Only `not_started` has a key, so a Task in another status would throw a missing-message error; no writer of status exists before Story 4.4, which owns it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-2-create-edit-and-open-a-task.md`
+  summary: Show the owner's name on the Task detail page and in the row.
+  evidence: The owner cell renders blank when `owner_user_id` is set; it is always null until Story 4.5 delegates.

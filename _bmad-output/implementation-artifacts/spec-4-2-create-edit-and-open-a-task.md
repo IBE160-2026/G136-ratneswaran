@@ -2,7 +2,8 @@
 title: 'Create, edit and open a Task'
 type: 'feature'
 created: '2026-11-03'
-status: 'in-progress'
+status: 'done'
+baseline_commit: '42f0e716dc6301668f8fc96256058cc3704bf387'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -91,6 +92,27 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| Finding | Layer | Verdict | Route | Evidence |
+|---------|-------|---------|-------|----------|
+| Impossible date such as 2027-02-31 passes Zod | blind, edge | medium | patch | `Date.parse` rolls Feb 31 over in V8; Postgres then fails the cast with 22008 and the user gets the generic toast, not the inline deadline error. |
+| updateTask saves title first, then fails on the deadline | blind, edge | medium | patch | After a failed `tasks_set_deadline` the text is saved and `updated_at` moved, so a retry with the old `expected` returns concurrent forever. Deadline goes first; its fresh `updated_at` guards the text. |
+| Checked but disabled days radio is dropped from FormData | blind, edge | medium | patch | A Task with `days_before` on an Event that lost its start submits no `kind`; Zod fails with no field error and the Task cannot be saved. |
+| Recalculation runs under `tasks_read_only` | edge | medium | patch | Moving `ends_at` into the past makes the Event read-only before the recalculation, which raises 55000 and rolls back the whole schedule save. Skip the recalculation for a read-only Event. |
+| Lead edit, dismiss and Restore never exercised as the lead | gap | medium | patch | Test 2 flips `is_lead` but never opens a Task as the lead; breaking the lead branch passes every test. |
+| pgTAP: no direct `is_role_lead` test; no lead-of-X edits Task-of-Y deny | blind, gap | low | patch | AD-16 wants one allow and one deny per helper and policy; the policy deny is only asserted through an unchanged title. |
+| Task id from `crypto.randomUUID()` in a server component | edge | low | patch | A revalidation renders a new id, so a retry after an unacknowledged commit creates a second Task. The id must live in the client form. |
+| Unused message key `tasks.row.dismissed` | blind | low | patch | Definition of Done: no unused leftovers. |
+| Status keys missing for in_progress, waiting_external, done | blind, edge | low | defer | Nothing can set those statuses until Story 4.4, which adds the keys with its writer. |
+| Owner cell renders blank for a delegated Task | blind, edge | low | defer | `owner_user_id` is always null until Story 4.5; it shows the name then. |
+| Zero rows from RLS reported as concurrent edit | blind, edge | low | rejected | The code comment states it; the page hides Edit from a non-editor, and the database stays the boundary. |
+| Dismissed Task editable by a lead through the API | edge | low | rejected | Harmless: dismissed Tasks are recoverable and the UI hides Edit; the spec sets no such rule. |
+| `on conflict (id)` hides an id collision | blind, edge | low | rejected | A v4 UUID collision across Events needs a hostile caller who gains nothing; the fix adds a branch. |
+| Dismiss succeeds but the follow-up `updated_at` read fails | edge | low | rejected | Needs a network failure between two calls; Undo reappears on reload. |
+| Dismissed Tasks not openable from the list | blind | low | rejected | The spec lists only a timeless Restore under Show dismissed. |
+| `editing` state outlives `canEdit` | blind | low | rejected | The next write is refused by the database with 55000. |
+| Nav link, page title, e2e breadth, duplicated error markup, mock shape | blind | low | rejected | Cosmetic or speculative; no harm named. |
+| Guest-program columns have no UI; no refleksjonsnotat | blind | low | rejected | The spec's UI list omits them by intent; the notat is offered in the present step. |
 
 ## Design Notes
 
