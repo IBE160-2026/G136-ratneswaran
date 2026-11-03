@@ -6,3 +6,7 @@
 - [ ] 2026-10-28 [story-3-8-rolleleder](997-2026-10-28-07-05-00-story-3-8-rolleleder.md) — full e2e-suite er ustabil under parallell last
 - [ ] 2026-11-02 [story-3-9-fjern-rolle](996-2026-11-02-06-42-10-story-3-9-fjern-rolle.md) — toast og redirect for fjernet innehaver (UX-DR24) bygges i Story 3.10
 - [x] 2026-11-02 [story-3-9-fjern-rolle](996-2026-11-02-06-42-10-story-3-9-fjern-rolle.md) — KI-logg-oppføring for 3.9 skrives ved push og PR (løst 2026-11-02)
+- [ ] 2026-11-03 [story-3-10-innehaverens-avgrensede-visning](995-2026-11-03-07-28-00-story-3-10-innehaverens-avgrensede-visning.md) — `is_team_member` er avhengig av planleggerens rekkefølge i role_members-policyen (deferred-work.md)
+- [ ] 2026-11-03 [story-3-10-innehaverens-avgrensede-visning](995-2026-11-03-07-28-00-story-3-10-innehaverens-avgrensede-visning.md) — e-post-kontakttabellen (role_member_contacts) er ikke gransket av egne reviewere
+- [ ] 2026-11-03 [story-3-10-innehaverens-avgrensede-visning](995-2026-11-03-07-28-00-story-3-10-innehaverens-avgrensede-visning.md) — hele pnpm test:e2e kjørt etter siste endring gjenstår
+- [ ] 2026-11-03 [story-3-10-innehaverens-avgrensede-visning](995-2026-11-03-07-28-00-story-3-10-innehaverens-avgrensede-visning.md) — toast og redirect for fjernet innehaver (UX-DR24) utsatt igjen uten story; vurder refleksjonsnotat
