@@ -5,15 +5,21 @@ import { redirect } from "next/navigation";
 import { fieldErrors, refuse, type Result } from "@/lib/result";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import { eventPath } from "@/modules/events/list";
-import { createSchema, deadlineArgs, editSchema, lifecycleSchema } from "./schemas";
+import {
+  createSchema,
+  deadlineArgs,
+  dependencySchema,
+  editSchema,
+  lifecycleSchema,
+  subtaskSchema,
+} from "./schemas";
 
-const refuseTask = (code: string) => {
+const refuseTask = (code: string, invalid = "tasks.errors.invalidInput") => {
   if (code === "42501") return refuse("forbidden", "tasks.errors.forbidden");
   if (code === "55000") return refuse("read_only", "tasks.errors.readOnly");
   if (code === "40001") return refuse("concurrent", "tasks.errors.concurrent");
-  if (code === "23514" || code === "22023") {
-    return refuse("invalid_input", "tasks.errors.invalidInput");
-  }
+  if (code === "55006") return refuse("has_links", "tasks.errors.hasLinks");
+  if (code === "23514" || code === "22023") return refuse("invalid_input", invalid);
   return refuse("unavailable", "tasks.errors.unavailable");
 };
 
@@ -24,9 +30,9 @@ const refuseTask = (code: string) => {
 async function caller(action: string, eventId: string) {
   const claims = await getClaims();
   if (!claims) redirect(`/login?next=${eventPath(eventId)}/tasks`);
-  return (code: string) => {
+  return (code: string, invalid?: string) => {
     console.error(`${action} failed`, { eventId, userId: claims.sub, code });
-    return refuseTask(code);
+    return refuseTask(code, invalid);
   };
 }
 
@@ -100,7 +106,9 @@ async function setLifecycle(
   const fail = await caller(name, eventId);
   const supabase = await createClient();
   const { error } = await supabase.rpc(name, { p_task_id: taskId, p_expected: expected });
-  if (error) return fail(error.code);
+  if (error) {
+    return fail(error.code, name === "tasks_restore" ? "tasks.errors.parentDismissed" : undefined);
+  }
   // The next Undo or Restore needs the moved updated_at, as the raw string.
   const { data, error: readError } = await supabase
     .from("tasks")
@@ -120,4 +128,68 @@ export async function dismissTask(input: LifecycleInput) {
 
 export async function restoreTask(input: LifecycleInput) {
   return setLifecycle("tasks_restore", input);
+}
+
+/** Adds a Subtask through `tasks_create` with the parent; the id comes from the form, so a double submit is one Subtask. */
+export async function addSubtask(
+  _previous: Result<null> | null,
+  formData: FormData,
+): Promise<Result<null>> {
+  const parsed = subtaskSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return refuse("invalid_input", "tasks.errors.invalidInput", fieldErrors(parsed.error));
+  }
+  const { eventId, id, parentId, roleId, title } = parsed.data;
+  const fail = await caller("addSubtask", eventId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("tasks_create", {
+    p_id: id,
+    p_role_id: roleId,
+    p_title: title,
+    p_parent_id: parentId,
+    ...deadlineArgs(parsed.data),
+  });
+  if (error) return fail(error.code, "tasks.errors.subtaskInvalid");
+  touched(eventId);
+  return { ok: true, data: null };
+}
+
+export async function promoteSubtask(input: LifecycleInput): Promise<Result<null>> {
+  const parsed = lifecycleSchema.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "tasks.errors.invalidInput");
+  const { eventId, taskId, expected } = parsed.data;
+  const fail = await caller("promoteSubtask", eventId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("tasks_promote_subtask", {
+    p_task_id: taskId,
+    p_expected: expected,
+  });
+  if (error) return fail(error.code);
+  touched(eventId);
+  return { ok: true, data: null };
+}
+
+async function changeDependency(
+  name: "tasks_add_dependency" | "tasks_remove_dependency",
+  input: { eventId: string; taskId: string; dependsOnId: string },
+): Promise<Result<null>> {
+  const parsed = dependencySchema.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "tasks.errors.invalidInput");
+  const { eventId, taskId, dependsOnId } = parsed.data;
+  const fail = await caller(name, eventId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc(name, { p_task_id: taskId, p_depends_on_id: dependsOnId });
+  if (error) return fail(error.code, "tasks.errors.dependencyInvalid");
+  touched(eventId);
+  return { ok: true, data: null };
+}
+
+type DependencyInput = { eventId: string; taskId: string; dependsOnId: string };
+
+export async function addDependency(input: DependencyInput) {
+  return changeDependency("tasks_add_dependency", input);
+}
+
+export async function removeDependency(input: DependencyInput) {
+  return changeDependency("tasks_remove_dependency", input);
 }

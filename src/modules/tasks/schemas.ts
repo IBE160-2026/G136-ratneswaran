@@ -34,6 +34,20 @@ export const createSchema = z
   .object({ eventId: z.uuid(), id: z.uuid(), roleId: z.uuid(), ...fields })
   .superRefine(checkDeadline);
 
+/** A Subtask is added inline with a title and a date; the Role comes from the parent. */
+export const subtaskSchema = z
+  .object({
+    eventId: z.uuid(),
+    id: z.uuid(),
+    parentId: z.uuid(),
+    roleId: z.uuid(),
+    title: fields.title,
+    kind: z.literal("date"),
+    deadline: fields.deadline,
+    daysBefore: fields.daysBefore,
+  })
+  .superRefine(checkDeadline);
+
 export const editSchema = z
   .object({ eventId: z.uuid(), taskId: z.uuid(), expected: z.string().min(1), ...fields })
   .superRefine(checkDeadline);
@@ -42,6 +56,12 @@ export const lifecycleSchema = z.object({
   eventId: z.uuid(),
   taskId: z.uuid(),
   expected: z.string().min(1),
+});
+
+export const dependencySchema = z.object({
+  eventId: z.uuid(),
+  taskId: z.uuid(),
+  dependsOnId: z.uuid(),
 });
 
 /** The arguments `tasks_create` and `tasks_set_deadline` take for the chosen kind. */
