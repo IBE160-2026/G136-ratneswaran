@@ -39,7 +39,7 @@ select m.id, m.event_id, u.email from public.role_members m join auth.users u on
 -- Attributes and grants
 select ok(
   (select bool_and(prosecdef and proconfig @> array['search_path=""']) from pg_proc
-   where oid in ('public.tasks_create(uuid, uuid, text, text, date, integer)'::regprocedure,
+   where oid in ('public.tasks_create(uuid, uuid, text, text, date, integer, uuid)'::regprocedure,
                  'public.tasks_set_deadline(uuid, timestamptz, date, integer)'::regprocedure,
                  'public.tasks_dismiss(uuid, timestamptz)'::regprocedure,
                  'public.tasks_restore(uuid, timestamptz)'::regprocedure,
@@ -51,8 +51,8 @@ select ok(not has_function_privilege('anon', 'public.tasks_recalculate_deadlines
   'anon cannot execute tasks_recalculate_deadlines');
 select ok(not has_function_privilege('authenticated', 'public.tasks_set_lifecycle(uuid, timestamptz, text, text)', 'EXECUTE'),
   'authenticated cannot execute tasks_set_lifecycle');
-select ok(has_function_privilege('authenticated', 'public.tasks_create(uuid, uuid, text, text, date, integer)', 'EXECUTE')
-  and not has_function_privilege('anon', 'public.tasks_create(uuid, uuid, text, text, date, integer)', 'EXECUTE'),
+select ok(has_function_privilege('authenticated', 'public.tasks_create(uuid, uuid, text, text, date, integer, uuid)', 'EXECUTE')
+  and not has_function_privilege('anon', 'public.tasks_create(uuid, uuid, text, text, date, integer, uuid)', 'EXECUTE'),
   'tasks_create is granted to authenticated only');
 select ok(not has_function_privilege('authenticated', 'public.tasks_guest_program_organizer_only()', 'EXECUTE'),
   'authenticated cannot execute the guest-program trigger function');

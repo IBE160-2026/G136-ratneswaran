@@ -221,16 +221,54 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"tasks": {
+                },"task_dependencies": {
                   Row: {
-                    "accepted_at": string | null,"confirmed_at": string | null,"created_by": string | null,"days_before": number | null,"deadline": string | null,"delegated_at": string | null,"description": string | null,"event_id": string,"guest_label": string | null,"guest_time": string | null,"id": string,"lifecycle": string,"obsolete": boolean,"owner_user_id": string | null,"role_id": string,"show_on_guest_program": boolean,"status": string,"title": string,"updated_at": string
+                    "depends_on_id": string,"task_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id": string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id": string,"show_on_guest_program"?: boolean,"status"?: string,"title": string,"updated_at"?: string
+                    "depends_on_id": string,"task_id": string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id"?: string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id"?: string,"show_on_guest_program"?: boolean,"status"?: string,"title"?: string,"updated_at"?: string
+                    "depends_on_id"?: string,"task_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_dependencies_depends_on_id_fkey"
+      columns: ["depends_on_id"]
+isOneToOne: false
+      referencedRelation: "task_state"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_dependencies_depends_on_id_fkey"
+      columns: ["depends_on_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_dependencies_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "task_state"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_dependencies_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "accepted_at": string | null,"confirmed_at": string | null,"created_by": string | null,"days_before": number | null,"deadline": string | null,"delegated_at": string | null,"description": string | null,"event_id": string,"guest_label": string | null,"guest_time": string | null,"id": string,"lifecycle": string,"obsolete": boolean,"owner_user_id": string | null,"parent_task_id": string | null,"role_id": string,"show_on_guest_program": boolean,"status": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id": string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"parent_task_id"?: string | null,"role_id": string,"show_on_guest_program"?: boolean,"status"?: string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id"?: string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"parent_task_id"?: string | null,"role_id"?: string,"show_on_guest_program"?: boolean,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -238,6 +276,18 @@ isOneToOne: false
       columns: ["event_id"]
 isOneToOne: false
       referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_parent_task_id_fkey"
+      columns: ["parent_task_id"]
+isOneToOne: false
+      referencedRelation: "task_state"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_parent_task_id_fkey"
+      columns: ["parent_task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "tasks_role_id_fkey"
@@ -252,16 +302,10 @@ isOneToOne: false
           Views: {
             "task_state": {
                   Row: {
-                    "event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"role_id": string | null
+                    "blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"role_id": string | null
                   }
                   ComputedFields: never
-                  Insert: {
-                           "event_id"?: string | null,"id"?: string | null,"is_delegated"?: never,"is_pending"?: never,"role_id"?: string | null
-                         }
-                        Update: {
-                           "event_id"?: string | null,"id"?: string | null,"is_delegated"?: never,"is_pending"?: never,"role_id"?: string | null
-                         }
-                        Relationships: [
+                  Relationships: [
                     {
       foreignKeyName: "tasks_event_id_fkey"
       columns: ["event_id"]
@@ -364,6 +408,9 @@ isOneToOne: false
 "is_team_member":
 { Args: { "p_event_id": string }; Returns: boolean
                            },
+"tasks_add_dependency":
+{ Args: { "p_depends_on_id": string,"p_task_id": string }; Returns: undefined
+                           },
 "tasks_assert_writable":
 { Args: { "p_event_id": string }; Returns: undefined
                            },
@@ -371,13 +418,25 @@ isOneToOne: false
 { Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
                            },
 "tasks_create":
-{ Args: { "p_days_before"?: number,"p_deadline"?: string,"p_description"?: string,"p_id": string,"p_role_id": string,"p_title": string }; Returns: undefined
+{ Args: { "p_days_before"?: number,"p_deadline"?: string,"p_description"?: string,"p_id": string,"p_parent_id"?: string,"p_role_id": string,"p_title": string }; Returns: undefined
                            },
 "tasks_dismiss":
 { Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
                            },
+"tasks_may_link":
+{ Args: { "p_task_id": string }; Returns: boolean
+                           },
+"tasks_move_to_role":
+{ Args: { "p_expected": string,"p_role_id": string,"p_task_id": string }; Returns: undefined
+                           },
+"tasks_promote_subtask":
+{ Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
+                           },
 "tasks_recalculate_deadlines":
 { Args: { "p_event_id": string }; Returns: undefined
+                           },
+"tasks_remove_dependency":
+{ Args: { "p_depends_on_id": string,"p_task_id": string }; Returns: undefined
                            },
 "tasks_resolve_deadline":
 { Args: { "p_days_before": number,"p_deadline": string,"p_event_id": string }; Returns: string
