@@ -2,7 +2,8 @@
 title: 'Tasks table and Role-scoped access'
 type: 'feature'
 created: '2026-11-03'
-status: 'draft'
+status: 'done'
+baseline_commit: '204853c6ab3e3ee1fa6ee62a96dfe8847b3d9b8d'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -80,6 +81,27 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| Finding | Layer | Verdict | Route | Evidence |
+|---------|-------|---------|-------|----------|
+| tasks_check_expected is stable, no row lock | blind | medium | patch | Two transactions can pass the check before either writes; `for update` closes it. |
+| Blank title storable by direct UPDATE | blind, edge | low | patch | The organizer holds UPDATE (title); a non-blank CHECK is a one-line fix and cannot clash with 4.2 limits. |
+| No-op UPDATE advances updated_at | edge | low | patch | Spurious concurrent_edit for another editor; `when (old.* is distinct from new.*)` fixes it. |
+| Cancelled Event hiding never exercised | gap | medium | patch | No holder is a member of the cancelled Event's Role in the fixture, so the assertion cannot fail. |
+| Owner not a joined member untested | edge | low | patch | Design Notes claim fail-closed; no test proves it. |
+| Guest-only user has no guests row | edge | low | patch | Matrix row "Guest-only user" is covered only by an unrelated user. |
+| Missing anon deny for tasks_check_expected and task_state; trigger fn revoke; tasks_update owner deny | blind, edge, gap | low | patch | AD-16 requires one allow and one deny per grant, function and policy. |
+| Cross-Event Role link possible | blind, edge | low | rejected | role_id and event_id cannot be written directly (no INSERT, not in UPDATE grant); Story 4.2's definer function derives event_id from the Role. Fix would alter `roles`. |
+| updated_at microsecond precision vs JS Date | blind, edge | medium | defer | Real risk for Story 4.2's Server Action; settled by passing the raw string. Not exercised by this story. |
+| State columns not tied to lifecycle/owner; owner deleted keeps accepted_at | blind, edge | low | defer | A CHECK would make `ON DELETE SET NULL` fail on user deletion; belongs to the account-deletion and 4.7 release path. |
+| Missing indexes on owner_user_id, created_by | blind | low | rejected | Rare user deletes; unlikely to be met. |
+| task_state is_pending ignores lifecycle/obsolete | blind, edge | low | rejected | Matches the spec and FR-12 (owner exists or not); later stories extend the view. |
+| tasks_update lets Organizer edit closed Tasks | edge | low | rejected | Speculative; 4.2 owns the edit rules. |
+| tasks_assert_writable / check_expected use one error for unknown/hidden | blind, edge | low | rejected | Spec states unknown or hidden refuses; fail-closed by design. |
+| Read-only rule restated in tasks_assert_writable | edge | low | rejected | Duplicates a two-line predicate; no divergence demonstrated. |
+| database.ts diff also lists two functions | edge | low | rejected | Cosmetic wording in the spec. |
+| Ended Event holder visibility unpinned | gap | low | rejected | Intended behaviour; no harm shown. |
+| No ki-logg entry | blind | low | deferred to PR step | Required by AGENTS.md for the story PR; written with the commit step. |
 
 ## Design Notes
 
