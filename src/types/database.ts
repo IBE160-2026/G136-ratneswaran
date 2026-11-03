@@ -221,10 +221,62 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"tasks": {
+                  Row: {
+                    "accepted_at": string | null,"confirmed_at": string | null,"created_by": string | null,"deadline": string | null,"delegated_at": string | null,"description": string | null,"event_id": string,"id": string,"lifecycle": string,"obsolete": boolean,"owner_user_id": string | null,"role_id": string,"status": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id": string,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id": string,"status"?: string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id"?: string,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"role_id"?: string,"status"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tasks_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_role_id_fkey"
+      columns: ["role_id"]
+isOneToOne: false
+      referencedRelation: "roles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
-            [_ in never]: never
+            "task_state": {
+                  Row: {
+                    "event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"role_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                           "event_id"?: string | null,"id"?: string | null,"is_delegated"?: never,"is_pending"?: never,"role_id"?: string | null
+                         }
+                        Update: {
+                           "event_id"?: string | null,"id"?: string | null,"is_delegated"?: never,"is_pending"?: never,"role_id"?: string | null
+                         }
+                        Relationships: [
+                    {
+      foreignKeyName: "tasks_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_role_id_fkey"
+      columns: ["role_id"]
+isOneToOne: false
+      referencedRelation: "roles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                }
           }
           Functions: {
             "abuse_hit":
@@ -308,6 +360,12 @@ isOneToOne: false
                            },
 "is_team_member":
 { Args: { "p_event_id": string }; Returns: boolean
+                           },
+"tasks_assert_writable":
+{ Args: { "p_event_id": string }; Returns: undefined
+                           },
+"tasks_check_expected":
+{ Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
                            }
           }
           Enums: {
