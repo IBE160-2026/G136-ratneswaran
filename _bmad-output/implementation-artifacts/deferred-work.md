@@ -49,3 +49,10 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-10-the-role-holders-scoped-view.md`
   summary: is_team_member is an invoker helper read inside role_members_select, so it relies on the planner applying the leakproof user_id equality before the policy.
   evidence: pgTAP passes with five rows visible to a holder, but a plan that evaluates the policy first would recurse; settle it with a larger-table plan check or a different non-recursive shape.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-1-tasks-table-and-role-scoped-access.md`
+  summary: `tasks_check_expected` compares `updated_at` at microsecond precision, so a Server Action that round-trips it through a JS `Date` gets a false `concurrent_edit`.
+  evidence: `clock_timestamp()` has microseconds, JS `Date` milliseconds (medium). Settled in Story 4.2 by passing `updated_at` as the raw string end to end, or by a pgTAP/Vitest round trip.
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-1-tasks-table-and-role-scoped-access.md`
+  summary: Deleting a Task owner's auth user nulls `owner_user_id` but keeps `delegated_at` and `accepted_at`, so the Task reads as pending with stale acceptance.
+  evidence: A CHECK tying them together would make `ON DELETE SET NULL` fail; the reset belongs to the account-deletion path and Story 4.7's `tasks_release_owner` (low).
