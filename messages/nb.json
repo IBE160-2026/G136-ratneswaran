@@ -601,7 +601,11 @@
     },
     "row": {
       "notDelegated": "Ikke delegert",
-      "due": "Frist {date}"
+      "due": "Frist {date}",
+      "waitsFor": "Venter på: {title}",
+      "waitsForMore": "Venter på: {title} +{count}",
+      "blocks": "{count, plural, one {Blokkerer # oppgave} other {Blokkerer # oppgaver}}",
+      "subtasks": "{count, plural, one {# deloppgave} other {# deloppgaver}}"
     },
     "status": {
       "not_started": "Ikke startet"
@@ -636,7 +640,29 @@
       "readOnly": "Dette arrangementet er over eller avlyst, så oppgavene kan ikke lenger endres.",
       "concurrent": "Noen andre har endret denne oppgaven. Last inn siden på nytt for å se versjonen deres.",
       "unavailable": "Kunne ikke lagre akkurat nå. Prøv igjen om litt.",
-      "actionFailed": "Kunne ikke gjøre det. Prøv igjen."
+      "actionFailed": "Kunne ikke gjøre det. Prøv igjen.",
+      "hasLinks": "Denne oppgaven har deloppgaver eller oppgaver som avhenger av den. Avvis eller fjern koblingene først.",
+      "subtaskInvalid": "En deloppgave trenger en aktiv oppgave i samme Rolle som forelder, og en tittel og en dato.",
+      "dependencyInvalid": "En oppgave kan bare vente på en annen aktiv oppgave i samme Rolle, og aldri i ring.",
+      "parentDismissed": "Gjenopprett overordnet oppgave først."
+    },
+    "subtasks": {
+      "title": "Deloppgaver",
+      "empty": "Ingen deloppgaver.",
+      "name": "Tittel på deloppgave",
+      "deadline": "Frist for deloppgave",
+      "add": "Legg til deloppgave",
+      "partOf": "Del av {parent}",
+      "promote": "Gjør til oppgave",
+      "promotedToast": "Nå en egen oppgave."
+    },
+    "dependsOn": {
+      "title": "Avhenger av",
+      "empty": "Venter ikke på noen oppgave.",
+      "pick": "Venter på",
+      "choose": "Velg en oppgave",
+      "add": "Legg til avhengighet",
+      "remove": "Fjern"
     }
   }
 }

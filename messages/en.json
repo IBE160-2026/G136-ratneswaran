@@ -601,7 +601,11 @@
     },
     "row": {
       "notDelegated": "Not delegated",
-      "due": "Due {date}"
+      "due": "Due {date}",
+      "waitsFor": "Waits for: {title}",
+      "waitsForMore": "Waits for: {title} +{count}",
+      "blocks": "{count, plural, one {Blocks # task} other {Blocks # tasks}}",
+      "subtasks": "{count, plural, one {# subtask} other {# subtasks}}"
     },
     "status": {
       "not_started": "Not started"
@@ -636,7 +640,29 @@
       "readOnly": "This event is over or cancelled, so its tasks can no longer be changed.",
       "concurrent": "Someone else changed this task. Reload to see their version.",
       "unavailable": "Couldn't save right now. Try again shortly.",
-      "actionFailed": "Couldn't do that. Try again."
+      "actionFailed": "Couldn't do that. Try again.",
+      "hasLinks": "This task has Subtasks or tasks that depend on it. Dismiss or unlink them first.",
+      "subtaskInvalid": "A subtask needs an active task of the same Role as its parent, and a title and date.",
+      "dependencyInvalid": "A task can only wait for another active task of the same Role, and never in a circle.",
+      "parentDismissed": "Restore the parent task first."
+    },
+    "subtasks": {
+      "title": "Subtasks",
+      "empty": "No subtasks.",
+      "name": "Subtask title",
+      "deadline": "Subtask deadline",
+      "add": "Add subtask",
+      "partOf": "Part of {parent}",
+      "promote": "Promote to task",
+      "promotedToast": "Now a task of its own."
+    },
+    "dependsOn": {
+      "title": "Depends on",
+      "empty": "Does not wait for any task.",
+      "pick": "Waits for",
+      "choose": "Choose a task",
+      "add": "Add dependency",
+      "remove": "Remove"
     }
   }
 }

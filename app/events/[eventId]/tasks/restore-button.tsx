@@ -20,6 +20,7 @@ export function RestoreButton({
   title: string;
 }) {
   const t = useTranslations("tasks");
+  const tr = useTranslations();
   const [pending, start] = useTransition();
   return (
     <button
@@ -31,7 +32,7 @@ export function RestoreButton({
         start(async () => {
           const result = await callSafely(() => restoreTask({ eventId, taskId, expected }));
           if (result.ok) toast(t("detail.restoredToast"));
-          else toast.error(<span role="alert">{t(result.error.message)}</span>);
+          else toast.error(<span role="alert">{tr(result.error.message)}</span>);
         })
       }
     >

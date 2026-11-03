@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Link2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -11,6 +11,7 @@ import { callSafely } from "@/modules/events/save";
 import { eventPath } from "@/modules/events/list";
 import { dismissTask, restoreTask } from "@/modules/tasks/actions";
 import { TaskForm } from "../task-form";
+import { DependsOnCard, PartOf, SubtasksCard, WaitsFor, type LinkedTask } from "./task-links";
 import { useDeadline } from "../task-row";
 
 type Task = {
@@ -22,7 +23,20 @@ type Task = {
   status: string;
   lifecycle: string;
   owner_user_id: string | null;
+  role_id: string;
+  parent_task_id: string | null;
   updated_at: string;
+};
+
+export type TaskLinks = {
+  parent: { id: string; title: string } | null;
+  subtasks: LinkedTask[];
+  dependsOn: LinkedTask[];
+  candidates: { id: string; title: string }[];
+  blockedBy: { title: string; more: number } | null;
+  blocksCount: number;
+  canLink: boolean;
+  canPromote: boolean;
 };
 
 const errorToast = (message: string) => toast.error(<span role="alert">{message}</span>);
@@ -32,15 +46,19 @@ export function TaskDetail({
   task,
   roleName,
   canEdit,
+  links,
   hasStart,
 }: {
   eventId: string;
   task: Task;
   roleName: string;
   canEdit: boolean;
+  links: TaskLinks;
   hasStart: boolean;
 }) {
   const t = useTranslations("tasks");
+  // Action failures carry a full message key, so they need the root translator.
+  const tr = useTranslations();
   const formatDeadline = useDeadline();
   const [editing, setEditing] = useState(false);
   const [pending, start] = useTransition();
@@ -50,7 +68,7 @@ export function TaskDetail({
   const restore = (expected: string, announce: boolean) =>
     start(async () => {
       const result = await callSafely(() => restoreTask({ ...ids, expected }));
-      if (!result.ok) errorToast(t(result.error.message));
+      if (!result.ok) errorToast(tr(result.error.message));
       else if (announce) toast(t("detail.restoredToast"));
     });
 
@@ -58,7 +76,7 @@ export function TaskDetail({
     start(async () => {
       const result = await callSafely(() => dismissTask({ ...ids, expected: task.updated_at }));
       if (!result.ok) {
-        errorToast(t(result.error.message));
+        errorToast(tr(result.error.message));
         return;
       }
       // Undo restores with the updated_at the dismissal produced.
@@ -80,6 +98,22 @@ export function TaskDetail({
       </Link>
       <h1 className="text-large-title break-words">{task.title}</h1>
       {dismissed && <p className="text-muted-foreground">{t("detail.dismissedNote")}</p>}
+      {links.blockedBy && <WaitsFor {...links.blockedBy} />}
+      {links.blocksCount > 0 && (
+        <p className="text-muted-foreground inline-flex items-center gap-2">
+          <Link2 aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />
+          {t("row.blocks", { count: links.blocksCount })}
+        </p>
+      )}
+      {links.parent && (
+        <PartOf
+          eventId={eventId}
+          parent={links.parent}
+          taskId={task.id}
+          expected={task.updated_at}
+          canPromote={links.canPromote && !dismissed}
+        />
+      )}
 
       {editing ? (
         <TaskForm
@@ -128,6 +162,21 @@ export function TaskDetail({
               {task.description ?? t("detail.noDescription")}
             </p>
           </section>
+          {task.parent_task_id === null && (
+            <SubtasksCard
+              eventId={eventId}
+              parent={{ id: task.id, roleId: task.role_id }}
+              subtasks={links.subtasks}
+              canAdd={links.canLink}
+            />
+          )}
+          <DependsOnCard
+            eventId={eventId}
+            taskId={task.id}
+            dependsOn={links.dependsOn}
+            candidates={links.candidates}
+            canLink={links.canLink}
+          />
         </>
       )}
 
