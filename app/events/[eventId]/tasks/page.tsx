@@ -46,7 +46,7 @@ export default async function TasksPage({ params }: Props) {
       .not("joined_at", "is", null),
     supabase
       .from("task_state")
-      .select("id, blocked, blocked_by, blocked_by_count, blocks_count")
+      .select("id, blocked, blocked_by, blocked_by_count, blocks_count, overdue_days")
       .eq("event_id", eventId),
   ]);
   if (tasksResult.error || rolesResult.error || leadResult.error || stateResult.error) {
@@ -79,6 +79,7 @@ export default async function TasksPage({ params }: Props) {
       waitsFor: waiting ? (titles.get(state.blocked_by ?? "") ?? null) : null,
       waitsForMore: state?.blocked_by_count ?? 0,
       blocks: state?.blocks_count ?? 0,
+      overdueDays: task.lifecycle === "active" ? (state?.overdue_days ?? null) : null,
       subtasks: subtaskCount.get(task.id) ?? 0,
     };
   });

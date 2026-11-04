@@ -1,6 +1,7 @@
-import { Circle, Link2, ListChecks, Lock } from "lucide-react";
+import { Link2, ListChecks, Lock } from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
+import { STATUSES, taskStatus } from "@/lib/status";
 import { eventPath } from "@/modules/events/list";
 
 export type ListedTask = {
@@ -13,6 +14,7 @@ export type ListedTask = {
   waitsFor: string | null;
   waitsForMore: number;
   blocks: number;
+  overdueDays: number | null;
   subtasks: number;
 };
 
@@ -26,15 +28,18 @@ export const useDeadline = () => {
 /** UX-DR11: status icon, title, status word and owner; the whole row opens the Task. */
 export function TaskRow({ eventId, task }: { eventId: string; task: ListedTask }) {
   const t = useTranslations("tasks");
+  const ts = useTranslations("status");
   const formatDeadline = useDeadline();
+  const entry = STATUSES[taskStatus[task.status as keyof typeof taskStatus]];
+  const StatusIcon = entry.icon;
   return (
     <li>
       <Link
         href={`${eventPath(eventId)}/tasks/${task.id}`}
         className={`min-h-touch hover:bg-muted flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-sm px-2 py-2 ${task.waitsFor ? "bg-status-blocked-row text-muted-foreground" : ""}`}
       >
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 text-subhead">
-          <Circle aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />
+        <span className={`${entry.tone} inline-flex items-center gap-1.5 text-subhead`}>
+          <StatusIcon aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />
           {t(`status.${task.status}`)}
         </span>
         <span className="min-w-0 break-words font-semibold">{task.title}</span>
@@ -43,8 +48,14 @@ export function TaskRow({ eventId, task }: { eventId: string; task: ListedTask }
           {task.owner_user_id === null && ` · ${t("row.notDelegated")}`}
           {task.deadline && ` · ${t("row.due", { date: formatDeadline(task.deadline) })}`}
         </span>
-        {(task.waitsFor || task.blocks > 0 || task.subtasks > 0) && (
+        {(task.waitsFor || task.blocks > 0 || task.subtasks > 0 || task.overdueDays !== null) && (
           <span className="text-subhead text-muted-foreground flex w-full flex-wrap gap-x-4">
+            {task.overdueDays !== null && (
+              <span className={`${STATUSES.overdue.tone} inline-flex items-center gap-1.5`}>
+                <STATUSES.overdue.icon aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />
+                {ts("overdue", { days: task.overdueDays })}
+              </span>
+            )}
             {task.waitsFor && (
               <span className="inline-flex items-center gap-1.5">
                 <Lock aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />

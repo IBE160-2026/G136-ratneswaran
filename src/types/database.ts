@@ -221,6 +221,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"status_history": {
+                  Row: {
+                    "changed_by": string | null,"created_at": string,"from_status": string,"id": string,"note": string | null,"note_removed_at": string | null,"task_id": string,"to_status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_by"?: string | null,"created_at"?: string,"from_status": string,"id"?: string,"note"?: string | null,"note_removed_at"?: string | null,"task_id": string,"to_status": string
+                  }
+                  Update: {
+                    "changed_by"?: string | null,"created_at"?: string,"from_status"?: string,"id"?: string,"note"?: string | null,"note_removed_at"?: string | null,"task_id"?: string,"to_status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "status_history_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "task_state"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "status_history_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"task_dependencies": {
                   Row: {
                     "depends_on_id": string,"task_id": string
@@ -302,7 +328,7 @@ isOneToOne: false
           Views: {
             "task_state": {
                   Row: {
-                    "blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"role_id": string | null
+                    "blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"overdue": boolean | null,"overdue_days": number | null,"role_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -429,6 +455,9 @@ isOneToOne: false
 "tasks_move_to_role":
 { Args: { "p_expected": string,"p_role_id": string,"p_task_id": string }; Returns: undefined
                            },
+"tasks_overdue_days":
+{ Args: { "p_at"?: string,"p_deadline": string,"p_time_zone": string }; Returns: number
+                           },
 "tasks_promote_subtask":
 { Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
                            },
@@ -437,6 +466,9 @@ isOneToOne: false
                            },
 "tasks_remove_dependency":
 { Args: { "p_depends_on_id": string,"p_task_id": string }; Returns: undefined
+                           },
+"tasks_remove_status_note":
+{ Args: { "p_history_id": string }; Returns: undefined
                            },
 "tasks_resolve_deadline":
 { Args: { "p_days_before": number,"p_deadline": string,"p_event_id": string }; Returns: string
@@ -449,6 +481,9 @@ isOneToOne: false
                            },
 "tasks_set_lifecycle":
 { Args: { "p_expected": string,"p_from": string,"p_task_id": string,"p_to": string }; Returns: undefined
+                           },
+"tasks_set_status":
+{ Args: { "p_expected": string,"p_note"?: string,"p_status": string,"p_task_id": string }; Returns: string
                            }
           }
           Enums: {

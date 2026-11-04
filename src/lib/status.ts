@@ -1,5 +1,6 @@
 import {
   CalendarX,
+  Circle,
   CircleAlert,
   CircleCheck,
   CircleDot,
@@ -22,6 +23,7 @@ export const STATUSES = {
   waiting: { icon: Hourglass, tone: "text-status-waiting" },
   blocked: { icon: Lock, tone: "bg-status-blocked-row px-2 py-0.5 text-muted-foreground" },
   notAccepted: { icon: UserRound, tone: "text-muted-foreground" },
+  notStarted: { icon: Circle, tone: "text-muted-foreground" },
   inProgress: { icon: CircleDot, tone: "text-primary" },
   done: { icon: CircleCheck, tone: "text-status-done" },
   obsolete: { icon: CircleMinus, tone: "text-status-obsolete line-through" },
@@ -33,3 +35,11 @@ export const STATUSES = {
 } satisfies Record<string, { icon: LucideIcon | null; tone: string }>;
 
 export type Status = keyof typeof STATUSES;
+
+/** The vocabulary entry for each stored Task status; Overdue and Blocked are computed, not stored. */
+export const taskStatus = {
+  not_started: "notStarted",
+  in_progress: "inProgress",
+  waiting_external: "waiting",
+  done: "done",
+} as const satisfies Record<string, Status>;

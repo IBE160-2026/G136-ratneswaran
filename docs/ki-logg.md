@@ -391,3 +391,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Valg som må forklares:** Ingen statusrullering: en forelder kan være Done med åpne deloppgaver. `tasks_move_to_role` har ingen UI. Under testingen viste e2e en feil fra Story 4.2: feilmeldinger fra Server Actions er hele nøkler, men komponentene oversatte dem med `tasks`-navnerommet, så toasten uteble. Rettet med rot-oversetteren i alle tre komponentene.
 **Min vurdering:** NIL
 **Spor:** branch `feat/4.3-subtasks-and-dependencies`
+
+## 2026-11-04 — Story 4.4: status, notater og forfalt
+
+**Prompt:** `/bmad-build på story 4.4`. Spec-en `spec-4-4-status-notes-and-overdue.md` ble implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med tabellen `status_history` (kun select for `authenticated`, en utløser som bare lar et notat fjernes eller `changed_by` nulles), funksjonene `tasks_set_status`, `tasks_remove_status_note` og `tasks_overdue_days`, og `task_state` utvidet med `overdue` og `overdue_days`. Forfalt regnes fra lokal midnatt etter fristen i Eventets tidssone, så grensen testes i pgTAP med 23:59:59 og 00:00:00 og en sommertidsdag. «Godta først» (`55007`) nekter en eier som ikke har akseptert; leder og Organizer slipper gjennom. Oppgavesiden fikk en statuskontroll (segmentert på desktop, `select` på mobil) med optimistisk oppdatering, en historikkliste og *Remove* bak bekreftelsesdialog; raden viser statusikon, ord og «Overdue N days».
+**Valg som må forklares:** Overdue er aldri lagret (AD-13). Å fjerne et notat beholder raden og tidspunktet, så historikken forblir sporbar. Eieren får ingen kontroll før Story 4.6 lar vedkommende godta; siden skjuler den i mellomtiden for en eier med delegert, ikke-akseptert oppgave.
+**Min vurdering:** NIL
+**Spor:** branch `feat/4.4-status-notes-and-overdue`

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import { eventPath, isDraft, isPast } from "@/modules/events/list";
 import { loadEvent } from "../../load-event";
+import type { HistoryEntry } from "./status-panel";
 import { TaskDetail } from "./task-detail";
 
 type Props = { params: Promise<{ eventId: string; taskId: string }> };
@@ -24,14 +25,22 @@ export default async function TaskPage({ params }: Props) {
   const { data: task, error } = await supabase
     .from("tasks")
     .select(
-      "id, title, description, deadline, days_before, status, lifecycle, owner_user_id, role_id, parent_task_id, updated_at",
+      "id, title, description, deadline, days_before, status, lifecycle, obsolete, owner_user_id, delegated_at, accepted_at, role_id, parent_task_id, updated_at",
     )
     .eq("id", taskId)
     .eq("event_id", eventId)
     .maybeSingle();
   if (error) throw new Error("Could not load the task");
   if (!task) notFound();
-  const [roleResult, leadResult, peersResult, linksResult, stateResult] = await Promise.all([
+  const [
+    roleResult,
+    leadResult,
+    peersResult,
+    linksResult,
+    stateResult,
+    historyResult,
+    namesResult,
+  ] = await Promise.all([
     supabase.from("roles").select("key").eq("id", task.role_id).single(),
     supabase
       .from("role_members")
@@ -51,16 +60,25 @@ export default async function TaskPage({ params }: Props) {
     supabase.from("task_dependencies").select("depends_on_id").eq("task_id", task.id),
     supabase
       .from("task_state")
-      .select("blocked, blocked_by, blocked_by_count, blocks_count")
+      .select("blocked, blocked_by, blocked_by_count, blocks_count, overdue_days")
       .eq("id", task.id)
       .single(),
+    supabase
+      .from("status_history")
+      .select("id, to_status, note, note_removed_at, changed_by, created_at")
+      .eq("task_id", task.id)
+      .order("created_at", { ascending: false }),
+    // An author is named only when the caller can read their Team row; the Organizer has none.
+    supabase.from("role_members").select("user_id, name").eq("event_id", eventId),
   ]);
   if (
     roleResult.error ||
     leadResult.error ||
     peersResult.error ||
     linksResult.error ||
-    stateResult.error
+    stateResult.error ||
+    historyResult.error ||
+    namesResult.error
   ) {
     throw new Error("Could not load the task");
   }
@@ -69,6 +87,25 @@ export default async function TaskPage({ params }: Props) {
   const lead = event.organizer_id === claims.sub || leadResult.data.length > 0;
   const canEdit = lead && !readOnly;
   const dismissed = task.lifecycle === "dismissed";
+  const ownsIt = task.owner_user_id === claims.sub;
+  // The owner of a delegated Task accepts it first (Story 4.6); the lead and the Organizer are not held back.
+  const waitingForAccept =
+    ownsIt && !lead && task.delegated_at !== null && task.accepted_at === null;
+  const canSetStatus =
+    !readOnly &&
+    task.lifecycle === "active" &&
+    !task.obsolete &&
+    (lead || (ownsIt && !waitingForAccept));
+  const names = new Map(namesResult.data.map((member) => [member.user_id, member.name]));
+  const history = historyResult.data.map((row) => ({
+    id: row.id,
+    toStatus: row.to_status as HistoryEntry["toStatus"],
+    note: row.note,
+    noteRemoved: row.note_removed_at !== null,
+    author: (row.changed_by && names.get(row.changed_by)) || null,
+    createdAt: row.created_at,
+    canRemove: !readOnly && (event.organizer_id === claims.sub || row.changed_by === claims.sub),
+  }));
   const canLink = (canEdit || (task.owner_user_id === claims.sub && !readOnly)) && !dismissed;
   const peers = peersResult.data;
   const waitingFor = new Set(linksResult.data.map((link) => link.depends_on_id));
@@ -98,6 +135,9 @@ export default async function TaskPage({ params }: Props) {
       task={task}
       roleName={t(`roles.${roleResult.data.key}.name`)}
       canEdit={canEdit}
+      canSetStatus={canSetStatus}
+      overdueDays={task.lifecycle === "active" ? state.overdue_days : null}
+      history={history}
       links={links}
       hasStart={event.starts_at !== null && event.time_zone !== null}
     />
