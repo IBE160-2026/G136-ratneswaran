@@ -35,7 +35,8 @@
     "atRisk": "{count} at risk",
     "newItem": "{count, plural, one {# new item} other {# new items}}",
     "cancelled": "Cancelled",
-    "notInvited": "Not invited yet"
+    "notInvited": "Not invited yet",
+    "notStarted": "Not started"
   },
   "auth": {
     "signUp": {
@@ -608,7 +609,10 @@
       "subtasks": "{count, plural, one {# subtask} other {# subtasks}}"
     },
     "status": {
-      "not_started": "Not started"
+      "not_started": "Not started",
+      "in_progress": "In progress",
+      "waiting_external": "Waiting on external",
+      "done": "Done"
     },
     "detail": {
       "back": "All tasks",
@@ -628,7 +632,25 @@
       "restoredToast": "Task restored.",
       "actions": "Task actions",
       "undo": "Undo",
-      "status": "Status"
+      "status": "Status",
+      "statusControl": {
+        "legend": "Set status",
+        "note": "Note (optional)",
+        "saveNote": "Save note",
+        "retry": "Retry"
+      },
+      "history": {
+        "title": "History",
+        "empty": "No status changes yet.",
+        "removed": "Note removed",
+        "remove": "Remove",
+        "removeLabel": "Remove the note from {status}",
+        "removeTitle": "Remove this note?",
+        "removeBody": "The note is deleted. The status change stays in the history.",
+        "removeConfirm": "Remove note",
+        "keep": "Keep note",
+        "by": "{name}, {time}"
+      }
     },
     "errors": {
       "title": "Enter a title of 1 to 120 characters.",
@@ -644,7 +666,8 @@
       "hasLinks": "This task has Subtasks or tasks that depend on it. Dismiss or unlink them first.",
       "subtaskInvalid": "A subtask needs an active task of the same Role as its parent, and a title and date.",
       "dependencyInvalid": "A task can only wait for another active task of the same Role, and never in a circle.",
-      "parentDismissed": "Restore the parent task first."
+      "parentDismissed": "Restore the parent task first.",
+      "acceptFirst": "Accept this task first."
     },
     "subtasks": {
       "title": "Subtasks",

@@ -35,7 +35,8 @@
     "atRisk": "{count} i faresonen",
     "newItem": "{count, plural, one {# ny sak} other {# nye saker}}",
     "cancelled": "Avlyst",
-    "notInvited": "Ikke invitert ennå"
+    "notInvited": "Ikke invitert ennå",
+    "notStarted": "Ikke startet"
   },
   "auth": {
     "signUp": {
@@ -608,7 +609,10 @@
       "subtasks": "{count, plural, one {# deloppgave} other {# deloppgaver}}"
     },
     "status": {
-      "not_started": "Ikke startet"
+      "not_started": "Ikke startet",
+      "in_progress": "Pågår",
+      "waiting_external": "Venter på andre",
+      "done": "Ferdig"
     },
     "detail": {
       "back": "Alle oppgaver",
@@ -628,7 +632,25 @@
       "restoredToast": "Oppgaven er gjenopprettet.",
       "actions": "Oppgavehandlinger",
       "undo": "Angre",
-      "status": "Status"
+      "status": "Status",
+      "statusControl": {
+        "legend": "Sett status",
+        "note": "Notat (valgfritt)",
+        "saveNote": "Lagre notat",
+        "retry": "Prøv igjen"
+      },
+      "history": {
+        "title": "Historikk",
+        "empty": "Ingen statusendringer ennå.",
+        "removed": "Notat fjernet",
+        "remove": "Fjern",
+        "removeLabel": "Fjern notatet fra {status}",
+        "removeTitle": "Fjerne dette notatet?",
+        "removeBody": "Notatet slettes. Statusendringen blir stående i historikken.",
+        "removeConfirm": "Fjern notat",
+        "keep": "Behold notat",
+        "by": "{name}, {time}"
+      }
     },
     "errors": {
       "title": "Skriv en tittel på 1 til 120 tegn.",
@@ -644,7 +666,8 @@
       "hasLinks": "Denne oppgaven har deloppgaver eller oppgaver som avhenger av den. Avvis eller fjern koblingene først.",
       "subtaskInvalid": "En deloppgave trenger en aktiv oppgave i samme Rolle som forelder, og en tittel og en dato.",
       "dependencyInvalid": "En oppgave kan bare vente på en annen aktiv oppgave i samme Rolle, og aldri i ring.",
-      "parentDismissed": "Gjenopprett overordnet oppgave først."
+      "parentDismissed": "Gjenopprett overordnet oppgave først.",
+      "acceptFirst": "Godta oppgaven først."
     },
     "subtasks": {
       "title": "Deloppgaver",

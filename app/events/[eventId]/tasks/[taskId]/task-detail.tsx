@@ -1,16 +1,18 @@
 "use client";
 
-import { ArrowLeft, Link2 } from "lucide-react";
+import { ArrowLeft, CircleAlert, Link2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { buttonClass, secondaryClass } from "@/components/form";
 import { undoToast } from "@/lib/feedback";
+import { STATUSES } from "@/lib/status";
 import { callSafely } from "@/modules/events/save";
 import { eventPath } from "@/modules/events/list";
 import { dismissTask, restoreTask } from "@/modules/tasks/actions";
 import { TaskForm } from "../task-form";
+import { StatusControl, StatusHistory, type HistoryEntry } from "./status-panel";
 import { DependsOnCard, PartOf, SubtasksCard, WaitsFor, type LinkedTask } from "./task-links";
 import { useDeadline } from "../task-row";
 
@@ -46,6 +48,9 @@ export function TaskDetail({
   task,
   roleName,
   canEdit,
+  canSetStatus,
+  overdueDays,
+  history,
   links,
   hasStart,
 }: {
@@ -53,10 +58,14 @@ export function TaskDetail({
   task: Task;
   roleName: string;
   canEdit: boolean;
+  canSetStatus: boolean;
+  overdueDays: number | null;
+  history: HistoryEntry[];
   links: TaskLinks;
   hasStart: boolean;
 }) {
   const t = useTranslations("tasks");
+  const ts = useTranslations("status");
   // Action failures carry a full message key, so they need the root translator.
   const tr = useTranslations();
   const formatDeadline = useDeadline();
@@ -98,6 +107,12 @@ export function TaskDetail({
       </Link>
       <h1 className="text-large-title break-words">{task.title}</h1>
       {dismissed && <p className="text-muted-foreground">{t("detail.dismissedNote")}</p>}
+      {overdueDays !== null && (
+        <p className={`${STATUSES.overdue.tone} inline-flex items-center gap-2 font-semibold`}>
+          <CircleAlert aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />
+          {ts("overdue", { days: overdueDays })}
+        </p>
+      )}
       {links.blockedBy && <WaitsFor {...links.blockedBy} />}
       {links.blocksCount > 0 && (
         <p className="text-muted-foreground inline-flex items-center gap-2">
@@ -162,6 +177,15 @@ export function TaskDetail({
               {task.description ?? t("detail.noDescription")}
             </p>
           </section>
+          {canSetStatus && (
+            <StatusControl
+              eventId={eventId}
+              taskId={task.id}
+              status={task.status as HistoryEntry["toStatus"]}
+              updatedAt={task.updated_at}
+            />
+          )}
+          <StatusHistory eventId={eventId} entries={history} />
           {task.parent_task_id === null && (
             <SubtasksCard
               eventId={eventId}
