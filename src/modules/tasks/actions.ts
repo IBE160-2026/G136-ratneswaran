@@ -11,6 +11,8 @@ import {
   dependencySchema,
   editSchema,
   lifecycleSchema,
+  removeNoteSchema,
+  statusSchema,
   subtaskSchema,
 } from "./schemas";
 
@@ -19,6 +21,7 @@ const refuseTask = (code: string, invalid = "tasks.errors.invalidInput") => {
   if (code === "55000") return refuse("read_only", "tasks.errors.readOnly");
   if (code === "40001") return refuse("concurrent", "tasks.errors.concurrent");
   if (code === "55006") return refuse("has_links", "tasks.errors.hasLinks");
+  if (code === "55007") return refuse("accept_first", "tasks.errors.acceptFirst");
   if (code === "23514" || code === "22023") return refuse("invalid_input", invalid);
   return refuse("unavailable", "tasks.errors.unavailable");
 };
@@ -192,4 +195,43 @@ export async function addDependency(input: DependencyInput) {
 
 export async function removeDependency(input: DependencyInput) {
   return changeDependency("tasks_remove_dependency", input);
+}
+
+/** Sets the status through `tasks_set_status` and hands back the moved `updated_at` for the next write to chain on. */
+export async function setTaskStatus(input: {
+  eventId: string;
+  taskId: string;
+  expected: string;
+  status: string;
+  note: string;
+}): Promise<Result<{ updatedAt: string }>> {
+  const parsed = statusSchema.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "tasks.errors.invalidInput");
+  const { eventId, taskId, expected, status, note } = parsed.data;
+  const fail = await caller("setTaskStatus", eventId);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("tasks_set_status", {
+    p_task_id: taskId,
+    p_expected: expected,
+    p_status: status,
+    p_note: note || undefined,
+  });
+  if (error) return fail(error.code);
+  touched(eventId);
+  return { ok: true, data: { updatedAt: data } };
+}
+
+export async function removeStatusNote(input: {
+  eventId: string;
+  historyId: string;
+}): Promise<Result<null>> {
+  const parsed = removeNoteSchema.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "tasks.errors.invalidInput");
+  const { eventId, historyId } = parsed.data;
+  const fail = await caller("removeStatusNote", eventId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("tasks_remove_status_note", { p_history_id: historyId });
+  if (error) return fail(error.code);
+  touched(eventId);
+  return { ok: true, data: null };
 }

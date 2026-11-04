@@ -64,6 +64,18 @@ export const dependencySchema = z.object({
   dependsOnId: z.uuid(),
 });
 
+export const taskStatuses = ["not_started", "in_progress", "waiting_external", "done"] as const;
+
+export const statusSchema = z.object({
+  eventId: z.uuid(),
+  taskId: z.uuid(),
+  expected: z.string().min(1),
+  status: z.enum(taskStatuses),
+  note: z.string().trim().max(500),
+});
+
+export const removeNoteSchema = z.object({ eventId: z.uuid(), historyId: z.uuid() });
+
 /** The arguments `tasks_create` and `tasks_set_deadline` take for the chosen kind. */
 export const deadlineArgs = (value: { kind: string; deadline: string; daysBefore: string }) =>
   value.kind === "days"

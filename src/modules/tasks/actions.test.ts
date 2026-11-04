@@ -26,7 +26,9 @@ const {
   dismissTask,
   promoteSubtask,
   removeDependency,
+  removeStatusNote,
   restoreTask,
+  setTaskStatus,
   updateTask,
 } = await import("./actions");
 
@@ -313,5 +315,71 @@ describe("dismissing with open links", () => {
     expect(
       await dismissTask({ eventId, taskId, expected: "2026-11-03T10:00:00.123456+00:00" }),
     ).toMatchObject({ ok: false, error: { code: "has_links", message: "tasks.errors.hasLinks" } });
+  });
+});
+
+describe("setTaskStatus", () => {
+  const input = {
+    eventId,
+    taskId,
+    expected: "2026-11-03T10:00:00.123456+00:00",
+    status: "in_progress",
+    note: " Called the hall ",
+  };
+
+  it("trims the note and returns the moved updated_at as the raw string", async () => {
+    rpc.mockResolvedValue({ data: "2026-11-04T10:00:00.654321+00:00", error: null });
+    expect(await setTaskStatus(input)).toEqual({
+      ok: true,
+      data: { updatedAt: "2026-11-04T10:00:00.654321+00:00" },
+    });
+    expect(rpc).toHaveBeenCalledWith("tasks_set_status", {
+      p_task_id: taskId,
+      p_expected: input.expected,
+      p_status: "in_progress",
+      p_note: "Called the hall",
+    });
+  });
+
+  it("sends no note when it is blank", async () => {
+    rpc.mockResolvedValue({ data: "x", error: null });
+    await setTaskStatus({ ...input, note: "   " });
+    expect(rpc).toHaveBeenCalledWith(
+      "tasks_set_status",
+      expect.objectContaining({ p_note: undefined }),
+    );
+  });
+
+  it("refuses overdue, a long note and a bad id without calling the database", async () => {
+    expect(await setTaskStatus({ ...input, status: "overdue" })).toMatchObject({ ok: false });
+    expect(await setTaskStatus({ ...input, note: "a".repeat(501) })).toMatchObject({ ok: false });
+    expect(await setTaskStatus({ ...input, taskId: "nope" })).toMatchObject({ ok: false });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("maps accept-first, a stale edit and a denial", async () => {
+    rpc.mockResolvedValue({ error: { code: "55007" } });
+    expect(await setTaskStatus(input)).toMatchObject({
+      error: { code: "accept_first", message: "tasks.errors.acceptFirst" },
+    });
+    rpc.mockResolvedValue({ error: { code: "40001" } });
+    expect(await setTaskStatus(input)).toMatchObject({ error: { code: "concurrent" } });
+    rpc.mockResolvedValue({ error: { code: "42501" } });
+    expect(await setTaskStatus(input)).toMatchObject({ error: { code: "forbidden" } });
+  });
+});
+
+describe("removeStatusNote", () => {
+  const input = { eventId, historyId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd" };
+
+  it("calls the function with the history id", async () => {
+    expect(await removeStatusNote(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledWith("tasks_remove_status_note", { p_history_id: input.historyId });
+  });
+
+  it("denies someone else's note and refuses a bad id", async () => {
+    rpc.mockResolvedValue({ error: { code: "42501" } });
+    expect(await removeStatusNote(input)).toMatchObject({ error: { code: "forbidden" } });
+    expect(await removeStatusNote({ ...input, historyId: "nope" })).toMatchObject({ ok: false });
   });
 });
