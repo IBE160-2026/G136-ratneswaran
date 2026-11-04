@@ -2,7 +2,8 @@
 title: 'Status, notes and Overdue'
 type: 'feature'
 created: '2026-11-04'
-status: 'ready-for-dev'
+status: 'in-review'
+baseline_commit: '1626b61714e0635f12928df0aad4d6b66e145164'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -74,13 +75,13 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `supabase/migrations/<ts>_tasks_status.sql` -- table, trigger, policy, grants, three functions, view extension -- one file (AD-15)
-- [ ] `supabase/tests/tasks_status.test.sql` -- one allow and one deny per function, policy, grant and trigger; accept-first fixture; boundary 23:59:59 / 00:00:00 and a DST case through `tasks_overdue_days`
-- [ ] `src/types/database.ts` -- regenerate with `supabase gen types`
-- [ ] `src/modules/tasks/schemas.ts`, `actions.ts`, `actions.test.ts` -- `setTaskStatus`, `removeStatusNote`, `55007` mapping
-- [ ] `src/lib/status.ts`, `app/events/[eventId]/tasks/**`, `messages/nb.json`, `messages/en.json` -- status control, history list, row status and Overdue
-- [ ] `e2e/tasks.spec.ts` -- owner sets status with note and sees history; a non-owner holder sees no control; overdue row; remove a note
-- [ ] `docs/ki-logg.md` -- entry
+- [x] `supabase/migrations/<ts>_tasks_status.sql` -- table, trigger, policy, grants, three functions, view extension -- one file (AD-15)
+- [x] `supabase/tests/tasks_status.test.sql` -- one allow and one deny per function, policy, grant and trigger; accept-first fixture; boundary 23:59:59 / 00:00:00 and a DST case through `tasks_overdue_days`
+- [x] `src/types/database.ts` -- regenerate with `supabase gen types`
+- [x] `src/modules/tasks/schemas.ts`, `actions.ts`, `actions.test.ts` -- `setTaskStatus`, `removeStatusNote`, `55007` mapping
+- [x] `src/lib/status.ts`, `app/events/[eventId]/tasks/**`, `messages/nb.json`, `messages/en.json` -- status control, history list, row status and Overdue
+- [x] `e2e/tasks.spec.ts` -- owner sets status with note and sees history; a non-owner holder sees no control; overdue row; remove a note
+- [x] `docs/ki-logg.md` -- entry
 
 **Acceptance Criteria:**
 - Given local Supabase, when `supabase test db`, `pnpm lint`, `pnpm format:check` and `pnpm test` run, then all pass.
