@@ -93,6 +93,24 @@ context:
 
 ## Review Triage Log
 
+| Finding | Layer | Verdict | Route | Evidence |
+|---------|-------|---------|-------|----------|
+| `tasks_set_status` lets any caller through on an unowned Task | edge | high | patch | `owner_user_id = auth.uid()` is null on an unowned Task, so the deny test was null and no `42501` was raised; the function is definer and reads any Task. Fixed with `coalesce`; pgTAP now denies a holder on an unowned Task. |
+| `tasks_remove_status_note` lets anyone remove a note whose author was deleted | edge | high | patch | `changed_by = auth.uid()` is null for a deleted author, so the deny test was null. Fixed with `coalesce`; pgTAP covers a holder (denied) and the Organizer (allowed). |
+| Owner who lost the Role is not denied in a test | gap, edge | medium | patch | The `holds_role` term had no deny case. Added one. |
+| Note removal on a cancelled Event has no test | gap | medium | patch | Added a case expecting `55000`. |
+| `tasks_overdue_days` has no grant test | blind | medium | patch | Added one allow and one deny. |
+| Stale `updated_at` leaves the panel stuck after a concurrent toast | blind, edge | medium | patch | The panel now calls `router.refresh()` on `concurrent`. |
+| `t.status` is read before the row lock, so `from_status` can be stale | edge | medium | patch | The row is read again after `tasks_check_expected`. |
+| Unused `statusControl.retry` keys | blind | low | patch | Removed from both locales. |
+| Accept-first gate on the page has no e2e test | gap | low | defer | The database rule is pinned by pgTAP; Story 4.6 builds *Accept* and can add the case. |
+| "Save note" and the stale toast have no e2e step | gap | low | defer | Server rules and the action mapping are tested; add the step when the panel is next touched. |
+| No `note_removed_by` column | blind | low | defer | The spec fixes the columns of `status_history`; a record of who removed a note is a spec change for the owner to decide. |
+| Role check and status validation run before `tasks_assert_writable` and `tasks_check_expected` | edge | low | rejected | Authorising first is the AD-2 order; the spec's "first" means before any write. |
+| Note-only write does not bump `updated_at` | edge | low | rejected | The spec says a same-status note writes a history row and nothing else. |
+| Unknown time zone breaks the view | edge | low | rejected | `events_update_schedule` validates the zone against `pg_timezone_names`. |
+| Unchecked status casts, Organizer author label, no-op click on the selected status, remove-button name, revoked author removing own note, wide author query | blind, edge | low | rejected | Cosmetic or guarded by the database CHECK; no wrong data results. |
+
 ## Design Notes
 
 - Pass `updated_at` back as the raw string, as in Stories 4.2 and 4.3; the optimistic control chains on the value `tasks_set_status` returns.
