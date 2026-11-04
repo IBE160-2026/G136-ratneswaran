@@ -383,3 +383,11 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Valg som må forklares:** Gjesteprogramfeltene har kolonner og utløser, men ingen skjema i UI; Epic 7 eier dem. Tilbakeknappen er en lenke til listen, ikke en historikk-tilbakeknapp.
 **Min vurdering:** NIL
 **Spor:** branch `feat/4.2-create-edit-and-open-a-task`
+
+## 2026-11-03 — Story 4.3: deloppgaver og avhengigheter
+
+**Prompt:** `/bmad-build på story 4.3`. Spec-en `spec-4-3-subtasks-and-dependencies.md` ble implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med `parent_task_id`, tabellen `task_dependencies` og to utløsere som holder invariantene (AD-19): forelder og avhengighet i samme Rolle og Event, begge aktive, ett nivå, og sykelsjekk under `pg_advisory_xact_lock` på Eventet. `tasks_create` fikk `p_parent_id`; `tasks_promote_subtask`, `tasks_move_to_role`, `tasks_add_dependency` og `tasks_remove_dependency` er `security definer`, og en intern hjelper `tasks_may_link` (Organizer, leder eller innmeldt eier) deles av dem. `tasks_set_lifecycle` nekter avvisning med aktive deloppgaver eller avhengige (`55006`) og gjenoppretting under avvist forelder. `task_state` fikk `blocked`, `blocked_by`, `blocked_by_count` og `blocks_count`. Detaljsiden fikk kortene *Subtasks* og *Depends on*, og en blokkert rad har grå tone, lås-ikon og «Waits for: …». Kappløpet mellom to tilkoblinger testes i Playwright mot lokal database, fordi pgTAP kjører i én transaksjon.
+**Valg som må forklares:** Ingen statusrullering: en forelder kan være Done med åpne deloppgaver. `tasks_move_to_role` har ingen UI. Under testingen viste e2e en feil fra Story 4.2: feilmeldinger fra Server Actions er hele nøkler, men komponentene oversatte dem med `tasks`-navnerommet, så toasten uteble. Rettet med rot-oversetteren i alle tre komponentene.
+**Min vurdering:** NIL
+**Spor:** branch `feat/4.3-subtasks-and-dependencies`

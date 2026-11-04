@@ -19,7 +19,16 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { createTask, dismissTask, restoreTask, updateTask } = await import("./actions");
+const {
+  addDependency,
+  addSubtask,
+  createTask,
+  dismissTask,
+  promoteSubtask,
+  removeDependency,
+  restoreTask,
+  updateTask,
+} = await import("./actions");
 
 const eventId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const taskId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
@@ -195,5 +204,114 @@ describe("dismissTask and restoreTask", () => {
     expect(rpc).not.toHaveBeenCalled();
     rpc.mockResolvedValue({ error: { code: "40001" } });
     expect(await dismissTask(input)).toMatchObject({ ok: false, error: { code: "concurrent" } });
+  });
+});
+
+describe("addSubtask", () => {
+  const parentId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+  const subtask = (extra: Record<string, string> = {}) =>
+    form({
+      eventId,
+      id: taskId,
+      parentId,
+      roleId,
+      title: " Order flowers ",
+      kind: "date",
+      deadline: "2027-01-10",
+      daysBefore: "",
+      ...extra,
+    });
+
+  it("creates through tasks_create with the parent and stays on the page", async () => {
+    expect(await addSubtask(null, subtask())).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledWith("tasks_create", {
+      p_id: taskId,
+      p_role_id: roleId,
+      p_title: "Order flowers",
+      p_parent_id: parentId,
+      p_deadline: "2027-01-10",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith(`/events/${eventId}`, "layout");
+  });
+
+  it("refuses a blank title and a bad date without calling the database", async () => {
+    expect(await addSubtask(null, subtask({ title: " ", deadline: "2027-02-31" }))).toMatchObject({
+      error: { fields: { title: "tasks.errors.title", deadline: "tasks.errors.deadline" } },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("explains a nesting or parent refusal in its own words", async () => {
+    rpc.mockResolvedValue({ error: { code: "23514" } });
+    expect(await addSubtask(null, subtask())).toMatchObject({
+      ok: false,
+      error: { message: "tasks.errors.subtaskInvalid" },
+    });
+  });
+});
+
+describe("promoteSubtask", () => {
+  const input = { eventId, taskId, expected: "2026-11-03T10:00:00.123456+00:00" };
+
+  it("passes the raw expected string", async () => {
+    expect(await promoteSubtask(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledWith("tasks_promote_subtask", {
+      p_task_id: taskId,
+      p_expected: input.expected,
+    });
+  });
+
+  it("maps a stale call to the concurrent edit", async () => {
+    rpc.mockResolvedValue({ error: { code: "40001" } });
+    expect(await promoteSubtask(input)).toMatchObject({ error: { code: "concurrent" } });
+  });
+});
+
+describe("dependencies", () => {
+  const input = { eventId, taskId, dependsOnId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd" };
+
+  it("adds and removes through the matching function", async () => {
+    expect(await addDependency(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenLastCalledWith("tasks_add_dependency", {
+      p_task_id: taskId,
+      p_depends_on_id: input.dependsOnId,
+    });
+    expect(await removeDependency(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenLastCalledWith("tasks_remove_dependency", {
+      p_task_id: taskId,
+      p_depends_on_id: input.dependsOnId,
+    });
+  });
+
+  it("refuses malformed ids", async () => {
+    expect(await addDependency({ ...input, dependsOnId: "nope" })).toMatchObject({ ok: false });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("explains a cycle or a cross-Role refusal, and denies a non-owner", async () => {
+    rpc.mockResolvedValue({ error: { code: "23514" } });
+    expect(await addDependency(input)).toMatchObject({
+      error: { message: "tasks.errors.dependencyInvalid" },
+    });
+    rpc.mockResolvedValue({ error: { code: "42501" } });
+    expect(await addDependency(input)).toMatchObject({ error: { code: "forbidden" } });
+  });
+});
+
+describe("restoring under a dismissed parent", () => {
+  it("maps 22023 to its own message", async () => {
+    rpc.mockResolvedValue({ error: { code: "22023" } });
+    expect(
+      await restoreTask({ eventId, taskId, expected: "2026-11-03T10:00:00.123456+00:00" }),
+    ).toMatchObject({ ok: false, error: { message: "tasks.errors.parentDismissed" } });
+  });
+});
+
+describe("dismissing with open links", () => {
+  it("maps 55006 to its own message", async () => {
+    rpc.mockResolvedValue({ error: { code: "55006" } });
+    expect(
+      await dismissTask({ eventId, taskId, expected: "2026-11-03T10:00:00.123456+00:00" }),
+    ).toMatchObject({ ok: false, error: { code: "has_links", message: "tasks.errors.hasLinks" } });
   });
 });

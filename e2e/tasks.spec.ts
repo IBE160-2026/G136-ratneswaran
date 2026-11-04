@@ -87,6 +87,10 @@ test("a holder cannot create, and a Task of another Role shows the no-access pag
   await page.getByRole("link", { name: /Venue task/ }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Venue task" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Edit|Dismiss/ })).toHaveCount(0);
+  // A holder who does not own the Task cannot add Subtasks or dependencies
+  await expect(page.getByRole("heading", { name: "Subtasks" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add subtask" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add dependency" })).toHaveCount(0);
 
   await page.goto(`/events/${id}/tasks/${other}`);
   await expect(
@@ -103,8 +107,110 @@ test("a holder cannot create, and a Task of another Role shows the no-access pag
   await page.getByRole("link", { name: /Venue task/ }).click();
   await expect(page.getByRole("button", { name: "Edit" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Dismiss" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add subtask" })).toBeVisible();
   await page.goto(`/events/${id}/tasks/${other}`);
   await expect(
     page.getByRole("heading", { name: "You don't have access to this part of the event." }),
+  ).toBeVisible();
+});
+
+test("a Task gets a Subtask and a dependency, shows Blocked, and cannot be dismissed with open links", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "30 days");
+  activate(id);
+  const task = (title: string) =>
+    psql(`insert into public.tasks (event_id, role_id, title, deadline)
+      select '${id}', r.id, '${title}', current_date + 10 from public.roles r
+      where r.event_id = '${id}' and r.key = 'venue' returning id`).split("\n")[0];
+  const waiting = task("Send invitations");
+  task("Confirm the venue");
+
+  await page.goto(`/events/${id}/tasks/${waiting}`);
+  await page.getByLabel("Subtask title").fill("Print the cards");
+  await page.getByLabel("Subtask deadline").fill("2027-01-10");
+  await page.getByRole("button", { name: "Add subtask" }).click();
+  await expect(page.getByRole("link", { name: /Print the cards/ })).toBeVisible();
+
+  await page.getByLabel("Waits for").selectOption({ label: "Confirm the venue" });
+  await page.getByRole("button", { name: "Add dependency" }).click();
+  await expect(page.getByText("Waits for: Confirm the venue").first()).toBeVisible();
+
+  // The Subtask is not listed at the top level; its parent shows the count and that it waits
+  await page.getByRole("link", { name: "All tasks" }).click();
+  await expect(page.getByRole("link", { name: /Print the cards/ })).toHaveCount(0);
+  const row = page.getByRole("link", { name: /Send invitations/ });
+  await expect(row).toContainText("1 subtask");
+  await expect(row).toContainText("Waits for: Confirm the venue");
+  await expect(page.getByRole("link", { name: /Not started Confirm the venue/ })).toContainText(
+    "Blocks 1 task",
+  );
+
+  // Dismiss is refused while links are open, and the message says why
+  await page.getByRole("link", { name: /Not started Confirm the venue/ }).click();
+  await page.getByRole("button", { name: "Dismiss" }).click();
+  await expect(page.getByText(/has Subtasks or tasks that depend on it/)).toBeVisible();
+  await expect(page.getByText("This task is dismissed.")).toHaveCount(0);
+
+  // Removing the dependency unblocks at once
+  await page.goto(`/events/${id}/tasks/${waiting}`);
+  await page.getByRole("button", { name: /^Remove: Confirm the venue/ }).click();
+  await expect(page.getByText("Waits for: Confirm the venue")).toHaveCount(0);
+
+  // The Subtask opens on its own page with a link back and Promote to task
+  await page.getByRole("link", { name: /Print the cards/ }).click();
+  await expect(page.getByRole("link", { name: "Part of Send invitations" })).toBeVisible();
+  await page.getByRole("button", { name: "Promote to task" }).click();
+  await expect(page.getByRole("link", { name: "Part of Send invitations" })).toHaveCount(0);
+});
+
+test("a Done or dismissed waiting Task loses Waits for, and restoring under a dismissed parent says why", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "30 days");
+  activate(id);
+  const task = (title: string, parent = "null") =>
+    psql(`insert into public.tasks (event_id, role_id, title, deadline, parent_task_id)
+      select '${id}', r.id, '${title}', current_date + 10, ${parent} from public.roles r
+      where r.event_id = '${id}' and r.key = 'venue' returning id`).split("\n")[0];
+  const waiting = task("Waiting task");
+  const blocker = task("Blocking task");
+  psql(`insert into public.task_dependencies values ('${waiting}', '${blocker}')`);
+
+  await page.goto(`/events/${id}/tasks`);
+  await expect(page.getByRole("link", { name: /Waiting task/ })).toContainText(
+    "Waits for: Blocking task",
+  );
+
+  psql(`update public.tasks set status = 'done' where id = '${waiting}'`);
+  await page.goto(`/events/${id}/tasks`);
+  await expect(page.getByRole("link", { name: /Waiting task/ })).not.toContainText("Waits for");
+  await page.goto(`/events/${id}/tasks/${waiting}`);
+  await expect(page.getByRole("heading", { level: 1, name: "Waiting task" })).toBeVisible();
+  await expect(page.getByText("Waits for: Blocking task")).toHaveCount(0);
+
+  psql(
+    `update public.tasks set status = 'not_started', lifecycle = 'dismissed' where id = '${waiting}'`,
+  );
+  await page.goto(`/events/${id}/tasks/${waiting}`);
+  await expect(page.getByText("This task is dismissed.")).toBeVisible();
+  await expect(page.getByText("Waits for: Blocking task")).toHaveCount(0);
+
+  // A dismissed Subtask cannot come back under a dismissed parent
+  const parent = task("Parent task");
+  const sub = task("Child task", `'${parent}'`);
+  psql(`update public.tasks set lifecycle = 'dismissed' where id = '${sub}'`);
+  await page.goto(`/events/${id}/tasks/${parent}`);
+  await page.getByRole("button", { name: "Dismiss" }).click();
+  await expect(page.getByText("This task is dismissed.")).toBeVisible();
+  await page.getByRole("link", { name: "All tasks" }).click();
+  await page.getByText(/Show dismissed/).click();
+  await page.getByRole("button", { name: /^Restore: Child task/ }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Restore the parent task first." }),
   ).toBeVisible();
 });

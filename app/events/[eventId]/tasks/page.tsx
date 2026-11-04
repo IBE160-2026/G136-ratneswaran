@@ -27,10 +27,12 @@ export default async function TasksPage({ params }: Props) {
   const event = await loadEvent(eventId);
   const t = await getTranslations();
   const supabase = await createClient();
-  const [tasksResult, rolesResult, leadResult] = await Promise.all([
+  const [tasksResult, rolesResult, leadResult, stateResult] = await Promise.all([
     supabase
       .from("tasks")
-      .select("id, title, deadline, status, owner_user_id, lifecycle, role_id, updated_at")
+      .select(
+        "id, title, deadline, status, owner_user_id, lifecycle, role_id, parent_task_id, updated_at",
+      )
       .eq("event_id", eventId)
       .order("deadline", { ascending: true, nullsFirst: false })
       .order("title"),
@@ -42,8 +44,12 @@ export default async function TasksPage({ params }: Props) {
       .eq("user_id", claims.sub)
       .eq("is_lead", true)
       .not("joined_at", "is", null),
+    supabase
+      .from("task_state")
+      .select("id, blocked, blocked_by, blocked_by_count, blocks_count")
+      .eq("event_id", eventId),
   ]);
-  if (tasksResult.error || rolesResult.error || leadResult.error) {
+  if (tasksResult.error || rolesResult.error || leadResult.error || stateResult.error) {
     throw new Error("Could not load the tasks");
   }
   const organizer = event.organizer_id === claims.sub;
@@ -55,11 +61,29 @@ export default async function TasksPage({ params }: Props) {
     .map((role) => ({ id: role.id, name: roleName.get(role.id) ?? "" }));
   // Published past and cancelled Events are read-only; the database refuses their changes too.
   const readOnly = !isDraft(event) && isPast(event, new Date());
-  const tasks = tasksResult.data.map((task) => ({
-    ...task,
-    roleName: roleName.get(task.role_id) ?? "",
-  }));
-  const live = tasks.filter((task) => task.lifecycle !== "dismissed");
+  const titles = new Map(tasksResult.data.map((task) => [task.id, task.title]));
+  const states = new Map(stateResult.data.map((state) => [state.id, state]));
+  const subtaskCount = new Map<string, number>();
+  for (const task of tasksResult.data) {
+    if (task.parent_task_id && task.lifecycle === "active") {
+      subtaskCount.set(task.parent_task_id, (subtaskCount.get(task.parent_task_id) ?? 0) + 1);
+    }
+  }
+  const tasks = tasksResult.data.map((task) => {
+    const state = states.get(task.id);
+    // A Task that is dismissed or Done is not waiting, whatever its blockers do.
+    const waiting = state?.blocked && task.lifecycle === "active" && task.status !== "done";
+    return {
+      ...task,
+      roleName: roleName.get(task.role_id) ?? "",
+      waitsFor: waiting ? (titles.get(state.blocked_by ?? "") ?? null) : null,
+      waitsForMore: state?.blocked_by_count ?? 0,
+      blocks: state?.blocks_count ?? 0,
+      subtasks: subtaskCount.get(task.id) ?? 0,
+    };
+  });
+  // A Subtask is listed on its parent's page, not here.
+  const live = tasks.filter((task) => task.lifecycle !== "dismissed" && !task.parent_task_id);
   const dismissed = tasks.filter((task) => task.lifecycle === "dismissed");
   return (
     <div className="flex max-w-2xl flex-col gap-6 py-12">
