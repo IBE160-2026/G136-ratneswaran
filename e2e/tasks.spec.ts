@@ -38,7 +38,7 @@ test("the Organizer creates, opens, edits, dismisses with Undo and restores a Ta
   await expect(page.getByRole("heading", { level: 1, name: "Book the hall" })).toBeVisible();
   await expect(page.getByText("14 days before the event")).toBeVisible();
   await expect(page.getByText("Not delegated")).toBeVisible();
-  await expect(page.getByText("Not started")).toBeVisible();
+  await expect(page.getByRole("definition").filter({ hasText: "Not started" })).toBeVisible();
 
   await page.getByRole("button", { name: "Edit" }).click();
   await page.getByLabel("Title").fill("Book the big hall");
@@ -213,4 +213,75 @@ test("a Done or dismissed waiting Task loses Waits for, and restoring under a di
   await expect(
     page.getByRole("alert").filter({ hasText: "Restore the parent task first." }),
   ).toBeVisible();
+});
+
+test("the owner sets a status with a note, sees the history and removes the note; an overdue row says so", async ({
+  page,
+  request,
+}) => {
+  const owner = await signedIn(page, request);
+  const organizer = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}')`);
+  const id = seed(organizer, "30 days");
+  activate(id);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at)
+    select '${id}', r.id, u.id, 'Olga Owner', now()
+    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.email = '${owner}'`);
+  psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id)
+    select '${id}', r.id, 'Book the band', current_date - 2, u.id
+    from public.roles r, auth.users u
+    where r.event_id = '${id}' and r.key = 'venue' and u.email = '${owner}'`);
+
+  await page.goto(`/events/${id}/tasks`);
+  await expect(page.getByRole("link", { name: /Book the band/ })).toContainText(
+    /Overdue \d+ days?/,
+  );
+
+  await page.getByRole("link", { name: /Book the band/ }).click();
+  await expect(page.getByText(/Overdue \d+ days?/).first()).toBeVisible();
+  await page.getByLabel("Note (optional)").fill("Called the agency");
+  await page.getByRole("button", { name: "In progress" }).click();
+  await expect(page.getByRole("button", { name: "In progress" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.getByText("Called the agency")).toBeVisible();
+  await expect(page.getByText(/Olga Owner/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Waiting on external" }).click();
+  await expect(page.getByRole("list").filter({ hasText: "Waiting on external" })).toBeVisible();
+
+  await page.getByRole("button", { name: /^Remove the note from In progress/ }).click();
+  await page.getByRole("button", { name: "Remove note" }).click();
+  await expect(page.getByText("Note removed")).toBeVisible();
+  await expect(page.getByText("Called the agency")).toHaveCount(0);
+
+  // Done ends the Overdue state
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.goto(`/events/${id}/tasks`);
+  await expect(page.getByRole("link", { name: /Book the band/ })).not.toContainText("Overdue");
+});
+
+test("a holder who does not own the Task sees its status but no control", async ({
+  page,
+  request,
+}) => {
+  const holder = await signedIn(page, request);
+  const organizer = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}')`);
+  const id = seed(organizer, "30 days");
+  activate(id);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at)
+    select '${id}', r.id, u.id, 'Hanna Holder', now()
+    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.email = '${holder}'`);
+  const task = psql(`insert into public.tasks (event_id, role_id, title, deadline)
+    select '${id}', r.id, 'Order chairs', current_date + 5 from public.roles r
+    where r.event_id = '${id}' and r.key = 'venue' returning id`).split("\n")[0];
+
+  await page.goto(`/events/${id}/tasks/${task}`);
+  await expect(page.getByRole("heading", { level: 1, name: "Order chairs" })).toBeVisible();
+  await expect(page.getByText("Not started").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "In progress" })).toHaveCount(0);
+  await expect(page.getByLabel("Note (optional)")).toHaveCount(0);
+  await expect(page.getByText("No status changes yet.")).toBeVisible();
 });
