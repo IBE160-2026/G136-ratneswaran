@@ -77,9 +77,10 @@ begin
   if found then
     v_organizer := public.is_organizer(t.event_id);
     v_lead := public.is_role_lead(t.role_id);
-    v_owner := t.owner_user_id = (select auth.uid()) and public.holds_role(t.role_id);
+    -- An unowned Task makes the comparison null, which must read as no, not as allowed.
+    v_owner := coalesce(t.owner_user_id = (select auth.uid()), false) and public.holds_role(t.role_id);
   end if;
-  if not found or not (v_organizer or v_lead or v_owner) then
+  if not found or not coalesce(v_organizer or v_lead or v_owner, false) then
     raise exception 'only the Organizer, the Role lead or the owner can set a status' using errcode = '42501';
   end if;
   if p_status is null or p_status not in ('not_started', 'in_progress', 'waiting_external', 'done') then
@@ -88,6 +89,8 @@ begin
 
   perform public.tasks_assert_writable(t.event_id);
   perform public.tasks_check_expected(p_task_id, p_expected);
+  -- The row is locked now; read it again so the history records the status that is really being left.
+  select * into t from public.tasks where id = p_task_id;
   if t.lifecycle <> 'active' or t.obsolete then
     raise exception 'task_not_active' using errcode = '22023';
   end if;
@@ -126,7 +129,8 @@ begin
   if found then
     select event_id into v_event_id from public.tasks where id = h.task_id;
   end if;
-  if not found or not (h.changed_by = (select auth.uid()) or public.is_organizer(v_event_id)) then
+  -- A deleted author leaves changed_by null; the comparison must then read as no.
+  if not found or not (coalesce(h.changed_by = (select auth.uid()), false) or public.is_organizer(v_event_id)) then
     raise exception 'only the author or the Organizer can remove a note' using errcode = '42501';
   end if;
 

@@ -636,8 +636,7 @@
       "statusControl": {
         "legend": "Sett status",
         "note": "Notat (valgfritt)",
-        "saveNote": "Lagre notat",
-        "retry": "Prøv igjen"
+        "saveNote": "Lagre notat"
       },
       "history": {
         "title": "Historikk",

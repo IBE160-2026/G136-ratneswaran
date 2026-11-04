@@ -1,6 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
+import { useRouter } from "next/navigation";
 import { useTranslations, useFormatter } from "next-intl";
 import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ export function StatusControl({
 }) {
   const t = useTranslations("tasks");
   const tr = useTranslations();
+  const router = useRouter();
   const [shown, setShown] = useOptimistic(status);
   const [note, setNote] = useState("");
   const [pending, start] = useTransition();
@@ -58,6 +60,8 @@ export function StatusControl({
         setNote("");
       } else if (result.error.code === "concurrent") {
         toast.error(<span role="alert">{tr(result.error.message)}</span>);
+        // The page reloads with the newer updated_at, so the next click is not stale too.
+        router.refresh();
       } else {
         saveFailedToast(tr(result.error.message), () => commit(next), tr("feedback.retry"));
       }

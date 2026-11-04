@@ -636,8 +636,7 @@
       "statusControl": {
         "legend": "Set status",
         "note": "Note (optional)",
-        "saveNote": "Save note",
-        "retry": "Retry"
+        "saveNote": "Save note"
       },
       "history": {
         "title": "History",

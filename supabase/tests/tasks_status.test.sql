@@ -1,5 +1,5 @@
 begin;
-select plan(59);
+select plan(65);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -137,6 +137,19 @@ set local request.jwt.claims = '{"sub": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", 
 select throws_ok($$select public.tasks_set_status('8a000000-0000-0000-0000-000000000001', now(), 'done')$$,
   '42501', null, 'a stranger is denied');
 
+-- An unowned Task is not open to a holder, and an owner who lost the Role is denied
+set local request.jwt.claims = '{"sub": "ffffffff-ffff-ffff-ffff-ffffffffffff", "role": "authenticated"}';
+select throws_ok($$select public.tasks_set_status('8a000000-0000-0000-0000-000000000006',
+  (select updated_at from public.tasks where id = '8a000000-0000-0000-0000-000000000006'), 'done')$$,
+  '42501', null, 'a holder is denied on an unowned Task');
+reset role;
+update public.tasks set owner_user_id = '99999999-9999-9999-9999-999999999999' where id = '8a000000-0000-0000-0000-000000000006';
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "99999999-9999-9999-9999-999999999999", "role": "authenticated"}';
+select throws_ok($$select public.tasks_set_status('8a000000-0000-0000-0000-000000000006',
+  (select updated_at from public.tasks where id = '8a000000-0000-0000-0000-000000000006'), 'done')$$,
+  '42501', null, 'an owner who no longer holds the Role is denied');
+
 -- The lead and the Organizer pass accept-first
 set local request.jwt.claims = '{"sub": "cccccccc-cccc-cccc-cccc-cccccccccccc", "role": "authenticated"}';
 select lives_ok($$select public.tasks_set_status('8a000000-0000-0000-0000-000000000002',
@@ -242,6 +255,24 @@ select is((select count(*) from public.task_state
   'done, dismissed and obsolete Tasks are not overdue');
 select is((select overdue from public.task_state where id = '8a000000-0000-0000-0000-000000000001'), false,
   'a Task with a future deadline is not overdue');
+
+-- A note whose author was deleted is not open to a holder; a read-only Event refuses removal
+reset role;
+insert into public.status_history (id, task_id, changed_by, from_status, to_status, note) values
+  ('9a000000-0000-0000-0000-000000000001', '8a000000-0000-0000-0000-000000000001', null, 'done', 'done', 'Orphan note'),
+  ('9a000000-0000-0000-0000-000000000002', '8a000000-0000-0000-0000-000000000005', null, 'not_started', 'done', 'Frozen note');
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "ffffffff-ffff-ffff-ffff-ffffffffffff", "role": "authenticated"}';
+select throws_ok($$select public.tasks_remove_status_note('9a000000-0000-0000-0000-000000000001')$$,
+  '42501', null, 'a holder cannot remove a note whose author was deleted');
+set local request.jwt.claims = '{"sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "authenticated"}';
+select lives_ok($$select public.tasks_remove_status_note('9a000000-0000-0000-0000-000000000001')$$,
+  'the Organizer removes a note whose author was deleted');
+select throws_ok($$select public.tasks_remove_status_note('9a000000-0000-0000-0000-000000000002')$$,
+  '55000', null, 'a note on a cancelled Event cannot be removed');
+select ok(has_function_privilege('authenticated', 'public.tasks_overdue_days(date, text, timestamptz)', 'EXECUTE')
+  and not has_function_privilege('anon', 'public.tasks_overdue_days(date, text, timestamptz)', 'EXECUTE'),
+  'tasks_overdue_days is granted to authenticated only');
 
 select * from finish();
 rollback;
