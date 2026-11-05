@@ -13,3 +13,9 @@
 - [ ] 2026-11-03 [story-4-1-tasks-tabell-og-rolleavgrenset-tilgang](994-2026-11-03-07-56-47-story-4-1-tasks-tabell-og-rolleavgrenset-tilgang.md) — Story 4.2 må utvide `tasks_update`-policyen (nå kun Organizer)
 - [ ] 2026-11-03 [story-4-1-tasks-tabell-og-rolleavgrenset-tilgang](994-2026-11-03-07-56-47-story-4-1-tasks-tabell-og-rolleavgrenset-tilgang.md) — `updated_at` må sendes som rå streng i 4.2 (mikrosekunder mot JS Date)
 - [ ] 2026-11-03 [story-4-1-tasks-tabell-og-rolleavgrenset-tilgang](994-2026-11-03-07-56-47-story-4-1-tasks-tabell-og-rolleavgrenset-tilgang.md) — foreldet `accepted_at` når en eier slettes (deferred-work.md)
+- [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — PR #90 venter på merge; deretter sprint-status og issue/gren for Story 4.6
+- [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — legg PR-lenke #90 inn i ki-logg-oppføringen for 4.5
+- [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — Story 4.6 må tømme `accepted_at` ved delegering og skrive `accepted`-rader i loggen
+- [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — UI-test for skjult Delegate-knapp på ferdige/avviste/skrivebeskyttede Tasks utsatt (deferred-work.md)
+- [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — installer Graphify etter merge av 4.5 (egen chore-gren, graphify-out/ i .gitignore, les hva `graphify claude install` skriver først)
+- [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — `next dev` skriver Next.js-blokk i AGENTS.md ved e2e; tilbakestilles for hånd
