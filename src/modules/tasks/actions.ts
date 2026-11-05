@@ -8,6 +8,7 @@ import { eventPath } from "@/modules/events/list";
 import {
   createSchema,
   deadlineArgs,
+  delegateSchema,
   dependencySchema,
   editSchema,
   lifecycleSchema,
@@ -234,4 +235,26 @@ export async function removeStatusNote(input: {
   if (error) return fail(error.code);
   touched(eventId);
   return { ok: true, data: null };
+}
+
+/** Hands the Task to a person through `tasks_delegate` and returns the moved `updated_at`, as the raw string. */
+export async function delegateTask(input: {
+  eventId: string;
+  taskId: string;
+  expected: string;
+  newOwner: string;
+}): Promise<Result<{ updatedAt: string }>> {
+  const parsed = delegateSchema.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "tasks.errors.invalidInput");
+  const { eventId, taskId, expected, newOwner } = parsed.data;
+  const fail = await caller("delegateTask", eventId);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("tasks_delegate", {
+    p_task_id: taskId,
+    p_new_owner: newOwner,
+    p_expected: expected,
+  });
+  if (error) return fail(error.code);
+  touched(eventId);
+  return { ok: true, data: { updatedAt: data } };
 }

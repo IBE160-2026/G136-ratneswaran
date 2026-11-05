@@ -74,6 +74,13 @@ export const statusSchema = z.object({
   note: z.string().trim().max(500),
 });
 
+export const delegateSchema = z.object({
+  eventId: z.uuid(),
+  taskId: z.uuid(),
+  expected: z.string().min(1),
+  newOwner: z.uuid(),
+});
+
 export const removeNoteSchema = z.object({ eventId: z.uuid(), historyId: z.uuid() });
 
 /** The arguments `tasks_create` and `tasks_set_deadline` take for the chosen kind. */
