@@ -19,6 +19,8 @@
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — UI-test for skjult Delegate-knapp på ferdige/avviste/skrivebeskyttede Tasks utsatt (deferred-work.md)
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — installer Graphify etter merge av 4.5 (egen chore-gren, graphify-out/ i .gitignore, les hva `graphify claude install` skriver først)
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — `next dev` skriver Next.js-blokk i AGENTS.md ved e2e; tilbakestilles for hånd
-- [ ] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — Story 4.7 må sikre at en tilbakekalt eier ikke kan godta eller beholde tilgang (deferred-work)
+- [x] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — Story 4.7 må sikre at en tilbakekalt eier ikke kan godta eller beholde tilgang (deferred-work) (løst 2026-11-05)
 - [ ] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — push feat/4.6, åpne PR med `Closes #91` og post review-triage som PR-kommentar
 - [ ] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — vurder refleksjonsnotat om at `accept_first` først virker nå
+- [ ] 2026-11-05 [story-4-7-role-lead-and-revoke-hooks](991-2026-11-05-20-41-00-story-4-7-role-lead-and-revoke-hooks.md) — push feat/4.7, åpne PR med `Closes #94` og post review-triage som PR-kommentar
+- [ ] 2026-11-05 [story-4-7-role-lead-and-revoke-hooks](991-2026-11-05-20-41-00-story-4-7-role-lead-and-revoke-hooks.md) — Story 3.1 må beholde kallformen til `notifications_emit` for `task_assigned` (event_id, kind, role_id, [lead])

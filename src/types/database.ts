@@ -472,6 +472,9 @@ isOneToOne: false
 "tasks_assert_writable":
 { Args: { "p_event_id": string }; Returns: undefined
                            },
+"tasks_assign_role_owned_to_lead":
+{ Args: { "p_role_id": string }; Returns: undefined
+                           },
 "tasks_check_expected":
 { Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
                            },
@@ -498,6 +501,9 @@ isOneToOne: false
                            },
 "tasks_recalculate_deadlines":
 { Args: { "p_event_id": string }; Returns: undefined
+                           },
+"tasks_release_owner":
+{ Args: { "p_role_id": string,"p_user_id": string }; Returns: undefined
                            },
 "tasks_remove_dependency":
 { Args: { "p_depends_on_id": string,"p_task_id": string }; Returns: undefined

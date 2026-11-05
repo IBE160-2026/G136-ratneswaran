@@ -417,3 +417,13 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Tre uavhengige reviewere ga funn. Godtatt og rettet: godtatt-signalet vistes på lukkede Tasks og dobbelt for Organizer (nå ett signal, bare på åpne Tasks), «Delegert til Du» i nb (ny `youObject`-tekst), og manglende tester for Organizer-regelen om dager, delegering til gjeldende eier og at godta løfter «godta først»-regelen. Utsatt til Story 4.7: en tilbakekalt eier som beholder en Task kan fortsatt godta den. Avvist: kappløp mellom to godta-kall (radlåsen i `tasks_check_expected` dekker det), retry på ugyldige kall, `daysSince` fra en UI-modul og navn under RLS (`is_team_member` gir lesetilgang).
 **Min vurdering:** NIL
 **Spor:** branch `feat/4.6-accept-a-task`
+
+## 2026-11-05 — Story 4.7: Role-leder og tilbakekallingskroker
+
+**Prompt:** `/bmad-build på story 4.7`. Spec-en `spec-4-7-role-lead-and-revoke-hooks.md` ble implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med to systemfunksjoner, `tasks_assign_role_owned_to_lead` og `tasks_release_owner` (`security definer`, tilbakekalt fra alle klientroller), og erstattede `events_set_role_lead` og `events_revoke_role` som kaller dem i samme transaksjon. En ny leder overtar Rollens åpne Tasks uten eier, med én `delegated`-rad per Task og én `task_assigned`. En tilbakekalt bruker mister Tasks i Rollen, og i hele Eventet når vedkommende ikke holder noen Rolle igjen (Organizer unntatt).
+**Valg som må forklares:** Hookene har ingen brukerparametre; aktøren er `auth.uid()` og brukeren hentes fra raden som ble slettet. pgTAP bytter ut `notifications_emit`-stubben med en loggende versjon inne i testtransaksjonen for å bevise «nøyaktig ett varsel».
+Storyen løser utsettelsen fra Story 4.6: en tilbakekalt eier som beholdt en Task kunne fortsatt godta den; nå frigjøres Tasken ved tilbakekalling.
+**Review:** Tre uavhengige reviewere ga funn. Rettet: tre hull i testene (ny leder på publisert Event uten åpne Tasks sender ingenting og logger ingenting; Organizer tilbakekalt fra Rollen som holder deres egen Task får den frigjort, mens en Organizer-eid Task i en annen Rolle blir; den ventende lederen får nøyaktig én `task_assigned` for Rollen). Avvist: at frigjøring lar åpne Tasks stå uten eier i en Rolle med leder (spec-en sier de går tilbake til Rollen), å la `accepted_at` stå på ferdige Tasks (spec-en sier uansett status), `null` i `role_members.user_id` (kolonnen er not null), varsel for frigjorte Tasks (spec-en forbyr det), og skrivenekt på en allerede frigjort Task (select-sjekken fastslår frigjøringen).
+**Min vurdering:** NIL
+**Spor:** branch `feat/4.7-role-lead-and-revoke-hooks`
