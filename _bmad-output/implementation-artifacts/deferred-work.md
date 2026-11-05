@@ -67,3 +67,6 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-3-subtasks-and-dependencies.md`
   summary: Show a Subtask to its owner in a list of their own.
   evidence: The Tasks list hides every Subtask, so an owner who was given one reaches it only through the parent; Story 4.9 (*My tasks*) is the place to list it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-5-delegate-a-task.md`
+  summary: The Delegate control's hidden state on a done, dismissed, obsolete or read-only Task has no UI test.
+  evidence: `canDelegate` in `page.tsx` drops its `status`, `lifecycle` or `readOnly` term and every test stays green; `tasks_delegate` still refuses all three, so the harm is a control that only returns an error.

@@ -247,6 +247,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"task_assignment_log": {
+                  Row: {
+                    "by_user": string | null,"created_at": string,"from_user": string | null,"id": string,"kind": string,"task_id": string,"to_user": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "by_user"?: string | null,"created_at"?: string,"from_user"?: string | null,"id"?: string,"kind": string,"task_id": string,"to_user"?: string | null
+                  }
+                  Update: {
+                    "by_user"?: string | null,"created_at"?: string,"from_user"?: string | null,"id"?: string,"kind"?: string,"task_id"?: string,"to_user"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_assignment_log_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "task_state"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_assignment_log_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"task_dependencies": {
                   Row: {
                     "depends_on_id": string,"task_id": string
@@ -434,6 +460,9 @@ isOneToOne: false
 "is_team_member":
 { Args: { "p_event_id": string }; Returns: boolean
                            },
+"notifications_emit":
+{ Args: { "p_event_id": string,"p_kind": string,"p_recipients": (Database["public"]['CompositeTypes']["recipient_spec"])[],"p_subject_ref": string }; Returns: undefined
+                           },
 "tasks_add_dependency":
 { Args: { "p_depends_on_id": string,"p_task_id": string }; Returns: undefined
                            },
@@ -445,6 +474,9 @@ isOneToOne: false
                            },
 "tasks_create":
 { Args: { "p_days_before"?: number,"p_deadline"?: string,"p_description"?: string,"p_id": string,"p_parent_id"?: string,"p_role_id": string,"p_title": string }; Returns: undefined
+                           },
+"tasks_delegate":
+{ Args: { "p_expected": string,"p_new_owner": string,"p_task_id": string }; Returns: string
                            },
 "tasks_dismiss":
 { Args: { "p_expected": string,"p_task_id": string }; Returns: undefined
@@ -490,7 +522,9 @@ isOneToOne: false
             "invite_kind": "guest"|"role_holder"|"shared_event","role_key": "venue"|"guests"|"food_beverage"|"entertainment"|"travel_logistics"|"program"
           }
           CompositeTypes: {
-            [_ in never]: never
+            "recipient_spec": {
+                        "kind": string | null,"id": string | null
+                      }
           }
         }
 }

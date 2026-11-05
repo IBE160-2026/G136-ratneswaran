@@ -399,3 +399,12 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Valg som må forklares:** Overdue er aldri lagret (AD-13). Å fjerne et notat beholder raden og tidspunktet, så historikken forblir sporbar. Eieren får ingen kontroll før Story 4.6 lar vedkommende godta; siden skjuler den i mellomtiden for en eier med delegert, ikke-akseptert oppgave.
 **Min vurdering:** NIL
 **Spor:** branch `feat/4.4-status-notes-and-overdue`
+
+## 2026-11-04 — Story 4.5: deleger en Task
+
+**Prompt:** `/bmad-build på story 4.5`. Spec-en `spec-4-5-delegate-a-task.md` ble implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med tabellen `task_assignment_log` (kun select, utløser som bare tillater at FK-handlinger nuller en brukerkolonne), `tasks_delegate` (`security definer`; Organizer eller innmeldt leder, målregelen avgjøres før skriving, samme eier på nytt skriver ingenting) og en `notifications_emit`-stub med endelig signatur og typen `recipient_spec`, tilbakekalt fra `authenticated`. Oppgavesiden fikk en `Command`-velger og linjen «Held before».
+**Valg som må forklares:** Delegering teller som godtatt i Core (`accepted_at = now()`); Story 4.6 endrer det. shadcn la inn en feil `cn`-pakke i importene; importene ble rettet til `@/lib/utils` og pakken fjernet.
+**Review:** Tre uavhengige reviewere ga funn. To ble godtatt og rettet: en Task eid av Organizer (eller sist holdt av Organizer) viste tom eiercelle og ingen «Held before»-linje for alle andre enn Organizer, siden Organizer ikke har rad i `role_members`; `nameOf` gir nå en oversatt «Organizer»-etikett. Velgerlisten manglet e2e-dekning for `joined_at`-, `role_id`- og `pending`-filtrene, så en egen test viser hva leder og Organizer får se. Avvist: ubrukte shadcn-filer (de importeres transitivt av `command`), `null`-navn vist som «You» (`role_members.name` er NOT NULL), løs utløser (den speiler Story 4.4), kappløp før radlåsen (autoriser først er AD-2-rekkefølgen), generisk `42501`-melding, og manglende `accepted`-rad i loggen (Story 4.6 eier den).
+**Min vurdering:** NIL
+**Spor:** branch `feat/4.5-delegate-a-task`

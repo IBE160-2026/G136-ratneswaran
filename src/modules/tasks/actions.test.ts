@@ -23,6 +23,7 @@ const {
   addDependency,
   addSubtask,
   createTask,
+  delegateTask,
   dismissTask,
   promoteSubtask,
   removeDependency,
@@ -381,5 +382,43 @@ describe("removeStatusNote", () => {
     rpc.mockResolvedValue({ error: { code: "42501" } });
     expect(await removeStatusNote(input)).toMatchObject({ error: { code: "forbidden" } });
     expect(await removeStatusNote({ ...input, historyId: "nope" })).toMatchObject({ ok: false });
+  });
+});
+
+describe("delegateTask", () => {
+  const input = {
+    eventId,
+    taskId,
+    expected: "2026-11-03T10:00:00.123456+00:00",
+    newOwner: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+  };
+
+  it("calls the function and returns the moved updated_at as the raw string", async () => {
+    rpc.mockResolvedValue({ data: "2026-11-04T10:00:00.654321+00:00", error: null });
+    expect(await delegateTask(input)).toEqual({
+      ok: true,
+      data: { updatedAt: "2026-11-04T10:00:00.654321+00:00" },
+    });
+    expect(rpc).toHaveBeenCalledWith("tasks_delegate", {
+      p_task_id: taskId,
+      p_new_owner: input.newOwner,
+      p_expected: input.expected,
+    });
+  });
+
+  it("refuses a bad id without calling the database", async () => {
+    expect(await delegateTask({ ...input, newOwner: "nope" })).toMatchObject({ ok: false });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("maps a denial, a stale edit, an inactive Task and a read-only Event", async () => {
+    rpc.mockResolvedValue({ error: { code: "42501" } });
+    expect(await delegateTask(input)).toMatchObject({ error: { code: "forbidden" } });
+    rpc.mockResolvedValue({ error: { code: "40001" } });
+    expect(await delegateTask(input)).toMatchObject({ error: { code: "concurrent" } });
+    rpc.mockResolvedValue({ error: { code: "22023" } });
+    expect(await delegateTask(input)).toMatchObject({ error: { code: "invalid_input" } });
+    rpc.mockResolvedValue({ error: { code: "55000" } });
+    expect(await delegateTask(input)).toMatchObject({ error: { code: "read_only" } });
   });
 });

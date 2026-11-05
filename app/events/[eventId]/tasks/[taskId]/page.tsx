@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import { eventPath, isDraft, isPast } from "@/modules/events/list";
 import { loadEvent } from "../../load-event";
+import type { Candidate } from "./delegate-panel";
 import type { HistoryEntry } from "./status-panel";
 import { TaskDetail } from "./task-detail";
 
@@ -40,6 +41,7 @@ export default async function TaskPage({ params }: Props) {
     stateResult,
     historyResult,
     namesResult,
+    logResult,
   ] = await Promise.all([
     supabase.from("roles").select("key").eq("id", task.role_id).single(),
     supabase
@@ -69,7 +71,17 @@ export default async function TaskPage({ params }: Props) {
       .eq("task_id", task.id)
       .order("created_at", { ascending: false }),
     // An author is named only when the caller can read their Team row; the Organizer has none.
-    supabase.from("role_members").select("user_id, name").eq("event_id", eventId),
+    supabase
+      .from("role_members")
+      .select("user_id, name, role_id, joined_at")
+      .eq("event_id", eventId),
+    supabase
+      .from("task_assignment_log")
+      .select("from_user")
+      .eq("task_id", task.id)
+      .eq("kind", "delegated")
+      .order("created_at", { ascending: false })
+      .limit(1),
   ]);
   if (
     roleResult.error ||
@@ -78,7 +90,8 @@ export default async function TaskPage({ params }: Props) {
     linksResult.error ||
     stateResult.error ||
     historyResult.error ||
-    namesResult.error
+    namesResult.error ||
+    logResult.error
   ) {
     throw new Error("Could not load the task");
   }
@@ -97,6 +110,29 @@ export default async function TaskPage({ params }: Props) {
     !task.obsolete &&
     (lead || (ownsIt && !waitingForAccept));
   const names = new Map(namesResult.data.map((member) => [member.user_id, member.name]));
+  const isOrganizer = event.organizer_id === claims.sub;
+  const td = await getTranslations("tasks.detail.delegate");
+  const nameOf = (id: string | null | undefined) =>
+    id === claims.sub
+      ? td("you")
+      : id && id === event.organizer_id
+        ? td("organizer")
+        : (id && names.get(id)) || null;
+  const canDelegate =
+    lead && !readOnly && task.lifecycle === "active" && !task.obsolete && task.status !== "done";
+  // The Organizer picks anyone on the Team or themself; the lead only a joined holder of the Role.
+  const pool = new Map<string, Candidate>();
+  if (isOrganizer) pool.set(claims.sub, { userId: claims.sub, name: null, pending: false });
+  for (const member of namesResult.data) {
+    if (!isOrganizer && (member.role_id !== task.role_id || member.joined_at === null)) continue;
+    const seen = pool.get(member.user_id);
+    pool.set(member.user_id, {
+      userId: member.user_id,
+      name: member.name,
+      pending: member.joined_at === null && (seen?.pending ?? true),
+    });
+  }
+  const candidates = [...pool.values()].filter((person) => person.userId !== task.owner_user_id);
   const history = historyResult.data.map((row) => ({
     id: row.id,
     toStatus: row.to_status as HistoryEntry["toStatus"],
@@ -138,6 +174,10 @@ export default async function TaskPage({ params }: Props) {
       canSetStatus={canSetStatus}
       overdueDays={task.lifecycle === "active" ? state.overdue_days : null}
       history={history}
+      canDelegate={canDelegate}
+      candidates={candidates}
+      ownerName={nameOf(task.owner_user_id)}
+      heldBefore={nameOf(logResult.data[0]?.from_user)}
       links={links}
       hasStart={event.starts_at !== null && event.time_zone !== null}
     />

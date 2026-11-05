@@ -285,3 +285,98 @@ test("a holder who does not own the Task sees its status but no control", async 
   await expect(page.getByLabel("Note (optional)")).toHaveCount(0);
   await expect(page.getByText("No status changes yet.")).toBeVisible();
 });
+
+test("the lead delegates a Task to a holder and sees who held it; a non-lead sees no control", async ({
+  page,
+  request,
+}) => {
+  const lead = await signedIn(page, request);
+  const organizer = unique();
+  const holder = unique();
+  psql(
+    `insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}'), (gen_random_uuid(), '${holder}')`,
+  );
+  const id = seed(organizer, "30 days");
+  activate(id);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at, is_lead)
+    select '${id}', r.id, u.id, case when u.email = '${lead}' then 'Lena Lead' else 'Hanna Holder' end, now(), u.email = '${lead}'
+    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.email in ('${lead}', '${holder}')`);
+  const task = psql(`insert into public.tasks (event_id, role_id, title, deadline)
+    select '${id}', r.id, 'Rent tables', current_date + 5 from public.roles r
+    where r.event_id = '${id}' and r.key = 'venue' returning id`).split("\n")[0];
+
+  await page.goto(`/events/${id}/tasks/${task}`);
+  await page.getByRole("button", { name: "Choose a person" }).click();
+  await page.getByRole("option", { name: "Hanna Holder" }).click();
+  await expect(page.getByText("Task delegated.")).toBeVisible();
+  await expect(page.locator("dd", { hasText: "Hanna Holder" })).toBeVisible();
+  expect(
+    psql(`select count(*) from public.task_assignment_log where task_id = '${task}'`).split(
+      "\n",
+    )[0],
+  ).toBe("1");
+
+  // Handing it on shows who held it before
+  await page.reload();
+  await page.getByRole("button", { name: "Choose a person" }).click();
+  await page.getByRole("option", { name: "Lena Lead" }).click();
+  await expect(page.getByText("Held before by Hanna Holder")).toBeVisible();
+
+  // A plain holder gets no control
+  psql(`update public.role_members set is_lead = false where event_id = '${id}'`);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Delegate", exact: true })).toHaveCount(0);
+});
+
+test("the picker lists only who the caller may pick", async ({ page, request }) => {
+  const me = await signedIn(page, request);
+  const organizer = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}')`);
+  const id = seed(organizer, "30 days");
+  activate(id);
+  const member = (role: string, name: string, joined: boolean, lead = false, owner = false) =>
+    psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at, is_lead)
+      select '${id}', r.id, ${owner || name === "Lena Lead" ? `(select id from auth.users where email = '${me}')` : "gen_random_uuid()"}, '${name}', ${joined ? "now()" : "null"}, ${lead}
+      from public.roles r where r.event_id = '${id}' and r.key = '${role}'`);
+  // Plain members need an auth row first, so give each its own account
+  const account = (name: string, role: string, joined: boolean) => {
+    const email = unique();
+    psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${email}')`);
+    psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at)
+      select '${id}', r.id, u.id, '${name}', ${joined ? "now()" : "null"}
+      from public.roles r, auth.users u where r.event_id = '${id}' and r.key = '${role}' and u.email = '${email}'`);
+  };
+  member("venue", "Lena Lead", true, true);
+  account("Hanna Holder", "venue", true);
+  account("Olga Owner", "venue", true);
+  account("Pia Pending", "venue", false);
+  account("Gunn Guests", "guests", true);
+  const task = psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id)
+    select '${id}', r.id, 'Rent tables', current_date + 5, m.user_id
+    from public.roles r, public.role_members m
+    where r.event_id = '${id}' and r.key = 'venue' and m.event_id = '${id}' and m.name = 'Olga Owner' returning id`).split(
+    "\n",
+  )[0];
+
+  // The lead: joined holders of the Role only, never the owner
+  await page.goto(`/events/${id}/tasks/${task}`);
+  await page.getByRole("button", { name: "Choose a person" }).click();
+  await expect(page.getByRole("option", { name: "Hanna Holder" })).toBeVisible();
+  await expect(page.getByRole("option", { name: "Lena Lead" })).toBeVisible();
+  await expect(page.getByRole("option", { name: /Pia Pending/ })).toHaveCount(0);
+  await expect(page.getByRole("option", { name: /Gunn Guests/ })).toHaveCount(0);
+  await expect(page.getByRole("option", { name: /Olga Owner/ })).toHaveCount(0);
+
+  // The Organizer: pending invitees and other Roles too, and themself
+  psql(`delete from public.role_members where event_id = '${id}' and name = 'Lena Lead'`);
+  psql(
+    `update public.events set organizer_id = (select id from auth.users where email = '${me}') where id = '${id}'`,
+  );
+  await page.reload();
+  await page.getByRole("button", { name: "Choose a person" }).click();
+  await expect(page.getByRole("option", { name: "You" })).toBeVisible();
+  await expect(page.getByRole("option", { name: "Hanna Holder" })).toBeVisible();
+  await expect(page.getByRole("option", { name: "Gunn Guests" })).toBeVisible();
+  await expect(page.getByRole("option", { name: "Pia Pending Invite pending" })).toBeVisible();
+  await expect(page.getByRole("option", { name: /Olga Owner/ })).toHaveCount(0);
+});
