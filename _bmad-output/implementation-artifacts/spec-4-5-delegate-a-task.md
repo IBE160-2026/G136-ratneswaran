@@ -2,7 +2,8 @@
 title: 'Delegate a Task'
 type: 'feature'
 created: '2026-11-04'
-status: 'ready-for-dev'
+status: 'done'
+baseline_commit: 'a0cc99124b6f88b232f9c5213cbdc0bd2ceb1658'
 route: 'dispatch'
 review_loop_iteration: 0
 context:
@@ -68,13 +69,13 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `supabase/migrations/<ts>_tasks_delegate.sql` -- log table, trigger, policy, grants, `tasks_delegate`, `recipient_spec`, `notifications_emit` stub -- one file (AD-15)
-- [ ] `supabase/tests/tasks_delegate.test.sql` -- one allow and one deny per function, policy, grant, trigger and stub grant; every Matrix row
-- [ ] `src/types/database.ts` -- regenerate with `supabase gen types`
-- [ ] `src/modules/tasks/schemas.ts`, `actions.ts`, `actions.test.ts` -- `delegateTask`
-- [ ] `components/ui/command` and `app/events/[eventId]/tasks/[taskId]/**`, `messages/nb.json`, `messages/en.json` -- Delegate control, picker, held-before line
-- [ ] `e2e/tasks.spec.ts` -- lead delegates to a holder; a non-lead sees no control
-- [ ] `docs/ki-logg.md` -- entry
+- [x] `supabase/migrations/<ts>_tasks_delegate.sql` -- log table, trigger, policy, grants, `tasks_delegate`, `recipient_spec`, `notifications_emit` stub -- one file (AD-15)
+- [x] `supabase/tests/tasks_delegate.test.sql` -- one allow and one deny per function, policy, grant, trigger and stub grant; every Matrix row
+- [x] `src/types/database.ts` -- regenerate with `supabase gen types`
+- [x] `src/modules/tasks/schemas.ts`, `actions.ts`, `actions.test.ts` -- `delegateTask`
+- [x] `components/ui/command` and `app/events/[eventId]/tasks/[taskId]/**`, `messages/nb.json`, `messages/en.json` -- Delegate control, picker, held-before line
+- [x] `e2e/tasks.spec.ts` -- lead delegates to a holder; a non-lead sees no control
+- [x] `docs/ki-logg.md` -- entry
 
 **Acceptance Criteria:**
 - Given local Supabase, when `supabase test db`, `pnpm lint`, `pnpm format:check` and `pnpm test` run, then all pass.
@@ -85,6 +86,25 @@ context:
 ## Spec Change Log
 
 ## Review Triage Log
+
+| Finding | Layer | Verdict | Route | Evidence |
+|---------|-------|---------|-------|----------|
+| Owner cell and "Held before" are empty when the Organizer owns or last held the Task and the viewer is not the Organizer | blind, edge, gap | medium | patch | The Organizer has no `role_members` row, so `names.get(id)` is undefined and `nameOf` returns null. Fixed with an "Organizer" label. |
+| Picker list-building (pending, other-Role, owner, self) has no UI test | blind, gap | medium | patch | Dropping the `joined_at`, `role_id` or `pending` check leaves every test green. e2e extended for the lead and the Organizer. |
+| ki-logg entry has no review trail | blind | low | patch | Review outcome appended to the Story 4.5 entry; the PR link is added when the PR exists. |
+| Unused shadcn files (`button`, `input`, `textarea`, `dialog`) | blind | false | rejected | `command.tsx` imports `dialog` and `input-group`; `input-group.tsx` imports `button`, `input` and `textarea`. |
+| A null name is shown as "You" for anyone | blind, edge | false | rejected | `role_members.name` is `NOT NULL`; only the Organizer's own candidate has a null name. |
+| Delegate control may hide from the Organizer | edge | false | rejected | `lead` in `page.tsx` is `organizer_id === claims.sub \|\| leadResult.data.length > 0`. |
+| Previous owner is not notified | blind | false | rejected | The story notifies the new owner only. |
+| No `accepted` log row on delegation | blind | false | rejected | The spec writes only `delegated`; `accepted` is Story 4.6. |
+| Delegate control visibility on done, dismissed or read-only has no test | gap | low | defer | The server refuses all three, so the harm is a control that returns an error. |
+| Target removed between the checks and the row lock | edge | low | rejected | Authorising first is the AD-2 order, as in Story 4.4; the window is one statement. |
+| `task_assignment_log_guard` passes any null-out | blind, edge | low | rejected | It mirrors the Story 4.4 trigger and only a privileged role can reach it; `authenticated` has no UPDATE grant. |
+| `42501` covers both "not allowed" and "cannot hold" | blind | low | rejected | Both are denials; a separate code adds a branch for a rare stale pick. |
+| `notifications_emit` branch has no test | blind | low | rejected | The stub does nothing to assert; Story 3.1 tests the outbox. |
+| Same-owner repeat ignores a missing `accepted_at` | edge | low | rejected | Core sets `accepted_at` with every delegation. |
+| "Held before" vanishes when the previous owner was deleted | blind, edge | low | rejected | Cosmetic; the log row is kept. |
+| Stale picker after a non-concurrent failure, focus and Escape, toast roles, `busy` and `pending` overlap, brittle e2e setup, empty-list control | blind, edge | low | rejected | Cosmetic or handled by `cmdk`; no wrong data results. |
 
 ## Verification
 
