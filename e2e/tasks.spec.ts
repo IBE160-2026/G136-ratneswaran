@@ -380,3 +380,93 @@ test("the picker lists only who the caller may pick", async ({ page, request }) 
   await expect(page.getByRole("option", { name: "Pia Pending Invite pending" })).toBeVisible();
   await expect(page.getByRole("option", { name: /Olga Owner/ })).toHaveCount(0);
 });
+
+test("the owner accepts a delegated Task once; a non-owner sees no banner", async ({
+  page,
+  request,
+}) => {
+  const holder = await signedIn(page, request);
+  const organizer = unique();
+  const other = unique();
+  psql(
+    `insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}'), (gen_random_uuid(), '${other}')`,
+  );
+  const id = seed(organizer, "30 days");
+  activate(id);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at)
+    select '${id}', r.id, u.id, case when u.email = '${holder}' then 'Hanna Holder' else 'Olav Other' end, now()
+    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.email in ('${holder}', '${other}')`);
+  const task = (title: string, email: string) =>
+    psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id, delegated_at)
+      select '${id}', r.id, '${title}', current_date + 5, u.id, now() from public.roles r, auth.users u
+      where r.event_id = '${id}' and r.key = 'venue' and u.email = '${email}' returning id`).split(
+      "\n",
+    )[0];
+  const mine = task("Hang the banner", holder);
+  const theirs = task("Pick up the cake", other);
+  const old = task("Mop the floor", holder);
+  psql(`update public.tasks set delegated_at = now() - interval '3 days' where id = '${old}'`);
+
+  await page.goto(`/events/${id}/tasks`);
+  await expect(page.getByRole("link", { name: /Pick up the cake/ })).toContainText(
+    "Delegated to Olav Other",
+  );
+  await expect(page.getByRole("link", { name: /Hang the banner/ })).toContainText(
+    "Delegated to you",
+  );
+
+  await expect(page.getByRole("link", { name: /Mop the floor/ })).not.toContainText("days");
+  await page.goto(`/events/${id}/tasks/${old}`);
+  await expect(page.getByText("Not yet accepted", { exact: true })).toBeVisible();
+  await expect(page.getByText(/\bdays?\b/)).toHaveCount(0);
+
+  await page.goto(`/events/${id}/tasks/${theirs}`);
+  await expect(page.getByRole("heading", { level: 1, name: "Pick up the cake" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Accept task" })).toHaveCount(0);
+
+  await page.goto(`/events/${id}/tasks/${mine}`);
+  await expect(page.getByText("Not yet accepted")).toBeVisible();
+  await page.getByRole("button", { name: "Accept task" }).dblclick();
+  await expect(page.getByText("Task accepted.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Accept task" })).toHaveCount(0);
+  await expect(page.getByText("Accepted", { exact: true })).toBeVisible();
+  expect(
+    psql(
+      `select count(*) from public.task_assignment_log where task_id = '${mine}' and kind = 'accepted'`,
+    ).split("\n")[0],
+  ).toBe("1");
+});
+
+test("the Organizer sees Delegated to, the accepted signal and the days a Task has waited", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const holder = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${holder}')`);
+  const id = seed(email, "30 days");
+  activate(id);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at)
+    select '${id}', r.id, u.id, 'Hanna Holder', now()
+    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.email = '${holder}'`);
+  const task = (title: string, accepted: string) =>
+    psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id, delegated_at, accepted_at)
+      select '${id}', r.id, '${title}', current_date + 5, u.id, now() - interval '3 days', ${accepted}
+      from public.roles r, auth.users u
+      where r.event_id = '${id}' and r.key = 'venue' and u.email = '${holder}' returning id`).split(
+      "\n",
+    )[0];
+  const waitingId = task("Waiting task", "null");
+  task("Accepted task", "now()");
+
+  await page.goto(`/events/${id}/tasks`);
+  const waiting = page.getByRole("link", { name: /Waiting task/ });
+  await expect(waiting).toContainText("Delegated to Hanna Holder");
+  await expect(waiting).toContainText("Not yet accepted · 3 days");
+  const accepted = page.getByRole("link", { name: /Accepted task/ });
+  await expect(accepted).toContainText("Accepted");
+  await expect(accepted).not.toContainText("Not yet accepted");
+
+  await page.goto(`/events/${id}/tasks/${waitingId}`);
+  await expect(page.getByText("Not yet accepted · 3 days")).toBeVisible();
+});
