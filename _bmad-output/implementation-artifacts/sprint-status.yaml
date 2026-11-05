@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 11-05-2026 22:10
+last_updated: 11-05-2026 22:40
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -91,8 +91,8 @@ development_status:
   4-14-review-proposed-tasks: backlog
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-dashboard-sections-and-scope: backlog
+  epic-5: in-progress
+  5-1-dashboard-sections-and-scope: review
   5-2-dashboard-needs-you: backlog
   5-3-dashboard-at-risk-and-on-track: backlog
   5-4-dashboard-housekeeping: backlog
