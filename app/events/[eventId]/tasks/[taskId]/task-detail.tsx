@@ -12,6 +12,7 @@ import { callSafely } from "@/modules/events/save";
 import { eventPath } from "@/modules/events/list";
 import { dismissTask, restoreTask } from "@/modules/tasks/actions";
 import { TaskForm } from "../task-form";
+import { DelegatePanel, type Candidate } from "./delegate-panel";
 import { StatusControl, StatusHistory, type HistoryEntry } from "./status-panel";
 import { DependsOnCard, PartOf, SubtasksCard, WaitsFor, type LinkedTask } from "./task-links";
 import { useDeadline } from "../task-row";
@@ -51,6 +52,10 @@ export function TaskDetail({
   canSetStatus,
   overdueDays,
   history,
+  canDelegate,
+  candidates,
+  ownerName,
+  heldBefore,
   links,
   hasStart,
 }: {
@@ -61,6 +66,10 @@ export function TaskDetail({
   canSetStatus: boolean;
   overdueDays: number | null;
   history: HistoryEntry[];
+  canDelegate: boolean;
+  candidates: Candidate[];
+  ownerName: string | null;
+  heldBefore: string | null;
   links: TaskLinks;
   hasStart: boolean;
 }) {
@@ -161,7 +170,14 @@ export function TaskDetail({
                     }))}
             </dd>
             <dt className="text-muted-foreground">{t("detail.owner")}</dt>
-            <dd>{task.owner_user_id === null ? t("row.notDelegated") : ""}</dd>
+            <dd>
+              {task.owner_user_id === null ? t("row.notDelegated") : ownerName}
+              {heldBefore && (
+                <span className="text-muted-foreground block">
+                  {t("detail.delegate.heldBefore", { name: heldBefore })}
+                </span>
+              )}
+            </dd>
             <dt className="text-muted-foreground">{t("detail.status")}</dt>
             <dd>{t(`status.${task.status}`)}</dd>
           </dl>
@@ -177,6 +193,14 @@ export function TaskDetail({
               {task.description ?? t("detail.noDescription")}
             </p>
           </section>
+          {canDelegate && (
+            <DelegatePanel
+              eventId={eventId}
+              taskId={task.id}
+              updatedAt={task.updated_at}
+              candidates={candidates}
+            />
+          )}
           {canSetStatus && (
             <StatusControl
               eventId={eventId}

@@ -638,6 +638,18 @@
         "note": "Note (optional)",
         "saveNote": "Save note"
       },
+      "delegate": {
+        "title": "Delegate",
+        "open": "Choose a person",
+        "close": "Close",
+        "search": "Search the team",
+        "empty": "No one to pick.",
+        "you": "You",
+        "organizer": "Organizer",
+        "pending": "Invite pending",
+        "done": "Task delegated.",
+        "heldBefore": "Held before by {name}"
+      },
       "history": {
         "title": "History",
         "empty": "No status changes yet.",

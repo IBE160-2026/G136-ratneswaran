@@ -638,6 +638,18 @@
         "note": "Notat (valgfritt)",
         "saveNote": "Lagre notat"
       },
+      "delegate": {
+        "title": "Deleger",
+        "open": "Velg en person",
+        "close": "Lukk",
+        "search": "Søk i teamet",
+        "empty": "Ingen å velge.",
+        "you": "Du",
+        "organizer": "Arrangør",
+        "pending": "Invitasjon venter",
+        "done": "Oppgaven er delegert.",
+        "heldBefore": "Hadde oppgaven før: {name}"
+      },
       "history": {
         "title": "Historikk",
         "empty": "Ingen statusendringer ennå.",
