@@ -15,7 +15,10 @@
 - [ ] 2026-11-03 [story-4-1-tasks-tabell-og-rolleavgrenset-tilgang](994-2026-11-03-07-56-47-story-4-1-tasks-tabell-og-rolleavgrenset-tilgang.md) — foreldet `accepted_at` når en eier slettes (deferred-work.md)
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — PR #90 venter på merge; deretter sprint-status og issue/gren for Story 4.6
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — legg PR-lenke #90 inn i ki-logg-oppføringen for 4.5
-- [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — Story 4.6 må tømme `accepted_at` ved delegering og skrive `accepted`-rader i loggen
+- [x] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — Story 4.6 må tømme `accepted_at` ved delegering og skrive `accepted`-rader i loggen (løst 2026-11-05)
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — UI-test for skjult Delegate-knapp på ferdige/avviste/skrivebeskyttede Tasks utsatt (deferred-work.md)
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — installer Graphify etter merge av 4.5 (egen chore-gren, graphify-out/ i .gitignore, les hva `graphify claude install` skriver først)
 - [ ] 2026-11-05 [story-4-5-delegate-a-task](993-2026-11-05-15-38-06-story-4-5-delegate-a-task.md) — `next dev` skriver Next.js-blokk i AGENTS.md ved e2e; tilbakestilles for hånd
+- [ ] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — Story 4.7 må sikre at en tilbakekalt eier ikke kan godta eller beholde tilgang (deferred-work)
+- [ ] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — push feat/4.6, åpne PR med `Closes #91` og post review-triage som PR-kommentar
+- [ ] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — vurder refleksjonsnotat om at `accept_first` først virker nå
