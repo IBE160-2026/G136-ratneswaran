@@ -1,5 +1,5 @@
 begin;
-select plan(48);
+select plan(53);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -42,6 +42,10 @@ insert into public.tasks (id, event_id, role_id, title, deadline, lifecycle, obs
   ('8a000000-0000-0000-0000-000000000007', '5a000000-0000-0000-0000-000000000002', '6a000000-0000-0000-0000-000000000004', 'Cancelled', current_date + 9, 'active', false, 'not_started'),
   ('8a000000-0000-0000-0000-000000000008', '5a000000-0000-0000-0000-000000000001', '6a000000-0000-0000-0000-000000000001', 'Eight', current_date + 9, 'active', false, 'not_started');
 
+insert into public.tasks (id, event_id, role_id, title, deadline, owner_user_id, delegated_at, accepted_at) values
+  ('8a000000-0000-0000-0000-000000000009', '5a000000-0000-0000-0000-000000000001', '6a000000-0000-0000-0000-000000000001', 'Nine', current_date + 9,
+   'cccccccc-cccc-cccc-cccc-cccccccccccc', now() - interval '3 days', now() - interval '2 days');
+
 -- Attributes and grants
 select ok((select prosecdef and proconfig @> array['search_path=""'] from pg_proc
   where oid = 'public.tasks_delegate(uuid, uuid, timestamptz)'::regprocedure), 'tasks_delegate is security definer with an empty search_path');
@@ -71,7 +75,7 @@ select lives_ok($$select public.tasks_delegate('8a000000-0000-0000-0000-00000000
   'the lead delegates to a joined holder');
 select results_eq(
   $$select owner_user_id, delegated_at is not null, accepted_at is not null from public.tasks where id = '8a000000-0000-0000-0000-000000000001'$$,
-  $$values ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, true, true)$$, 'the owner is set and counts as accepted');
+  $$values ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, true, false)$$, 'the owner is set and is not accepted yet');
 select results_eq(
   $$select from_user, to_user, by_user, kind from public.task_assignment_log where task_id = '8a000000-0000-0000-0000-000000000001'$$,
   $$values (null::uuid, 'dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, 'cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, 'delegated')$$,
@@ -86,6 +90,8 @@ select is((select count(*) from public.task_assignment_log where task_id = '8a00
 select lives_ok($$select public.tasks_delegate('8a000000-0000-0000-0000-000000000001', 'ffffffff-ffff-ffff-ffff-ffffffffffff',
   (select updated_at from public.tasks where id = '8a000000-0000-0000-0000-000000000001'))$$,
   'the lead moves the Task to another holder');
+select is((select accepted_at from public.tasks where id = '8a000000-0000-0000-0000-000000000001'), null,
+  'a Task moved to another person stays unaccepted');
 select results_eq(
   $$select from_user, to_user from public.task_assignment_log where task_id = '8a000000-0000-0000-0000-000000000001' order by created_at desc limit 1$$,
   $$values ('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid, 'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid)$$,
@@ -112,6 +118,18 @@ select lives_ok($$select public.tasks_delegate('8a000000-0000-0000-0000-00000000
 select results_eq(
   $$select owner_user_id, accepted_at is not null from public.tasks where id = '8a000000-0000-0000-0000-000000000008'$$,
   $$values ('cccccccc-cccc-cccc-cccc-cccccccccccc'::uuid, true)$$, 'self-delegation is accepted at once');
+select results_eq(
+  $$select kind from public.task_assignment_log where task_id = '8a000000-0000-0000-0000-000000000008' order by created_at$$,
+  $$values ('delegated'), ('accepted')$$, 'self-delegation also logs an accepted row');
+select lives_ok($$select public.tasks_delegate('8a000000-0000-0000-0000-000000000009', 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+  (select updated_at from public.tasks where id = '8a000000-0000-0000-0000-000000000009'))$$,
+  'delegating to the current owner is accepted');
+select results_eq(
+  $$select delegated_at, accepted_at from public.tasks where id = '8a000000-0000-0000-0000-000000000009'$$,
+  $$values (now() - interval '3 days', now() - interval '2 days')$$,
+  'delegating to the current owner keeps the clock and the acceptance');
+select is((select count(*) from public.task_assignment_log where task_id = '8a000000-0000-0000-0000-000000000009'), 0::bigint,
+  'delegating to the current owner writes no log row');
 select throws_ok($$select public.tasks_delegate('8a000000-0000-0000-0000-000000000002', 'dddddddd-dddd-dddd-dddd-dddddddddddd', now() - interval '1 day')$$,
   '40001', null, 'a stale updated_at is refused');
 
@@ -174,8 +192,8 @@ select throws_ok($$select public.tasks_delegate('8a000000-0000-0000-0000-0000000
 select throws_ok($$select public.tasks_delegate('8a000000-0000-0000-0000-000000000007', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
   (select updated_at from public.tasks where id = '8a000000-0000-0000-0000-000000000007'))$$,
   '55000', null, 'a cancelled Event is read-only');
-select is((select count(*) from public.task_assignment_log where task_id = '8a000000-0000-0000-0000-000000000002'), 3::bigint,
-  'the Organizer path logged three hand-overs');
+select is((select count(*) from public.task_assignment_log where task_id = '8a000000-0000-0000-0000-000000000002'), 4::bigint,
+  'the Organizer path logged three hand-overs and one self-acceptance');
 select is((select owner_user_id from public.tasks where id = '8a000000-0000-0000-0000-000000000002'),
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid, 'the Organizer now owns the Task');
 

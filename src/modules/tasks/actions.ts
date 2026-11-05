@@ -237,6 +237,22 @@ export async function removeStatusNote(input: {
   return { ok: true, data: null };
 }
 
+/** The owner accepts a delegated Task through `tasks_accept`; returns the moved `updated_at`, as the raw string. */
+export async function acceptTask(input: LifecycleInput): Promise<Result<{ updatedAt: string }>> {
+  const parsed = lifecycleSchema.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "tasks.errors.invalidInput");
+  const { eventId, taskId, expected } = parsed.data;
+  const fail = await caller("acceptTask", eventId);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("tasks_accept", {
+    p_task_id: taskId,
+    p_expected: expected,
+  });
+  if (error) return fail(error.code);
+  touched(eventId);
+  return { ok: true, data: { updatedAt: data } };
+}
+
 /** Hands the Task to a person through `tasks_delegate` and returns the moved `updated_at`, as the raw string. */
 export async function delegateTask(input: {
   eventId: string;

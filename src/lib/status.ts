@@ -11,6 +11,7 @@ import {
   Lock,
   Mail,
   UserRound,
+  UserRoundCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ export const STATUSES = {
   problem: { icon: Flag, tone: "text-status-overdue" },
   waiting: { icon: Hourglass, tone: "text-status-waiting" },
   blocked: { icon: Lock, tone: "bg-status-blocked-row px-2 py-0.5 text-muted-foreground" },
+  accepted: { icon: UserRoundCheck, tone: "text-status-done" },
   notAccepted: { icon: UserRound, tone: "text-muted-foreground" },
   notStarted: { icon: Circle, tone: "text-muted-foreground" },
   inProgress: { icon: CircleDot, tone: "text-primary" },
