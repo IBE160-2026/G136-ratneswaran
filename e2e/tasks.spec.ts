@@ -470,3 +470,108 @@ test("the Organizer sees Delegated to, the accepted signal and the days a Task h
   await page.goto(`/events/${id}/tasks/${waitingId}`);
   await expect(page.getByText("Not yet accepted · 3 days")).toBeVisible();
 });
+
+test("a joined holder lands on My tasks, sees only their own Tasks, the Team and an Urgent badge", async ({
+  page,
+  request,
+}) => {
+  const holder = await signedIn(page, request);
+  const organizer = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}')`);
+  const id = seed(organizer, "30 days");
+  activate(id);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name, joined_at)
+    select '${id}', r.id, u.id, 'Hanna Holder', now()
+    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.email = '${holder}'`);
+  const task = (
+    title: string,
+    role: "venue" | "guests",
+    days: number,
+    owner: "holder" | "organizer" | null,
+    cols: Record<string, string> = {},
+  ) => {
+    const names = ["event_id", "role_id", "title", "deadline", "owner_user_id", "delegated_at"];
+    const values = [
+      `'${id}'`,
+      "r.id",
+      `'${title}'`,
+      `current_date + ${days}`,
+      owner ? "o.id" : "null",
+      owner ? "now()" : "null",
+    ];
+    for (const [name, value] of Object.entries(cols)) {
+      names.push(name);
+      values.push(value);
+    }
+    psql(`insert into public.tasks (${names.join(", ")})
+      select ${values.join(", ")} from public.roles r
+      left join auth.users o on o.email = ${owner === "holder" ? `'${holder}'` : `'${organizer}'`}
+      where r.event_id = '${id}' and r.key = '${role}'`);
+  };
+  const accepted = { accepted_at: "now()" };
+  task("Accepted early", "venue", 2, "holder", accepted);
+  task("Not accepted late", "venue", 9, "holder");
+  task("Overdue one", "venue", -3, "holder", accepted);
+  task("Nobody owns this", "venue", 4, null);
+  task("Obsolete one", "venue", 4, "holder", { obsolete: "true" });
+  task("Dismissed one", "venue", 4, "holder", { lifecycle: "'dismissed'" });
+  task("Proposed one", "venue", 4, null, { lifecycle: "'proposed'" });
+  task("Someone elses overdue", "venue", -3, "organizer", accepted);
+  task("Obsolete overdue", "venue", -3, "holder", { obsolete: "true", ...accepted });
+  task("Other role pending", "guests", 4, null);
+
+  await page.goto(`/events/${id}`);
+  await expect(page).toHaveURL(`/events/${id}/my-tasks`);
+  await expect(page.getByRole("heading", { level: 1, name: "My tasks" })).toBeVisible();
+  const rows = page
+    .getByRole("main")
+    .getByRole("link", { name: /Not accepted late|Accepted early|Overdue one/ });
+  await expect(page.getByRole("link", { name: /Nobody owns this/ })).toHaveCount(0);
+  for (const hidden of [
+    "Obsolete one",
+    "Dismissed one",
+    "Proposed one",
+    "Someone elses overdue",
+    "Other role pending",
+  ]) {
+    await expect(page.getByRole("link", { name: new RegExp(hidden) })).toHaveCount(0);
+  }
+  await expect(rows.first()).toContainText("Not accepted late");
+  await expect(page.getByRole("heading", { name: "Team & Roles" })).toBeVisible();
+  await expect(page.getByText("Hanna Holder").first()).toBeVisible();
+
+  await page.getByText("Show obsolete (2)").click();
+  await expect(page.getByRole("link", { name: /Obsolete one/ })).toBeVisible();
+
+  const nav = page.getByRole("navigation", { name: "Main" }).first();
+  await expect(nav.getByRole("link", { name: "My tasks, 1 overdue" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Not delegated" }).click();
+  await expect(page.getByRole("status")).toContainText("Showing 1 pending task");
+  await expect(page.getByRole("link", { name: /Nobody owns this/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Overdue one/ })).toHaveCount(0);
+  for (const hidden of ["Dismissed one", "Proposed one", "Other role pending"]) {
+    await expect(page.getByRole("link", { name: new RegExp(hidden) })).toHaveCount(0);
+  }
+});
+
+test("the Organizer keeps the Event home, and Not delegated lists pending Tasks of every Role", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "30 days");
+  activate(id);
+  psql(`insert into public.tasks (event_id, role_id, title, deadline)
+    select '${id}', r.id, 'Pending ' || r.key, current_date + 5 from public.roles r
+    where r.event_id = '${id}' and r.key in ('venue', 'guests')`);
+
+  await page.goto(`/events/${id}`);
+  await expect(page).toHaveURL(`/events/${id}`);
+  await page.goto(`/events/${id}/my-tasks`);
+  await expect(page.getByText("You're all caught up.")).toBeVisible();
+  await page.getByRole("button", { name: "Not delegated" }).click();
+  await expect(page.getByRole("status")).toContainText("Showing 2 pending tasks");
+  await expect(page.getByRole("link", { name: /Pending venue/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Pending guests/ })).toBeVisible();
+});

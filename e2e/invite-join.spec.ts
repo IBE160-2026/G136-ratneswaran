@@ -67,8 +67,17 @@ test("a new invitee verifies a code, sets a password and lands on the Event", as
 
   await guest.getByLabel("Choose a password").fill("abcdefg1");
   await guest.getByRole("button", { name: "Join" }).click();
-  await expect(guest).toHaveURL(`http://localhost:3000/events/${id}`);
-  await expect(guest.getByRole("heading", { name: "Seeded" })).toBeVisible();
+  await expect(guest).toHaveURL(`http://localhost:3000/events/${id}/my-tasks`);
+  await expect(guest.getByRole("heading", { level: 1, name: "My tasks" })).toBeVisible();
+  await expect(guest).toHaveTitle("My tasks – Seeded – Arrangly");
+  // Tasks of a draft Event are for the Organizer only, so publish before the Task is read.
+  psql(`update public.events set published_at = now() where id = '${id}'`);
+  psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id, delegated_at)
+    select event_id, role_id, 'Welcome the first guests', current_date + 3, user_id, now()
+    from public.role_members where event_id = '${id}' and name = 'Ola Nordmann'`);
+  await guest.goto(`/events/${id}`);
+  await expect(guest).toHaveURL(`http://localhost:3000/events/${id}/my-tasks`);
+  await expect(guest.getByRole("link", { name: /Welcome the first guests/ })).toBeVisible();
   await expect(guest.getByText("Only your team can see this event.")).toHaveCount(0);
   await expect(guest.getByRole("button", { name: "Publish" })).toHaveCount(0);
   expect(users(email)).toBe("1");
@@ -106,7 +115,7 @@ test("an existing account logs in and joins, with no second user", async ({
   await guest.getByRole("button", { name: "Log in" }).click();
   await expect(guest).toHaveURL("http://localhost:3000/invite");
   await guest.getByRole("button", { name: "Join" }).click();
-  await expect(guest).toHaveURL(`http://localhost:3000/events/${id}`);
+  await expect(guest).toHaveURL(`http://localhost:3000/events/${id}/my-tasks`);
   expect(users(email)).toBe("1");
 });
 
