@@ -24,3 +24,6 @@
 - [ ] 2026-11-05 [story-4-6-accept-a-task](992-2026-11-05-17-58-00-story-4-6-accept-a-task.md) — vurder refleksjonsnotat om at `accept_first` først virker nå
 - [ ] 2026-11-05 [story-4-7-role-lead-and-revoke-hooks](991-2026-11-05-20-41-00-story-4-7-role-lead-and-revoke-hooks.md) — push feat/4.7, åpne PR med `Closes #94` og post review-triage som PR-kommentar
 - [ ] 2026-11-05 [story-4-7-role-lead-and-revoke-hooks](991-2026-11-05-20-41-00-story-4-7-role-lead-and-revoke-hooks.md) — Story 3.1 må beholde kallformen til `notifications_emit` for `task_assigned` (event_id, kind, role_id, [lead])
+- [ ] 2026-11-05 [story-4-9-my-tasks](990-2026-11-05-21-55-00-story-4-9-my-tasks.md) — push feat/4.9, åpne PR med `Closes #96` og post review-triage som PR-kommentar
+- [ ] 2026-11-05 [story-4-9-my-tasks](990-2026-11-05-21-55-00-story-4-9-my-tasks.md) — Event-hjem-omdirigeringen må sjekke holder-rolle før Epic 7 gir gjester tilgang (deferred i spec-en)
+- [ ] 2026-11-05 [story-4-9-my-tasks](990-2026-11-05-21-55-00-story-4-9-my-tasks.md) — push og PR for `chore/ask-before-pull-and-pr` (delt settings.json) hvis den skal inn
