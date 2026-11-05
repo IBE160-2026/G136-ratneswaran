@@ -6,6 +6,7 @@ import { eventPath, isDraft, isPast } from "@/modules/events/list";
 import { loadEvent } from "../../load-event";
 import type { Candidate } from "./delegate-panel";
 import type { HistoryEntry } from "./status-panel";
+import { daysSince } from "../task-row";
 import { TaskDetail } from "./task-detail";
 
 type Props = { params: Promise<{ eventId: string; taskId: string }> };
@@ -62,7 +63,7 @@ export default async function TaskPage({ params }: Props) {
     supabase.from("task_dependencies").select("depends_on_id").eq("task_id", task.id),
     supabase
       .from("task_state")
-      .select("blocked, blocked_by, blocked_by_count, blocks_count, overdue_days")
+      .select("blocked, blocked_by, blocked_by_count, blocks_count, overdue_days, stale_unaccepted")
       .eq("id", task.id)
       .single(),
     supabase
@@ -114,10 +115,17 @@ export default async function TaskPage({ params }: Props) {
   const td = await getTranslations("tasks.detail.delegate");
   const nameOf = (id: string | null | undefined) =>
     id === claims.sub
-      ? td("you")
+      ? td("youObject")
       : id && id === event.organizer_id
         ? td("organizer")
         : (id && names.get(id)) || null;
+  const canAccept =
+    ownsIt &&
+    task.accepted_at === null &&
+    !readOnly &&
+    task.lifecycle === "active" &&
+    !task.obsolete &&
+    task.status !== "done";
   const canDelegate =
     lead && !readOnly && task.lifecycle === "active" && !task.obsolete && task.status !== "done";
   // The Organizer picks anyone on the Team or themself; the lead only a joined holder of the Role.
@@ -177,6 +185,20 @@ export default async function TaskPage({ params }: Props) {
       canDelegate={canDelegate}
       candidates={candidates}
       ownerName={nameOf(task.owner_user_id)}
+      accepted={
+        task.owner_user_id &&
+        task.lifecycle === "active" &&
+        !task.obsolete &&
+        task.status !== "done"
+          ? task.accepted_at !== null
+          : null
+      }
+      canAccept={canAccept}
+      staleDays={
+        isOrganizer && state.stale_unaccepted && task.delegated_at
+          ? daysSince(task.delegated_at)
+          : null
+      }
       heldBefore={nameOf(logResult.data[0]?.from_user)}
       links={links}
       hasStart={event.starts_at !== null && event.time_zone !== null}

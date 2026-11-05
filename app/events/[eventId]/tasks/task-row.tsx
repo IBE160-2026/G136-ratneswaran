@@ -10,6 +10,10 @@ export type ListedTask = {
   deadline: string | null;
   status: string;
   owner_user_id: string | null;
+  ownerName: string | null;
+  // null: the Task is not open (dismissed, proposed, obsolete or done), so no signal.
+  accepted: boolean | null;
+  staleDays: number | null;
   roleName: string;
   waitsFor: string | null;
   waitsForMore: number;
@@ -24,6 +28,30 @@ export const useDeadline = () => {
   return (deadline: string) =>
     format.dateTime(new Date(`${deadline}T12:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
 };
+
+/** Whole days since an ISO timestamp. */
+export const daysSince = (iso: string) => Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
+
+/** Delegated-to line and the separate accepted signal, shared by the row and the detail page. */
+export function AcceptedSignal({
+  accepted,
+  staleDays,
+}: {
+  accepted: boolean;
+  staleDays: number | null;
+}) {
+  const t = useTranslations("tasks");
+  const ts = useTranslations("status");
+  const entry = STATUSES[accepted ? "accepted" : "notAccepted"];
+  return (
+    <span className={`${entry.tone} inline-flex items-center gap-1.5`}>
+      <entry.icon aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />
+      {staleDays !== null
+        ? t("row.staleDays", { days: staleDays })
+        : ts(accepted ? "accepted" : "notAccepted")}
+    </span>
+  );
+}
 
 /** UX-DR11: status icon, title, status word and owner; the whole row opens the Task. */
 export function TaskRow({ eventId, task }: { eventId: string; task: ListedTask }) {
@@ -45,11 +73,18 @@ export function TaskRow({ eventId, task }: { eventId: string; task: ListedTask }
         <span className="min-w-0 break-words font-semibold">{task.title}</span>
         <span className="text-subhead text-muted-foreground ml-auto">
           {task.roleName}
-          {task.owner_user_id === null && ` · ${t("row.notDelegated")}`}
+          {` · ${task.owner_user_id === null ? t("row.notDelegated") : t("row.delegatedTo", { name: task.ownerName ?? t("row.someone") })}`}
           {task.deadline && ` · ${t("row.due", { date: formatDeadline(task.deadline) })}`}
         </span>
-        {(task.waitsFor || task.blocks > 0 || task.subtasks > 0 || task.overdueDays !== null) && (
+        {(task.accepted !== null ||
+          task.waitsFor ||
+          task.blocks > 0 ||
+          task.subtasks > 0 ||
+          task.overdueDays !== null) && (
           <span className="text-subhead text-muted-foreground flex w-full flex-wrap gap-x-4">
+            {task.accepted !== null && (
+              <AcceptedSignal accepted={task.accepted} staleDays={task.staleDays} />
+            )}
             {task.overdueDays !== null && (
               <span className={`${STATUSES.overdue.tone} inline-flex items-center gap-1.5`}>
                 <STATUSES.overdue.icon aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />

@@ -6,7 +6,7 @@ import { roleKeys } from "@/modules/events/roles";
 import { loadEvent } from "../load-event";
 import { RestoreButton } from "./restore-button";
 import { TaskForm } from "./task-form";
-import { TaskRow } from "./task-row";
+import { daysSince, TaskRow } from "./task-row";
 
 type Props = { params: Promise<{ eventId: string }> };
 
@@ -27,11 +27,11 @@ export default async function TasksPage({ params }: Props) {
   const event = await loadEvent(eventId);
   const t = await getTranslations();
   const supabase = await createClient();
-  const [tasksResult, rolesResult, leadResult, stateResult] = await Promise.all([
+  const [tasksResult, rolesResult, leadResult, stateResult, namesResult] = await Promise.all([
     supabase
       .from("tasks")
       .select(
-        "id, title, deadline, status, owner_user_id, lifecycle, role_id, parent_task_id, updated_at",
+        "id, title, deadline, status, owner_user_id, delegated_at, lifecycle, obsolete, role_id, parent_task_id, updated_at",
       )
       .eq("event_id", eventId)
       .order("deadline", { ascending: true, nullsFirst: false })
@@ -46,10 +46,19 @@ export default async function TasksPage({ params }: Props) {
       .not("joined_at", "is", null),
     supabase
       .from("task_state")
-      .select("id, blocked, blocked_by, blocked_by_count, blocks_count, overdue_days")
+      .select(
+        "id, blocked, blocked_by, blocked_by_count, blocks_count, overdue_days, accepted, stale_unaccepted",
+      )
       .eq("event_id", eventId),
+    supabase.from("role_members").select("user_id, name").eq("event_id", eventId),
   ]);
-  if (tasksResult.error || rolesResult.error || leadResult.error || stateResult.error) {
+  if (
+    tasksResult.error ||
+    rolesResult.error ||
+    leadResult.error ||
+    stateResult.error ||
+    namesResult.error
+  ) {
     throw new Error("Could not load the tasks");
   }
   const organizer = event.organizer_id === claims.sub;
@@ -61,6 +70,13 @@ export default async function TasksPage({ params }: Props) {
     .map((role) => ({ id: role.id, name: roleName.get(role.id) ?? "" }));
   // Published past and cancelled Events are read-only; the database refuses their changes too.
   const readOnly = !isDraft(event) && isPast(event, new Date());
+  const names = new Map(namesResult.data.map((member) => [member.user_id, member.name]));
+  const ownerName = (id: string | null) =>
+    id === claims.sub
+      ? t("tasks.detail.delegate.youObject")
+      : id && id === event.organizer_id
+        ? t("tasks.detail.delegate.organizer")
+        : ((id && names.get(id)) ?? null);
   const titles = new Map(tasksResult.data.map((task) => [task.id, task.title]));
   const states = new Map(stateResult.data.map((state) => [state.id, state]));
   const subtaskCount = new Map<string, number>();
@@ -79,6 +95,19 @@ export default async function TasksPage({ params }: Props) {
       waitsFor: waiting ? (titles.get(state.blocked_by ?? "") ?? null) : null,
       waitsForMore: state?.blocked_by_count ?? 0,
       blocks: state?.blocks_count ?? 0,
+      ownerName: ownerName(task.owner_user_id),
+      accepted:
+        task.owner_user_id &&
+        task.lifecycle === "active" &&
+        !task.obsolete &&
+        task.status !== "done"
+          ? (state?.accepted ?? false)
+          : null,
+      // Only the Organizer sees how long a Task has waited for acceptance.
+      staleDays:
+        organizer && state?.stale_unaccepted && task.delegated_at
+          ? daysSince(task.delegated_at)
+          : null,
       overdueDays: task.lifecycle === "active" ? (state?.overdue_days ?? null) : null,
       subtasks: subtaskCount.get(task.id) ?? 0,
     };

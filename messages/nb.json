@@ -28,6 +28,7 @@
     "problem": "Problem meldt",
     "waiting": "Venter på {party}",
     "blocked": "Venter på: {task}",
+    "accepted": "Akseptert",
     "notAccepted": "Ikke akseptert ennå",
     "inProgress": "Pågår",
     "done": "Ferdig",
@@ -601,6 +602,9 @@
       "submit": "Opprett oppgave"
     },
     "row": {
+      "delegatedTo": "Delegert til {name}",
+      "someone": "noen",
+      "staleDays": "Ikke akseptert ennå · {days, plural, one {# dag} other {# dager}}",
       "notDelegated": "Ikke delegert",
       "due": "Frist {date}",
       "waitsFor": "Venter på: {title}",
@@ -638,12 +642,19 @@
         "note": "Notat (valgfritt)",
         "saveNote": "Lagre notat"
       },
+      "accept": {
+        "title": "Godta oppgaven",
+        "body": "Denne oppgaven er delegert til deg. Godta den for å begynne arbeidet.",
+        "button": "Godta oppgaven",
+        "done": "Oppgaven er godtatt."
+      },
       "delegate": {
         "title": "Deleger",
         "open": "Velg en person",
         "close": "Lukk",
         "search": "Søk i teamet",
         "empty": "Ingen å velge.",
+        "youObject": "deg",
         "you": "Du",
         "organizer": "Arrangør",
         "pending": "Invitasjon venter",

@@ -28,6 +28,7 @@
     "problem": "Problem reported",
     "waiting": "Waiting on {party}",
     "blocked": "Waits for: {task}",
+    "accepted": "Accepted",
     "notAccepted": "Not yet accepted",
     "inProgress": "In progress",
     "done": "Done",
@@ -601,6 +602,9 @@
       "submit": "Create task"
     },
     "row": {
+      "delegatedTo": "Delegated to {name}",
+      "someone": "someone",
+      "staleDays": "Not yet accepted · {days, plural, one {# day} other {# days}}",
       "notDelegated": "Not delegated",
       "due": "Due {date}",
       "waitsFor": "Waits for: {title}",
@@ -638,12 +642,19 @@
         "note": "Note (optional)",
         "saveNote": "Save note"
       },
+      "accept": {
+        "title": "Accept this task",
+        "body": "This task was delegated to you. Accept it to start working on it.",
+        "button": "Accept task",
+        "done": "Task accepted."
+      },
       "delegate": {
         "title": "Delegate",
         "open": "Choose a person",
         "close": "Close",
         "search": "Search the team",
         "empty": "No one to pick.",
+        "youObject": "you",
         "you": "You",
         "organizer": "Organizer",
         "pending": "Invite pending",
