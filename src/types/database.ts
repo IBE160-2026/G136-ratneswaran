@@ -354,7 +354,7 @@ isOneToOne: false
           Views: {
             "task_state": {
                   Row: {
-                    "blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"overdue": boolean | null,"overdue_days": number | null,"role_id": string | null
+                    "accepted": boolean | null,"blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"overdue": boolean | null,"overdue_days": number | null,"role_id": string | null,"stale_unaccepted": boolean | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -462,6 +462,9 @@ isOneToOne: false
                            },
 "notifications_emit":
 { Args: { "p_event_id": string,"p_kind": string,"p_recipients": (Database["public"]['CompositeTypes']["recipient_spec"])[],"p_subject_ref": string }; Returns: undefined
+                           },
+"tasks_accept":
+{ Args: { "p_expected": string,"p_task_id": string }; Returns: string
                            },
 "tasks_add_dependency":
 { Args: { "p_depends_on_id": string,"p_task_id": string }; Returns: undefined
