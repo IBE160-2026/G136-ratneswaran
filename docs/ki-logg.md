@@ -408,3 +408,12 @@ Spor av hvordan KI ble styrt: hva som ble bedt om, hva KI foreslo, og hva jeg go
 **Review:** Tre uavhengige reviewere ga funn. To ble godtatt og rettet: en Task eid av Organizer (eller sist holdt av Organizer) viste tom eiercelle og ingen «Held before»-linje for alle andre enn Organizer, siden Organizer ikke har rad i `role_members`; `nameOf` gir nå en oversatt «Organizer»-etikett. Velgerlisten manglet e2e-dekning for `joined_at`-, `role_id`- og `pending`-filtrene, så en egen test viser hva leder og Organizer får se. Avvist: ubrukte shadcn-filer (de importeres transitivt av `command`), `null`-navn vist som «You» (`role_members.name` er NOT NULL), løs utløser (den speiler Story 4.4), kappløp før radlåsen (autoriser først er AD-2-rekkefølgen), generisk `42501`-melding, og manglende `accepted`-rad i loggen (Story 4.6 eier den).
 **Min vurdering:** NIL
 **Spor:** branch `feat/4.5-delegate-a-task`
+
+## 2026-11-05 — Story 4.6: godta en Task og 48-timersregelen
+
+**Prompt:** `/bmad-build på story 4.6`. Spec-en `spec-4-6-accept-a-task-and-the-48-hour-rule.md` ble implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med `tasks_accept` (`security definer`; bare gjeldende eier, allerede godtatt gir `updated_at` tilbake uten skriving), en erstattet `tasks_delegate` (godtatt med en gang bare ved selvdelegering, som også logger en `accepted`-rad) og `task_state` utvidet med `accepted` og `stale_unaccepted` (strengt over 48 timer). Oppgavesiden fikk en godta-banner, og rad og detaljside viser «Delegert til …» med eget godtatt-signal; bare Organizer ser antall dager.
+**Valg som må forklares:** `tasks_set_status` er urørt; «godta først»-regelen fra Story 4.4 gjelder nå på ekte. Playwright-testene kjører som holder og som Organizer i hver sin test, siden en test har én innlogget bruker.
+**Review:** Tre uavhengige reviewere ga funn. Godtatt og rettet: godtatt-signalet vistes på lukkede Tasks og dobbelt for Organizer (nå ett signal, bare på åpne Tasks), «Delegert til Du» i nb (ny `youObject`-tekst), og manglende tester for Organizer-regelen om dager, delegering til gjeldende eier og at godta løfter «godta først»-regelen. Utsatt til Story 4.7: en tilbakekalt eier som beholder en Task kan fortsatt godta den. Avvist: kappløp mellom to godta-kall (radlåsen i `tasks_check_expected` dekker det), retry på ugyldige kall, `daysSince` fra en UI-modul og navn under RLS (`is_team_member` gir lesetilgang).
+**Min vurdering:** NIL
+**Spor:** branch `feat/4.6-accept-a-task`

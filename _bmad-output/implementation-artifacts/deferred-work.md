@@ -70,3 +70,6 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-4-5-delegate-a-task.md`
   summary: The Delegate control's hidden state on a done, dismissed, obsolete or read-only Task has no UI test.
   evidence: `canDelegate` in `page.tsx` drops its `status`, `lifecycle` or `readOnly` term and every test stays green; `tasks_delegate` still refuses all three, so the harm is a control that only returns an error.
+- source_spec: `_bmad-output/implementation-artifacts/spec-4-6-accept-a-task-and-the-48-hour-rule.md`
+  summary: `tasks_accept` authorises on `owner_user_id` alone, so a revoked member who still owns a Task can accept it.
+  evidence: Story 4.7's `tasks_release_owner` returns such Tasks to Role-owned in the revoke transaction; verify there that no owner keeps access after revoke (S2).
