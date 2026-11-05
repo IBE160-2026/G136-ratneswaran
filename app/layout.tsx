@@ -27,6 +27,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Failing closed would hand an Organizer the holder sidebar, so a failed query is an error page.
   if (organized.error) throw new Error("Could not load the sidebar");
   const organizedEventIds = organized.data.map((event) => event.id);
+  // Urgent per Event: the viewer's own open Tasks that are overdue. task_state holds the overdue
+  // flag and tasks the owner, so two queries cover every Event at once.
+  const supabase = claims ? await createClient() : null;
+  const [owned, overdue] = supabase
+    ? await Promise.all([
+        supabase.from("tasks").select("id, event_id").eq("owner_user_id", claims!.sub),
+        supabase.from("task_state").select("id").eq("overdue", true),
+      ])
+    : [
+        { data: [], error: null },
+        { data: [], error: null },
+      ];
+  // The badge is a nicety: if either query fails the sidebar renders without it.
+  const urgentByEvent: Record<string, number> = {};
+  if (!owned.error && !overdue.error) {
+    const overdueIds = new Set(overdue.data.map((task) => task.id));
+    for (const task of owned.data) {
+      if (overdueIds.has(task.id))
+        urgentByEvent[task.event_id] = (urgentByEvent[task.event_id] ?? 0) + 1;
+    }
+  }
   const theme = claims?.user_metadata?.theme;
   return (
     <html lang={locale} data-theme={theme === "light" || theme === "dark" ? theme : undefined}>
@@ -66,7 +87,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <div className="flex flex-1">
             {claims && (
               <div className="bg-sidebar w-sidebar hidden shrink-0 lg:block">
-                <AppNav profileLabel={profileLabel} organizedEventIds={organizedEventIds} />
+                <AppNav
+                  profileLabel={profileLabel}
+                  organizedEventIds={organizedEventIds}
+                  urgentByEvent={urgentByEvent}
+                />
               </div>
             )}
             <main
@@ -80,7 +105,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             >
               {children}
               {claims && (
-                <MobileMenu profileLabel={profileLabel} organizedEventIds={organizedEventIds} />
+                <MobileMenu
+                  profileLabel={profileLabel}
+                  organizedEventIds={organizedEventIds}
+                  urgentByEvent={urgentByEvent}
+                />
               )}
             </main>
           </div>

@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 11-05-2026 20:40
+last_updated: 11-05-2026 21:05
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -81,9 +81,9 @@ development_status:
   4-4-status-notes-and-overdue: done
   4-5-delegate-a-task: done
   4-6-accept-a-task-and-the-48-hour-rule: done
-  4-7-role-lead-and-revoke-hooks: review
+  4-7-role-lead-and-revoke-hooks: done
   4-8-problem-flag: backlog
-  4-9-my-tasks: backlog
+  4-9-my-tasks: review
   4-10-options-on-a-task-and-sending-for-decision: backlog
   4-11-decide-and-spawn-follow-up-tasks: backlog
   4-12-option-tied-tasks-become-obsolete-and-decisions-can-change: backlog

@@ -11,9 +11,11 @@ import { AppNav } from "@/components/app-nav";
 export function MobileMenu({
   profileLabel,
   organizedEventIds,
+  urgentByEvent,
 }: {
   profileLabel: string;
   organizedEventIds: string[];
+  urgentByEvent: Record<string, number>;
 }) {
   const t = useTranslations("shell");
   const pathname = usePathname();
@@ -36,6 +38,7 @@ export function MobileMenu({
         <AppNav
           profileLabel={profileLabel}
           organizedEventIds={organizedEventIds}
+          urgentByEvent={urgentByEvent}
           onNavigate={() => setOpen(false)}
         />
         <SheetClose

@@ -8,6 +8,7 @@ import {
   Contact,
   House,
   ListChecks,
+  ListTodo,
   Settings,
   UserRound,
   Users,
@@ -22,11 +23,15 @@ function NavLink({
   href,
   icon: Icon,
   onNavigate,
+  badge = 0,
+  label,
   children,
 }: {
   href: string;
   icon: typeof CalendarDays;
   onNavigate?: () => void;
+  badge?: number;
+  label?: string;
   children: React.ReactNode;
 }) {
   const active = usePathname() === href;
@@ -35,6 +40,7 @@ function NavLink({
       href={href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
+      aria-label={label}
       className={cn(
         "min-h-touch relative flex items-center gap-3 rounded-sm px-3 transition-colors",
         active && "bg-primary-soft text-primary font-semibold",
@@ -43,6 +49,14 @@ function NavLink({
       {active && <span aria-hidden className="bg-primary absolute inset-y-2 left-0 w-[3px]" />}
       <Icon aria-hidden strokeWidth={1.75} className="size-5 shrink-0" />
       {children}
+      {badge > 0 && (
+        <span
+          aria-hidden
+          className="bg-badge text-badge-foreground ml-auto inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold"
+        >
+          {badge}
+        </span>
+      )}
     </Link>
   );
 }
@@ -51,10 +65,12 @@ function NavLink({
 export function AppNav({
   profileLabel,
   organizedEventIds,
+  urgentByEvent,
   onNavigate,
 }: {
   profileLabel: string;
   organizedEventIds: string[];
+  urgentByEvent: Record<string, number>;
   onNavigate?: () => void;
 }) {
   const t = useTranslations("shell");
@@ -66,14 +82,29 @@ export function AppNav({
       {/* The event group: only the items that exist so far. Later epics add theirs here. */}
       {eventId && (
         <>
-          <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
-            {t("overview")}
-          </NavLink>
+          {organizer && (
+            <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
+              {t("overview")}
+            </NavLink>
+          )}
           {organizer && (
             <NavLink href={`${eventPath(eventId)}/guests`} icon={Contact} onNavigate={onNavigate}>
               {t("guests")}
             </NavLink>
           )}
+          <NavLink
+            href={`${eventPath(eventId)}/my-tasks`}
+            icon={ListTodo}
+            onNavigate={onNavigate}
+            badge={urgentByEvent[eventId] ?? 0}
+            label={
+              urgentByEvent[eventId]
+                ? t("myTasksOverdue", { count: urgentByEvent[eventId] })
+                : undefined
+            }
+          >
+            {t("myTasks")}
+          </NavLink>
           <NavLink href={`${eventPath(eventId)}/tasks`} icon={ListChecks} onNavigate={onNavigate}>
             {t("tasks")}
           </NavLink>

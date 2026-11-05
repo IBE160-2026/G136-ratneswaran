@@ -354,7 +354,7 @@ isOneToOne: false
           Views: {
             "task_state": {
                   Row: {
-                    "accepted": boolean | null,"blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"overdue": boolean | null,"overdue_days": number | null,"role_id": string | null,"stale_unaccepted": boolean | null
+                    "accepted": boolean | null,"blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"obsolete": boolean | null,"overdue": boolean | null,"overdue_days": number | null,"role_id": string | null,"stale_unaccepted": boolean | null
                   }
                   ComputedFields: never
                   Relationships: [

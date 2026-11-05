@@ -15,7 +15,9 @@
     "questionnaire": "Questionnaire",
     "team": "Team & Roles",
     "settings": "Event settings",
-    "tasks": "Tasks"
+    "tasks": "Tasks",
+    "myTasks": "My tasks",
+    "myTasksOverdue": "My tasks, {count} overdue"
   },
   "home": {
     "surface": "Home",
@@ -708,6 +710,15 @@
       "choose": "Choose a task",
       "add": "Add dependency",
       "remove": "Remove"
+    },
+    "mine": {
+      "surface": "My tasks",
+      "title": "My tasks",
+      "empty": "You're all caught up. Nothing needs you right now.",
+      "notDelegated": "Not delegated",
+      "showing": "{count, plural, one {Showing # pending task} other {Showing # pending tasks}}",
+      "emptyPending": "No tasks are waiting for an owner.",
+      "showObsolete": "Show obsolete ({count})"
     }
   }
 }

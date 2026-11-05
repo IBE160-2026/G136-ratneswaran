@@ -3,7 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { roleKeys } from "@/modules/events/roles";
 
 /** Team & Roles for a Role-holder: who is on each active Role and who leads it. Read-only, and no emails. */
-export async function HolderTeam({ eventId }: { eventId: string }) {
+export async function HolderTeam({
+  eventId,
+  embedded = false,
+}: {
+  eventId: string;
+  embedded?: boolean;
+}) {
   const t = await getTranslations("events");
   const supabase = await createClient();
   const [rolesResult, membersResult] = await Promise.all([
@@ -19,8 +25,12 @@ export async function HolderTeam({ eventId }: { eventId: string }) {
     (a, b) => roleKeys.indexOf(a.key) - roleKeys.indexOf(b.key),
   );
   return (
-    <div className="flex flex-col gap-4 py-12">
-      <h1 className="text-large-title">{t("team.title")}</h1>
+    <div className={embedded ? "flex flex-col gap-4" : "flex flex-col gap-4 py-12"}>
+      {embedded ? (
+        <h2 className="text-headline">{t("team.title")}</h2>
+      ) : (
+        <h1 className="text-large-title">{t("team.title")}</h1>
+      )}
       <p className="text-muted-foreground">{t("team.holderIntro")}</p>
       <ul role="list" className="flex flex-col gap-3">
         {roles.map((role) => {
