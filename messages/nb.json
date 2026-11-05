@@ -15,7 +15,9 @@
     "questionnaire": "Spørsmål",
     "team": "Team og roller",
     "settings": "Arrangementsinnstillinger",
-    "tasks": "Oppgaver"
+    "tasks": "Oppgaver",
+    "myTasks": "Mine oppgaver",
+    "myTasksOverdue": "Mine oppgaver, {count} forfalt"
   },
   "home": {
     "surface": "Hjem",
@@ -708,6 +710,15 @@
       "choose": "Velg en oppgave",
       "add": "Legg til avhengighet",
       "remove": "Fjern"
+    },
+    "mine": {
+      "surface": "Mine oppgaver",
+      "title": "Mine oppgaver",
+      "empty": "Du er à jour. Ingenting trenger deg akkurat nå.",
+      "notDelegated": "Ikke delegert",
+      "showing": "{count, plural, one {Viser # ventende oppgave} other {Viser # ventende oppgaver}}",
+      "emptyPending": "Ingen oppgaver venter på en eier.",
+      "showObsolete": "Vis utgåtte ({count})"
     }
   }
 }

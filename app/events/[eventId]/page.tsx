@@ -2,7 +2,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { StatusLabel } from "@/components/status-label";
 import { getClaims } from "@/lib/supabase/server";
-import { eventDateFormat, isDraft, missingForPublish } from "@/modules/events/list";
+import { eventDateFormat, eventPath, isDraft, missingForPublish } from "@/modules/events/list";
 import { loadEvent } from "./load-event";
 import { PublishBanner } from "./publish-dialog";
 
@@ -27,6 +27,8 @@ export default async function EventHomePage({ params, searchParams }: Props) {
   const claims = await getClaims();
   if (!claims) redirect(`/login?next=/events/${eventId}`);
   const event = await loadEvent(eventId);
+  // A joined Role-holder works from My tasks; the Organizer keeps this home.
+  if (event.organizer_id !== claims.sub) redirect(`${eventPath(eventId)}/my-tasks`);
   const t = await getTranslations("events");
   const format = await getFormatter();
   return (
