@@ -20,6 +20,10 @@ export type TimelineTask = {
   createdAt: string;
   lifecycle: string;
   obsolete: boolean;
+  /** Stored status: not_started, in_progress, waiting_external or done. */
+  status: string;
+  delegated: boolean;
+  accepted: boolean;
   dependsOn: string[];
   /** Decision Tasks are Target (Story 4.8); the loader passes none. */
   decision?: "open" | "resolved" | null;
@@ -38,6 +42,13 @@ export type TimelineBar = {
   marker: boolean;
   point: "filled" | "outline" | null;
   obsolete: boolean;
+  /** Display status; Blocked and not accepted are separate flags. */
+  status: "obsolete" | "done" | "overdue" | "waiting" | "inProgress" | "notStarted";
+  overdueDays: number;
+  blocked: boolean;
+  /** Title of the blocker with the earliest deadline. */
+  waitsFor: string | null;
+  notAccepted: boolean;
   dependsOn: string[];
   children: TimelineBar[];
 };
@@ -120,9 +131,32 @@ export function computeTimeline(
     const start = startOf(t);
     const marker = start > t.deadline;
     const from = marker ? t.deadline : start;
+    const open = !t.obsolete && t.status !== "done";
+    const blockers = open
+      ? t.dependsOn.flatMap((d) => {
+          const dep = byId.get(d);
+          return dep && !dep.obsolete && dep.status !== "done" ? [dep] : [];
+        })
+      : [];
+    const overdueDays = open ? Math.max(0, dayNumber(today) - dayNumber(t.deadline)) : 0;
     return {
       id: t.id,
       title: t.title,
+      status: t.obsolete
+        ? "obsolete"
+        : t.status === "done"
+          ? "done"
+          : overdueDays > 0
+            ? "overdue"
+            : t.status === "waiting_external"
+              ? "waiting"
+              : t.status === "in_progress"
+                ? "inProgress"
+                : "notStarted",
+      overdueDays,
+      blocked: blockers.length > 0,
+      waitsFor: blockers.sort(compare)[0]?.title ?? null,
+      notAccepted: open && t.delegated && !t.accepted,
       start: from,
       end: t.deadline,
       days: Math.max(1, dayNumber(t.deadline) - dayNumber(from) + 1),
@@ -205,7 +239,7 @@ export async function loadTimelineInput(
     supabase
       .from("tasks")
       .select(
-        "id, role_id, parent_task_id, title, deadline, created_at, lifecycle, obsolete, task_dependencies!task_dependencies_task_id_fkey(depends_on_id)",
+        "id, role_id, parent_task_id, title, deadline, created_at, lifecycle, obsolete, status, owner_user_id, accepted_at, task_dependencies!task_dependencies_task_id_fkey(depends_on_id)",
       )
       .eq("event_id", eventId)
       .eq("lifecycle", "active"),
@@ -233,10 +267,19 @@ export async function loadTimelineInput(
             createdAt: t.created_at,
             lifecycle: t.lifecycle,
             obsolete: t.obsolete,
+            status: t.status,
+            delegated: t.owner_user_id !== null,
+            accepted: t.accepted_at !== null,
             dependsOn: t.task_dependencies.map((d) => d.depends_on_id),
           },
         ]
       : [],
   );
-  return { roles, tasks };
+  const canCreate =
+    isOrganizer ||
+    rolesResult.data.some(
+      (r) =>
+        r.active && r.role_members.some((m) => m.user_id === viewerId && m.is_lead && m.joined_at),
+    );
+  return { roles, tasks, canCreate };
 }
