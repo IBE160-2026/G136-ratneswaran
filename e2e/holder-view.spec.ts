@@ -38,7 +38,7 @@ test("a joined Role-holder sees the Team, a trimmed sidebar and no Organizer pag
 
   const nav = page.getByRole("navigation", { name: "Main" }).first();
   await expect(nav.getByRole("link", { name: "My tasks" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Overview" })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: "Dashboard" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Team & Roles" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "All events" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Guests" })).toHaveCount(0);
