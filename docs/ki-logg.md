@@ -464,3 +464,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere ga 34 funn. Rettet: Rollene sorteres etter `roleKeys`, notatet er siste ikke-fjernede notat (som kontrakten sier), `loadListed` er bufret med `cache()` så siden laster én gang, Rollenavn for skjermlesere, `break-words` på notatet, tom linje uten aktive Roller, og e2e for fjernet notat, notatrekkefølge og «Invited · not joined yet». Avvist med begrunnelse: emoji-kutt i notatet, uavgrenset historikk-spørring, manglende tester for avlyste Events og norsk språk, og at gjestelinjen er skjult for holdere (RLS).
 **Min vurdering:** NIL
 **Spor:** branch `feat/5.3-dashboard-at-risk-and-on-track`
+
+## 2026-11-06 — Story 5.4: Dashboard housekeeping
+
+**Prompt:** `/bmad-build-auto på story 5.4`, kun Core. Spec-en `spec-5-4-dashboard-housekeeping.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Bare tester, ingen ny produksjonskode. Publiseringsbanneret (Story 2.8) og holderens landing på Dashboardet (Story 5.2) finnes fra før. Join-testen i `e2e/invite-join.spec.ts` dekker nå join → Dashboard → egen forfalt Task først → *My tasks* i sidemenyen → *Accept task*. `e2e/dashboard.spec.ts` har en ny test av at en avlyst Event ikke har Publish, banner eller knapper.
+**Valg som må forklares:** *Show dismissed* og *Restore* ble utelatt fordi Story 4.14-funksjonen (Target) ikke finnes. «Your invitation»-sporet gjør ingenting før Epic 7, siden historien bare reserverer plassen. Rolle-fjernet-toasten og omdirigeringen ble ikke bygget: Story 3.9 flyttet dem til Story 3.10 etter eiers beslutning 2026-10-28, så akseptkriteriet «still apply» stemmer ikke med koden. En fjernet person får no-access-siden.
+**Review:** Fire uavhengige reviewere ga 18 funn, ingen medium eller høyere. Rettet: bannerteksten er sjekket borte på avlyst Event, antall rader i *Needs you* er sjekket (2), og *Accept task* er sjekket borte etter aksept. Utsatt: rolle-fjernet-toasten (Story 3.10). Avvist med begrunnelse: at testen bare dekker en aldri publisert avlyst Event (det er det eneste tilfellet `isDraft` kunne feile på), skjøre locatorer, og manglende test av dobbel aksept (Story 4.6).
+**Min vurdering:** NIL
+**Spor:** branch `feat/5.4-dashboard-housekeeping`
