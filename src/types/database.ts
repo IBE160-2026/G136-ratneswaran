@@ -313,14 +313,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "accepted_at": string | null,"confirmed_at": string | null,"created_by": string | null,"days_before": number | null,"deadline": string | null,"delegated_at": string | null,"description": string | null,"event_id": string,"guest_label": string | null,"guest_time": string | null,"id": string,"lifecycle": string,"obsolete": boolean,"owner_user_id": string | null,"parent_task_id": string | null,"role_id": string,"show_on_guest_program": boolean,"status": string,"title": string,"updated_at": string
+                    "accepted_at": string | null,"confirmed_at": string | null,"created_at": string,"created_by": string | null,"days_before": number | null,"deadline": string | null,"delegated_at": string | null,"description": string | null,"event_id": string,"guest_label": string | null,"guest_time": string | null,"id": string,"lifecycle": string,"obsolete": boolean,"owner_user_id": string | null,"parent_task_id": string | null,"role_id": string,"show_on_guest_program": boolean,"status": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id": string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"parent_task_id"?: string | null,"role_id": string,"show_on_guest_program"?: boolean,"status"?: string,"title": string,"updated_at"?: string
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id": string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"parent_task_id"?: string | null,"role_id": string,"show_on_guest_program"?: boolean,"status"?: string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id"?: string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"parent_task_id"?: string | null,"role_id"?: string,"show_on_guest_program"?: boolean,"status"?: string,"title"?: string,"updated_at"?: string
+                    "accepted_at"?: string | null,"confirmed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"days_before"?: number | null,"deadline"?: string | null,"delegated_at"?: string | null,"description"?: string | null,"event_id"?: string,"guest_label"?: string | null,"guest_time"?: string | null,"id"?: string,"lifecycle"?: string,"obsolete"?: boolean,"owner_user_id"?: string | null,"parent_task_id"?: string | null,"role_id"?: string,"show_on_guest_program"?: boolean,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
