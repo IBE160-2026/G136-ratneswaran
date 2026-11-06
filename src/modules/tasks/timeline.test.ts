@@ -134,6 +134,14 @@ describe("computeTimeline", () => {
     expect(hidden.lanes[0].tasks[0].start).toBe("2026-12-08");
   });
 
+  it("drops a hidden obsolete dependency from dependsOn but keeps it in the start", () => {
+    const t = run([
+      task("o", { obsolete: true, deadline: "2026-12-08" }),
+      task("n", { dependsOn: ["o"], deadline: "2026-12-12" }),
+    ]);
+    expect(t.lanes[0].tasks[0]).toMatchObject({ id: "n", dependsOn: [], start: "2026-12-08" });
+  });
+
   it("marks Decision points", () => {
     const t = run([
       task("a", { decision: "open" }),
@@ -183,6 +191,50 @@ describe("eventToday", () => {
   });
 });
 
+describe("loadTimelineInput lanes", () => {
+  const member = (user_id: string, joined_at: string | null, is_lead = false) => ({
+    user_id,
+    name: user_id,
+    is_lead,
+    joined_at,
+  });
+  const load = (roles: unknown[], tasks: unknown[], viewer: string, organizer: boolean) => {
+    const query = (data: unknown) => {
+      const q = { eq: () => q, then: (f: (v: unknown) => unknown) => f({ data, error: null }) };
+      return { select: () => q };
+    };
+    const from = (table: string) => query(table === "roles" ? roles : tasks);
+    return loadTimelineInput({ from } as never, "e1", viewer, organizer);
+  };
+
+  it("marks readability and pending holders, and sorts Roles in roleKeys order", async () => {
+    const roles = [
+      { id: "b", key: "guests", active: true, role_members: [member("u", null)] },
+      { id: "a", key: "venue", active: true, role_members: [member("u", "x")] },
+      { id: "c", key: "program", active: true, role_members: [] },
+    ];
+    const keys = (await load(roles, [], "u", false)).roles;
+    expect(keys.map((r) => r.key)).toEqual(["venue", "guests", "program"]);
+    expect(keys.map((r) => r.readable)).toEqual([true, false, false]);
+    expect(keys[1].holders).toEqual([{ name: "u", pending: true }]);
+    expect((await load(roles, [], "other", true)).roles.every((r) => r.readable)).toBe(true);
+  });
+
+  it("drops a Task without a deadline", async () => {
+    const t = {
+      id: "t",
+      role_id: "a",
+      parent_task_id: null,
+      title: "x",
+      deadline: null,
+      created_at: "x",
+      lifecycle: "active",
+      obsolete: false,
+      task_dependencies: [],
+    };
+    expect((await load([], [t], "u", true)).tasks).toEqual([]);
+  });
+});
 describe("loadTimelineInput", () => {
   it("runs exactly two queries for 300 Tasks", async () => {
     const query = (data: unknown) => {
