@@ -33,7 +33,21 @@ function seed(email: string, { name, starts, published = false, cancelled = fals
 }
 
 const card = (page: Page, name: string) =>
-  page.getByRole("link", { name: new RegExp(`^${name} `) });
+  page.getByRole("link", { name: new RegExp(`^${name}[ ,]`) });
+
+/** Seeds one active Role and Tasks owned by the Organizer: `accepted` false leaves a Task unaccepted. */
+function seedTasks(
+  eventId: string,
+  tasks: { accepted: boolean; deadline: string; status?: string }[],
+) {
+  psql(`insert into public.roles (event_id, key, active) values ('${eventId}', 'venue', true)`);
+  for (const t of tasks) {
+    psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id, accepted_at, status)
+      select e.id, r.id, 'Task', ${t.deadline}, e.organizer_id, ${t.accepted ? "now()" : "null"},
+        '${t.status ?? "not_started"}'
+      from public.events e join public.roles r on r.event_id = e.id where e.id = '${eventId}'`);
+  }
+}
 
 test("cards sort by date, Create is last, and past and cancelled Events sit under Past events", async ({
   page,
@@ -57,7 +71,9 @@ test("cards sort by date, Create is last, and past and cancelled Events sit unde
     /^Plan C/,
     /Create new event/,
   ]);
-  await expect(card(page, "Book club")).toHaveAccessibleName(/^Book club \S.* · Organizer$/);
+  await expect(card(page, "Book club")).toHaveAccessibleName(
+    /^Book club, \S.*, Organizer, 0 open tasks$/,
+  );
   await expect(card(page, "Plan B")).toHaveAccessibleName(
     "Plan B Organizer Draft · continue setup",
   );
@@ -155,6 +171,56 @@ test("another user's or an unknown Event shows no access and no data", async ({
     ).toBeVisible();
     await expect(page.getByText("Secret plans")).toHaveCount(0);
   }
+});
+
+test("a published card shows its counts, a cancelled one none", async ({ page, request }) => {
+  const email = await signedIn(page, request);
+  const live = seed(email, { name: "Book club", starts: "7 days", published: true });
+  seedTasks(live, [
+    { accepted: true, deadline: "current_date - 2" },
+    { accepted: false, deadline: "current_date + 5" },
+    { accepted: true, deadline: "current_date + 5" },
+  ]);
+  const off = seed(email, {
+    name: "Called off",
+    starts: "60 days",
+    published: true,
+    cancelled: true,
+  });
+  seedTasks(off, [{ accepted: false, deadline: "current_date + 5" }]);
+  await page.goto("/events");
+
+  await expect(card(page, "Book club")).toHaveAccessibleName(
+    /^Book club, \S.*, Organizer, 3 open tasks, 1 overdue, 1 new task$/,
+  );
+  await expect(card(page, "Book club")).toContainText("1 overdue");
+  await expect(card(page, "Book club")).toContainText("1 new");
+  await page.getByText("Past events (1)").click();
+  await expect(card(page, "Called off")).not.toContainText("new");
+  await expect(card(page, "Called off")).not.toHaveAccessibleName(/open task/);
+});
+
+test("a card says 'need you' for a Task not yet accepted and 'at risk' for one waiting", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const need = seed(email, { name: "Need club", starts: "7 days", published: true });
+  seedTasks(need, [{ accepted: false, deadline: "current_date + 5" }]);
+  const risk = seed(email, { name: "Risk club", starts: "8 days", published: true });
+  seedTasks(risk, [{ accepted: true, deadline: "current_date + 5", status: "waiting_external" }]);
+  await page.goto("/events");
+
+  await expect(card(page, "Need club")).toHaveAccessibleName(
+    /^Need club, \S.*, Organizer, 1 open task, 1 need you, 1 new task$/,
+  );
+  await expect(card(page, "Need club")).toContainText("1 need you");
+  await expect(card(page, "Need club")).not.toContainText("at risk");
+  await expect(card(page, "Risk club")).toHaveAccessibleName(
+    /^Risk club, \S.*, Organizer, 1 open task, 1 at risk$/,
+  );
+  await expect(card(page, "Risk club")).toContainText("1 at risk");
+  await expect(card(page, "Risk club")).not.toContainText("need you");
 });
 
 test("on a phone the menu closes on navigation and focus moves to the h1", async ({
