@@ -82,11 +82,9 @@ export function AppNav({
       {/* The event group: only the items that exist so far. Later epics add theirs here. */}
       {eventId && (
         <>
-          {organizer && (
-            <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
-              {t("overview")}
-            </NavLink>
-          )}
+          <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
+            {t("dashboard")}
+          </NavLink>
           {organizer && (
             <NavLink href={`${eventPath(eventId)}/guests`} icon={Contact} onNavigate={onNavigate}>
               {t("guests")}

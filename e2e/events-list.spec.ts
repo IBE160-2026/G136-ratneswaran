@@ -93,9 +93,12 @@ test("a published card opens the Event home, and the event group reaches the que
   await expect(page).toHaveURL(new RegExp(`/events/${id}$`));
   await expect(page.getByRole("heading", { level: 1, name: "Book club" })).toBeVisible();
   await expect(page.getByText("Published", { exact: true })).toBeVisible();
-  await expect(page).toHaveTitle("Overview – Book club – Arrangly");
+  await expect(page).toHaveTitle("Dashboard – Book club – Arrangly");
   const nav = page.getByRole("navigation", { name: "Main" });
-  await expect(nav.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
   await nav.getByRole("link", { name: "Questionnaire" }).click();
   await expect(page).toHaveURL(new RegExp(`/events/${id}/setup$`));
 });

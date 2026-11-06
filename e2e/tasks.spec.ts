@@ -471,7 +471,7 @@ test("the Organizer sees Delegated to, the accepted signal and the days a Task h
   await expect(page.getByText("Not yet accepted · 3 days")).toBeVisible();
 });
 
-test("a joined holder lands on My tasks, sees only their own Tasks, the Team and an Urgent badge", async ({
+test("a joined holder opens My tasks, sees only their own Tasks, the Team and an Urgent badge", async ({
   page,
   request,
 }) => {
@@ -520,8 +520,7 @@ test("a joined holder lands on My tasks, sees only their own Tasks, the Team and
   task("Obsolete overdue", "venue", -3, "holder", { obsolete: "true", ...accepted });
   task("Other role pending", "guests", 4, null);
 
-  await page.goto(`/events/${id}`);
-  await expect(page).toHaveURL(`/events/${id}/my-tasks`);
+  await page.goto(`/events/${id}/my-tasks`);
   await expect(page.getByRole("heading", { level: 1, name: "My tasks" })).toBeVisible();
   const rows = page
     .getByRole("main")

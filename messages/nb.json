@@ -10,7 +10,7 @@
     "allEvents": "Alle arrangementer",
     "privacy": "Personvernerklæring",
     "closeMenu": "Lukk menyen",
-    "overview": "Oversikt",
+    "dashboard": "Dashbord",
     "guests": "Gjester",
     "questionnaire": "Spørsmål",
     "team": "Team og roller",
@@ -23,6 +23,10 @@
     "surface": "Hjem",
     "title": "Arrangly",
     "tagline": "Planlegg dagen. Vi holder styr på resten."
+  },
+  "dashboard": {
+    "needsYou": "Trenger deg",
+    "needsYouEmpty": "Ingenting trenger deg akkurat nå."
   },
   "status": {
     "decision": "Trenger din beslutning",
@@ -202,7 +206,7 @@
     "noAccess": "Du har ikke tilgang til denne delen av arrangementet.",
     "noAccessHint": "Spør arrangøren hvis du trenger det.",
     "home": {
-      "surface": "Oversikt",
+      "surface": "Dashbord",
       "draft": "Utkast",
       "published": "Publisert",
       "publishedStatus": "Arrangementet er publisert. Gjestene er ikke invitert ennå."
