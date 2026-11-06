@@ -1,9 +1,11 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { StatusLabel } from "@/components/status-label";
 import { getClaims } from "@/lib/supabase/server";
-import { eventDateFormat, eventPath, isDraft, missingForPublish } from "@/modules/events/list";
+import { eventDateFormat, isDraft, missingForPublish } from "@/modules/events/list";
 import { loadEvent } from "./load-event";
+import { NeedsYou, NeedsYouSkeleton } from "./needs-you";
 import { PublishBanner } from "./publish-dialog";
 
 type Props = {
@@ -13,22 +15,20 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   if (!(await getClaims())) return { title: "Arrangly" };
-  const t = await getTranslations("events");
+  const t = await getTranslations();
   const event = await loadEvent((await params).eventId);
   return {
-    title: `${t("home.surface")} – ${event.name ?? t("draft.untitled")} – Arrangly`,
+    title: `${t("events.home.surface")} – ${event.name ?? t("events.draft.untitled")} – Arrangly`,
   };
 }
 
-// Interim Event home: Epic 5's Dashboard replaces it as the landing page.
+// The Dashboard: the Event landing page for the Organizer and every joined Role-holder.
 export default async function EventHomePage({ params, searchParams }: Props) {
   const { eventId } = await params;
   const { published } = await searchParams;
   const claims = await getClaims();
   if (!claims) redirect(`/login?next=/events/${eventId}`);
   const event = await loadEvent(eventId);
-  // A joined Role-holder works from My tasks; the Organizer keeps this home.
-  if (event.organizer_id !== claims.sub) redirect(`${eventPath(eventId)}/my-tasks`);
   const t = await getTranslations("events");
   const format = await getFormatter();
   return (
@@ -54,6 +54,11 @@ export default async function EventHomePage({ params, searchParams }: Props) {
       {isDraft(event) && event.organizer_id === claims.sub && (
         <PublishBanner eventId={eventId} missing={missingForPublish(event)} />
       )}
+      <div className="mt-6">
+        <Suspense fallback={<NeedsYouSkeleton />}>
+          <NeedsYou event={event} viewerId={claims.sub} />
+        </Suspense>
+      </div>
     </div>
   );
 }

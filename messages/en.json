@@ -10,7 +10,7 @@
     "allEvents": "All events",
     "privacy": "Privacy notice",
     "closeMenu": "Close menu",
-    "overview": "Overview",
+    "dashboard": "Dashboard",
     "guests": "Guests",
     "questionnaire": "Questionnaire",
     "team": "Team & Roles",
@@ -23,6 +23,10 @@
     "surface": "Home",
     "title": "Arrangly",
     "tagline": "Plan the day. We keep track of the rest."
+  },
+  "dashboard": {
+    "needsYou": "Needs you",
+    "needsYouEmpty": "Nothing needs you right now."
   },
   "status": {
     "decision": "Needs your decision",
@@ -202,7 +206,7 @@
     "noAccess": "You don't have access to this part of the event.",
     "noAccessHint": "Ask the Organizer if you need it.",
     "home": {
-      "surface": "Overview",
+      "surface": "Dashboard",
       "draft": "Draft",
       "published": "Published",
       "publishedStatus": "Your event is published. Guests aren't invited yet."
