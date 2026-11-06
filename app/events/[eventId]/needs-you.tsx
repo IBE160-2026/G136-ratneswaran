@@ -12,7 +12,7 @@ export async function NeedsYou({
   viewerId: string;
 }) {
   const t = await getTranslations("dashboard");
-  const { listed, leadRoleIds } = await loadListed(event, viewerId);
+  const { listed, leadRoleIds } = await loadListed(event, viewerId, true);
   const { needsYou } = classifyDashboard(
     listed.map((x) => x.dash),
     { id: viewerId, isOrganizer: event.organizer_id === viewerId, leadRoleIds },

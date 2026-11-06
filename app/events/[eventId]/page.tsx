@@ -5,7 +5,9 @@ import { StatusLabel } from "@/components/status-label";
 import { getClaims } from "@/lib/supabase/server";
 import { eventDateFormat, isDraft, missingForPublish } from "@/modules/events/list";
 import { loadEvent } from "./load-event";
+import { AtRisk, AtRiskSkeleton } from "./at-risk";
 import { NeedsYou, NeedsYouSkeleton } from "./needs-you";
+import { OnTrack, OnTrackSkeleton } from "./on-track";
 import { PublishBanner } from "./publish-dialog";
 
 type Props = {
@@ -54,9 +56,15 @@ export default async function EventHomePage({ params, searchParams }: Props) {
       {isDraft(event) && event.organizer_id === claims.sub && (
         <PublishBanner eventId={eventId} missing={missingForPublish(event)} />
       )}
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-8">
         <Suspense fallback={<NeedsYouSkeleton />}>
           <NeedsYou event={event} viewerId={claims.sub} />
+        </Suspense>
+        <Suspense fallback={<AtRiskSkeleton />}>
+          <AtRisk event={event} viewerId={claims.sub} />
+        </Suspense>
+        <Suspense fallback={<OnTrackSkeleton />}>
+          <OnTrack event={event} viewerId={claims.sub} />
         </Suspense>
       </div>
     </div>
