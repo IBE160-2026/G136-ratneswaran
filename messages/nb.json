@@ -26,7 +26,17 @@
   },
   "dashboard": {
     "needsYou": "Trenger deg",
-    "needsYouEmpty": "Ingenting trenger deg akkurat nå."
+    "needsYouEmpty": "Ingenting trenger deg akkurat nå.",
+    "atRisk": "I faresonen",
+    "atRiskEmpty": "Ingenting er i faresonen akkurat nå.",
+    "onTrack": "På sporet",
+    "done": "{count} ferdig",
+    "open": "{count} åpne",
+    "overdue": "{count} forfalt",
+    "unreadable": "Oppgaver i {role} er synlige for teamet.",
+    "guestsAdded": "{count, plural, one {# gjest lagt til} other {# gjester lagt til}}",
+    "inactiveRoleTasks": "{count, plural, one {# oppgave hører til en inaktiv rolle} other {# oppgaver hører til inaktive roller}}",
+    "onTrackEmpty": "Ingen aktive roller ennå."
   },
   "status": {
     "decision": "Trenger din beslutning",

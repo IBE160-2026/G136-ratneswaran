@@ -31,3 +31,5 @@
 - [ ] 2026-11-05 [story-5-1-dashboard-sections-and-scope](989-2026-11-05-22-45-00-story-5-1-dashboard-sections-and-scope.md) — vurder refleksjonsnotat om gjest-stand-in og `anon`-feil i task_state-testen
 - [ ] 2026-11-06 [story-5-2-dashboard-needs-you](988-2026-11-06-05-39-38-story-5-2-dashboard-needs-you.md) — push feat/5.2, åpne PR med `Closes #100` og post review-triage fra `out/pr-comment.md`
 - [ ] 2026-11-06 [story-5-2-dashboard-needs-you](988-2026-11-06-05-39-38-story-5-2-dashboard-needs-you.md) — `concurrent_edit`-toast og dobbeltklikkvern på Proposed-rader i Needs you (Stories 4.13-4.14)
+- [ ] 2026-11-06 [story-5-3](987-2026-11-06-06-50-12-story-5-3-dashboard-at-risk-and-on-track.md) — ny review-runde anbefalt: `cache()` i `loadListed` avhenger av at `loadEvent` gir samme objekt per forespørsel
+- [ ] 2026-11-06 [story-5-3](987-2026-11-06-06-50-12-story-5-3-dashboard-at-risk-and-on-track.md) — Retry-kort ved lastefeil og 375px-layout for At risk/On track er ikke testet

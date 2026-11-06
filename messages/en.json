@@ -26,7 +26,17 @@
   },
   "dashboard": {
     "needsYou": "Needs you",
-    "needsYouEmpty": "Nothing needs you right now."
+    "needsYouEmpty": "Nothing needs you right now.",
+    "atRisk": "At risk",
+    "atRiskEmpty": "Nothing is at risk right now.",
+    "onTrack": "On track",
+    "done": "{count} done",
+    "open": "{count} open",
+    "overdue": "{count} overdue",
+    "unreadable": "Tasks in {role} are visible to its team.",
+    "guestsAdded": "{count, plural, one {# guest added} other {# guests added}}",
+    "inactiveRoleTasks": "{count, plural, one {# task belongs to an inactive Role} other {# tasks belong to inactive Roles}}",
+    "onTrackEmpty": "No active Roles yet."
   },
   "status": {
     "decision": "Needs your decision",

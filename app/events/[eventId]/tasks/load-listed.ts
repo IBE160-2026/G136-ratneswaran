@@ -1,10 +1,16 @@
 import { getTranslations } from "next-intl/server";
+import { cache } from "react";
+import { roleKeys } from "@/modules/events/roles";
 import { createClient } from "@/lib/supabase/server";
 import type { DashboardTask } from "@/modules/tasks/dashboard";
 import { daysSince, type ListedTask } from "./task-row";
 
 /** Active Tasks of the Event as the viewer's session and RLS return them, mapped once for My tasks and the Dashboard. */
-export async function loadListed(event: { id: string; organizer_id: string }, viewerId: string) {
+export const loadListed = cache(async function loadListed(
+  event: { id: string; organizer_id: string },
+  viewerId: string,
+  notes = false,
+) {
   const eventId = event.id;
   const t = await getTranslations();
   const supabase = await createClient();
@@ -30,6 +36,25 @@ export async function loadListed(event: { id: string; organizer_id: string }, vi
   ]);
   if (tasksResult.error || rolesResult.error || stateResult.error || namesResult.error) {
     throw new Error("Could not load tasks");
+  }
+  // The latest live note (not removed) among the moves into Waiting on external.
+  const externalNotes = new Map<string, string | null>();
+  const waitingIds = tasksResult.data
+    .filter((x) => x.status === "waiting_external")
+    .map((x) => x.id);
+  if (notes && waitingIds.length > 0) {
+    const history = await supabase
+      .from("status_history")
+      .select("task_id, note, note_removed_at")
+      .in("task_id", waitingIds)
+      .eq("to_status", "waiting_external")
+      .order("created_at", { ascending: false });
+    if (history.error) throw new Error("Could not load tasks");
+    for (const h of history.data) {
+      if (h.note && !h.note_removed_at && !externalNotes.has(h.task_id)) {
+        externalNotes.set(h.task_id, h.note);
+      }
+    }
   }
   const organizer = event.organizer_id === viewerId;
   const roleName = new Map(rolesResult.data.map((r) => [r.id, t(`events.roles.${r.key}.name`)]));
@@ -70,6 +95,7 @@ export async function loadListed(event: { id: string; organizer_id: string }, vi
           : null,
       overdueDays: state?.overdue_days ?? null,
       subtasks: subtaskCount.get(task.id) ?? 0,
+      externalNote: externalNotes.get(task.id) ?? null,
     };
     const dash: DashboardTask = {
       id: task.id,
@@ -88,5 +114,11 @@ export async function loadListed(event: { id: string; organizer_id: string }, vi
     };
     return { row, dash, obsolete: dash.obsolete, pending: state?.is_pending === true };
   });
-  return { listed, leadRoleIds };
-}
+  const memberRoleIds = namesResult.data
+    .filter((m) => m.user_id === viewerId && m.joined_at)
+    .map((m) => m.role_id);
+  const roles = rolesResult.data
+    .map((r) => ({ ...r, name: roleName.get(r.id) ?? "" }))
+    .toSorted((a, b) => roleKeys.indexOf(a.key) - roleKeys.indexOf(b.key));
+  return { listed, leadRoleIds, memberRoleIds, roles, members: namesResult.data };
+});

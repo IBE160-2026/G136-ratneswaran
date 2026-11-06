@@ -22,13 +22,9 @@ export type DashboardRow = DashboardTask & {
   staleDays: boolean;
 };
 
-export type RoleSummary = { roleId: string; done: number; open: number; overdue: number };
-
 export type Dashboard = {
   needsYou: DashboardRow[];
   atRisk: DashboardRow[];
-  onTrack: RoleSummary[];
-  onTrackCount: number;
   inactiveRoleTasks: number;
 };
 
@@ -79,23 +75,44 @@ export function classifyDashboard(tasks: DashboardTask[], viewer: DashboardViewe
     ...rest.filter((t) => t.status === "waiting_external").toSorted(byDeadline),
     ...rest.filter((t) => t.status !== "waiting_external" && t.blocked).toSorted(byDeadline),
   ].map(row);
-  const riskIds = new Set(atRisk.map((t) => t.id));
-
-  const summaries = new Map<string, RoleSummary>();
-  const onTrackTasks = listed.filter((t) => !seen.has(t.id) && !riskIds.has(t.id));
-  for (const t of onTrackTasks) {
-    const s = summaries.get(t.roleId) ?? { roleId: t.roleId, done: 0, open: 0, overdue: 0 };
-    if (t.status === "done") s.done++;
-    else s.open++;
-    if (t.overdue) s.overdue++;
-    summaries.set(t.roleId, s);
-  }
 
   return {
     needsYou,
     atRisk,
-    onTrack: [...summaries.values()],
-    onTrackCount: onTrackTasks.length,
     inactiveRoleTasks,
   };
+}
+
+export type RoleSummary = {
+  roleId: string;
+  readable: boolean;
+  done: number;
+  open: number;
+  overdue: number;
+};
+
+/**
+ * One summary per active Role, in the order given. Counts cover every live Task of a Role the viewer
+ * can read (the Organizer, or a joined holder), not only those left after Needs you and At risk.
+ */
+export function summarizeRoles(
+  tasks: DashboardTask[],
+  roles: { id: string; active: boolean }[],
+  viewer: { isOrganizer: boolean; memberRoleIds: string[] },
+): RoleSummary[] {
+  const live = tasks.filter((t) => t.lifecycle === "active" && !t.obsolete);
+  return roles
+    .filter((r) => r.active)
+    .map((r) => {
+      const readable = viewer.isOrganizer || viewer.memberRoleIds.includes(r.id);
+      const mine = readable ? live.filter((t) => t.roleId === r.id) : [];
+      const done = mine.filter((t) => t.status === "done").length;
+      return {
+        roleId: r.id,
+        readable,
+        done,
+        open: mine.length - done,
+        overdue: mine.filter((t) => t.status !== "done" && t.overdue).length,
+      };
+    });
 }

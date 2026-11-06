@@ -455,3 +455,12 @@ Storyen løser utsettelsen fra Story 4.6: en tilbakekalt eier som beholdt en Tas
 Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste kriterium ble lagt til.
 **Min vurdering:** NIL
 **Spor:** branch `feat/5.2-dashboard-needs-you`
+
+## 2026-11-06 — Story 5.3: Dashboard: I faresonen og På sporet
+
+**Prompt:** `/bmad-build-auto på story 5.3`. Spec-en `spec-5-3-dashboard-at-risk-and-on-track.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Seksjonene *At risk* (teller, ventende og blokkerte rader, notatutdrag på 80 tegn) og *On track* (én rad per aktiv Rolle med leder, holdere, antall ferdige, åpne og forfalte, og lenke til Tasks) under *Needs you*. Den rene funksjonen `summarizeRoles` erstattet On track-delen av `classifyDashboard`. Organizer ser «N guests added» og «N tasks belong to inactive Roles». Ingen migrasjon.
+**Valg som må forklares:** Tellerne omfatter alle Tasks i en lesbar Rolle, ikke bare de som er igjen etter *Needs you* og *At risk*, ellers ville forfalte Tasks falle ut av Rollens forfalt-tall. En Rolle er lesbar bare for Organizer og innmeldte holdere, ellers vises «Tasks in {Role} are visible to its team.» uten tall. Gjestelinjen er bare for Organizer fordi `guests_select` er Organizer-only. Rekkefølgen venter-ekstern før blokkert følger epic-konteksten.
+**Review:** Fire uavhengige reviewere ga 34 funn. Rettet: Rollene sorteres etter `roleKeys`, notatet er siste ikke-fjernede notat (som kontrakten sier), `loadListed` er bufret med `cache()` så siden laster én gang, Rollenavn for skjermlesere, `break-words` på notatet, tom linje uten aktive Roller, og e2e for fjernet notat, notatrekkefølge og «Invited · not joined yet». Avvist med begrunnelse: emoji-kutt i notatet, uavgrenset historikk-spørring, manglende tester for avlyste Events og norsk språk, og at gjestelinjen er skjult for holdere (RLS).
+**Min vurdering:** NIL
+**Spor:** branch `feat/5.3-dashboard-at-risk-and-on-track`
