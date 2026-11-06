@@ -29,3 +29,5 @@
 - [ ] 2026-11-05 [story-4-9-my-tasks](990-2026-11-05-21-55-00-story-4-9-my-tasks.md) — push og PR for `chore/ask-before-pull-and-pr` (delt settings.json) hvis den skal inn
 - [ ] 2026-11-05 [story-5-1-dashboard-sections-and-scope](989-2026-11-05-22-45-00-story-5-1-dashboard-sections-and-scope.md) — push feat/5.1, åpne PR med `Closes #98` og post review-triage som PR-kommentar
 - [ ] 2026-11-05 [story-5-1-dashboard-sections-and-scope](989-2026-11-05-22-45-00-story-5-1-dashboard-sections-and-scope.md) — vurder refleksjonsnotat om gjest-stand-in og `anon`-feil i task_state-testen
+- [ ] 2026-11-06 [story-5-2-dashboard-needs-you](988-2026-11-06-05-39-38-story-5-2-dashboard-needs-you.md) — push feat/5.2, åpne PR med `Closes #100` og post review-triage fra `out/pr-comment.md`
+- [ ] 2026-11-06 [story-5-2-dashboard-needs-you](988-2026-11-06-05-39-38-story-5-2-dashboard-needs-you.md) — `concurrent_edit`-toast og dobbeltklikkvern på Proposed-rader i Needs you (Stories 4.13-4.14)
