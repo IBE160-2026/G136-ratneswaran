@@ -41,3 +41,5 @@
 - [ ] 2026-11-06 [story-5-5](985-2026-11-06-16-39-00-story-5-5-event-cards-show-state.md) — leder ser «0 open tasks» sammen med «N overdue» (Åpne = egne Tasks per AC); eier kan vurdere
 - [ ] 2026-11-06 [story-5-5](985-2026-11-06-16-39-00-story-5-5-event-cards-show-state.md) — beslutningstall på kort (Target 4.8+) og gjest-RSVP på kort (Epic 7) er ikke bygget
 - [ ] 2026-11-06 [story-5-5](985-2026-11-06-16-39-00-story-5-5-event-cards-show-state.md) — push feat/5.5, åpne PR med `Closes #106` og post triage fra `out/pr-comment.md`
+- [ ] 2026-11-06 [story-5-6](984-2026-11-06-20-45-00-story-5-6-timeline-computation.md) — vurder refleksjonsnotat: `tasks.created_at` fantes ikke og ble lagt til
+- [ ] 2026-11-06 [story-5-6](984-2026-11-06-20-45-00-story-5-6-timeline-computation.md) — beslutningspunkter i tidslinjen venter på Story 4.8 (Target); loader testet bare mot mock til 5.7
