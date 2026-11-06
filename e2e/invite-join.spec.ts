@@ -75,9 +75,23 @@ test("a new invitee verifies a code, sets a password and lands on the Event", as
   psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id, delegated_at)
     select event_id, role_id, 'Welcome the first guests', current_date + 3, user_id, now()
     from public.role_members where event_id = '${id}' and name = 'Ola Nordmann'`);
+  psql(`insert into public.tasks (event_id, role_id, title, deadline, owner_user_id, delegated_at)
+    select event_id, role_id, 'Unlock the hall', current_date - 2, user_id, now()
+    from public.role_members where event_id = '${id}' and name = 'Ola Nordmann'`);
   await guest.goto(`/events/${id}`);
   await expect(guest).toHaveURL(`http://localhost:3000/events/${id}`);
-  await expect(guest.getByRole("link", { name: /Welcome the first guests/ })).toBeVisible();
+  const rows = guest.getByRole("region", { name: /^Needs you/ }).getByRole("link");
+  await expect(rows).toHaveCount(2);
+  await expect(rows.first()).toContainText("Unlock the hall");
+  await expect(rows.last()).toContainText("Welcome the first guests");
+  await expect(
+    guest.getByRole("navigation", { name: "Main" }).first().getByRole("link", { name: "My tasks" }),
+  ).toBeVisible();
+  await rows.first().click();
+  await guest.getByRole("button", { name: "Accept task" }).click();
+  await expect(guest.getByText("Task accepted.")).toBeVisible();
+  await expect(guest.getByRole("button", { name: "Accept task" })).toHaveCount(0);
+  await guest.goto(`/events/${id}`);
   await expect(guest.getByText("Only your team can see this event.")).toHaveCount(0);
   await expect(guest.getByRole("button", { name: "Publish" })).toHaveCount(0);
   expect(users(email)).toBe("1");

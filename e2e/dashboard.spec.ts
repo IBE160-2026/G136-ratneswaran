@@ -214,6 +214,23 @@ test("nothing at risk shows the quiet line", async ({ page, request }) => {
   await expect(page.getByText(/inactive Role/)).toHaveCount(0);
 });
 
+test("a cancelled Event's Dashboard is read-only: no Publish, banner or action buttons", async ({
+  page,
+  request,
+}) => {
+  const organizer = await signedIn(page, request);
+  const { id, task } = setup(organizer, null);
+  task("Late permit", -5, null);
+  psql(`update public.events set published_at = null, cancelled_at = now() where id = '${id}'`);
+
+  await page.goto(`/events/${id}`);
+  await expect(page.getByText("Cancelled", { exact: true })).toBeVisible();
+  await expect(page.getByText("Only your team can see this event.")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Publish" })).toHaveCount(0);
+  await expect(page.getByRole("main").getByRole("button")).toHaveCount(0);
+  await expect(needsYou(page).first()).toContainText("Late permit");
+});
+
 test("a holder of another Role sees an unreadable row, no foreign title and no organizer lines", async ({
   page,
   request,
