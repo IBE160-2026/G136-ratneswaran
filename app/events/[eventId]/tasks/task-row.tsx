@@ -20,6 +20,7 @@ export type ListedTask = {
   blocks: number;
   overdueDays: number | null;
   subtasks: number;
+  externalNote?: string | null;
 };
 
 /** Deadlines are calendar dates, so they format in UTC and never shift a day. */
@@ -69,6 +70,14 @@ export function TaskRow({ eventId, task }: { eventId: string; task: ListedTask }
         <span className={`${entry.tone} inline-flex items-center gap-1.5 text-subhead`}>
           <StatusIcon aria-hidden strokeWidth={1.75} className="size-4 shrink-0" />
           {t(`status.${task.status}`)}
+          {task.status === "waiting_external" && task.externalNote && (
+            <span className="text-muted-foreground break-words">
+              {" · "}
+              {task.externalNote.length > 80
+                ? `${task.externalNote.slice(0, 80)}…`
+                : task.externalNote}
+            </span>
+          )}
         </span>
         <span className="min-w-0 break-words font-semibold">{task.title}</span>
         <span className="text-subhead text-muted-foreground ml-auto">
