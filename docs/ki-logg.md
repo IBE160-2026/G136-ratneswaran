@@ -482,3 +482,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere ga 21 funn (4 medium, 13 lav, 4 falske). Rettet: pgTAP for «stale unaccepted» for ledere (ikke for vanlige holdere) og for obsolete og dismissed Tasks, og en e2e-test for «N need you» og «N at risk». Utsatt: beslutningstall (Target). Avvist med begrunnelse: «0 open» ved siden av forfalt (AC definerer Åpne som egne Tasks), at telleren feiler hele siden (samme feilgrense som eventlisten), at indeksbruk ikke er bevist med EXPLAIN, og at mocken ikke viser sideforespørsler (siden har ett rpc-kall).
 **Min vurdering:** NIL
 **Spor:** branch `feat/5.5-event-cards-show-state`
+
+## 2026-11-06 — Story 5.6: Tidslinje-beregning
+
+**Prompt:** `/bmad-build-auto på story 5.6`, kun Core. Spec-en `spec-5-6-timeline-computation.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Den rene funksjonen `computeTimeline` i `src/modules/tasks/timeline.ts` (én bane per aktiv Rolle, topologisk rekkefølge med tie-break på frist, `created_at` og id, Subtasks nestet, søyler fra siste avhengighetsfrist eller opprettelsesdato, akse, tellere, lesbar/ulesbar bane), `eventToday` og `loadTimelineInput` med nøyaktig to spørringer. En additiv migrasjon gir `tasks` kolonnen `created_at`, som klienter ikke kan skrive.
+**Valg som må forklares:** Rekkefølge lagres aldri (pgTAP sjekker at ingen kolonne eller tabell heter order, position, rank, sort eller timeline). Avhengigheter ordner bare søsken i samme gruppe, men setter fortsatt søylestart på tvers av grupper. Ved syklus faller hele gruppen tilbake til fristrekkefølge. Ulesbare baner får ingen Task-data i resultatet, og avhengigheter løses bare mot lesbare Roller.
+**Review:** NIL
+**Min vurdering:** NIL
+**Spor:** branch `feat/5.6-timeline-computation`
