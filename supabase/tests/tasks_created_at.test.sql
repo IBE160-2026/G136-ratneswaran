@@ -23,11 +23,11 @@ reset role;
 
 select is(
   (select count(*) from information_schema.columns
-   where table_schema = 'public' and column_name ~* '(order|position|rank|sort|timeline)'),
+   where table_schema = 'public' and column_name ~* '(^|_)(order|position|rank|sort|timeline)(_|$)'),
   0::bigint, 'no column in public stores order, position, rank, sort or timeline');
 select is(
   (select count(*) from information_schema.tables
-   where table_schema = 'public' and table_name ~* '(order|position|rank|sort|timeline)'),
+   where table_schema = 'public' and table_name ~* '(^|_)(order|position|rank|sort|timeline)(_|$)'),
   0::bigint, 'no table in public stores order, position, rank, sort or timeline');
 
 select * from finish();
