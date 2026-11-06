@@ -273,7 +273,7 @@ export function TimelineView({
               )}
               {mark(todayOffset) && (
                 <span
-                  className="bg-primary text-primary-foreground absolute top-12 -translate-x-1/2 rounded-full px-2 text-xs leading-5 font-semibold whitespace-nowrap"
+                  className="bg-primary text-primary-foreground absolute top-12 rounded-full px-2 text-xs leading-5 font-semibold whitespace-nowrap"
                   style={{ left: todayOffset * DAY_WIDTH + DAY_WIDTH / 2 }}
                 >
                   {t("timeline.today")}
