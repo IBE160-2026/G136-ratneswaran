@@ -61,7 +61,7 @@ export type Timeline = {
 
 const zoneDate = (d: Date, zone: string | null) =>
   new Intl.DateTimeFormat("en-CA", {
-    timeZone: zone ?? "UTC",
+    timeZone: zone || "UTC",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -101,14 +101,17 @@ export function computeTimeline(
     const ids = new Set(group.map((t) => t.id));
     const waiting = new Map(group.map((t) => [t.id, t.dependsOn.filter((d) => ids.has(d))]));
     const out: TimelineTask[] = [];
+    const placed = new Set<string>();
     const left = [...group].sort(compare);
     while (left.length > 0) {
-      const i = left.findIndex((t) => waiting.get(t.id)!.every((d) => out.some((o) => o.id === d)));
+      const i = left.findIndex((t) => waiting.get(t.id)!.every((d) => placed.has(d)));
       if (i < 0) {
         console.error("timeline cycle", { eventId: event.id, roleId });
         return [...group].sort(compare);
       }
-      out.push(left.splice(i, 1)[0]);
+      const [next] = left.splice(i, 1);
+      out.push(next);
+      placed.add(next.id);
     }
     return out;
   };
@@ -126,7 +129,10 @@ export function computeTimeline(
       marker,
       point: t.decision === "open" ? "filled" : t.decision === "resolved" ? "outline" : null,
       obsolete: t.obsolete,
-      dependsOn: t.dependsOn.filter((d) => byId.has(d)),
+      dependsOn: t.dependsOn.filter((d) => {
+        const dep = byId.get(d);
+        return dep !== undefined && shown(dep);
+      }),
       children,
     };
   };
