@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { classifyDashboard, type DashboardTask, type DashboardViewer } from "./dashboard";
+import {
+  classifyDashboard,
+  summarizeRoles,
+  type DashboardTask,
+  type DashboardViewer,
+} from "./dashboard";
 
 let n = 0;
 const task = (over: Partial<DashboardTask> = {}): DashboardTask => ({
@@ -21,8 +26,7 @@ const task = (over: Partial<DashboardTask> = {}): DashboardTask => ({
 const organizer: DashboardViewer = { id: "org", isOrganizer: true, leadRoleIds: [] };
 const holder: DashboardViewer = { id: "me", isOrganizer: false, leadRoleIds: [] };
 const ids = (rows: { id: string }[]) => rows.map((r) => r.id);
-const total = (d: ReturnType<typeof classifyDashboard>) =>
-  d.needsYou.length + d.atRisk.length + d.onTrackCount;
+const total = (d: ReturnType<typeof classifyDashboard>) => d.needsYou.length + d.atRisk.length;
 
 describe("classifyDashboard", () => {
   it("shows a triple-flag Task once, with all flags", () => {
@@ -48,7 +52,6 @@ describe("classifyDashboard", () => {
     const mate = task({ ownerId: "mate", overdue: true });
     const d = classifyDashboard([mine1, mine2, mate], holder);
     expect(ids(d.needsYou)).toEqual([mine1.id]);
-    expect(total(d)).toBe(2);
   });
 
   it("gives a lead their Role's Tasks plus owned ones", () => {
@@ -80,19 +83,48 @@ describe("classifyDashboard", () => {
     expect(d.atRisk[0]?.waitingExternal).toBe(true);
   });
 
-  it("summarises On track per Role without listing rows", () => {
-    const d = classifyDashboard(
+  it("summarises active Roles in order, counting overdue and open only for open Tasks", () => {
+    const roles = [
+      { id: "A", active: true },
+      { id: "B", active: true },
+      { id: "C", active: false },
+    ];
+    const s = summarizeRoles(
       [
-        task({ status: "done" }),
+        task({ status: "done", overdue: true }),
         task({ status: "in_progress" }),
+        task({ overdue: true }),
         task({ roleId: "B", status: "done" }),
+        task({ roleId: "C" }),
       ],
-      organizer,
+      roles,
+      { isOrganizer: true, memberRoleIds: [] },
     );
-    expect(d.needsYou).toHaveLength(0);
-    expect(d.onTrack).toEqual([
-      { roleId: "A", done: 1, open: 1, overdue: 0 },
-      { roleId: "B", done: 1, open: 0, overdue: 0 },
+    expect(s).toEqual([
+      { roleId: "A", readable: true, done: 1, open: 2, overdue: 1 },
+      { roleId: "B", readable: true, done: 1, open: 0, overdue: 0 },
+    ]);
+  });
+
+  it("gives an unreadable Role no counts and skips obsolete, dismissed and proposed Tasks", () => {
+    const roles = [
+      { id: "A", active: true },
+      { id: "B", active: true },
+    ];
+    const s = summarizeRoles(
+      [
+        task(),
+        task({ obsolete: true }),
+        task({ lifecycle: "dismissed" }),
+        task({ lifecycle: "proposed" }),
+        task({ roleId: "B" }),
+      ],
+      roles,
+      { isOrganizer: false, memberRoleIds: ["A"] },
+    );
+    expect(s).toEqual([
+      { roleId: "A", readable: true, done: 0, open: 1, overdue: 0 },
+      { roleId: "B", readable: false, done: 0, open: 0, overdue: 0 },
     ]);
   });
 
@@ -117,7 +149,7 @@ describe("classifyDashboard", () => {
     expect(d.inactiveRoleTasks).toBe(0);
   });
 
-  it("keeps totals equal to the in-scope active Tasks", () => {
+  it("lists each in-scope Task at most once across Needs you and At risk", () => {
     const tasks = [
       task({ overdue: true }),
       task({ stale_unaccepted: true }),
@@ -127,7 +159,7 @@ describe("classifyDashboard", () => {
       task({ ownerId: "me", accepted: false }),
       task(),
     ];
-    expect(total(classifyDashboard(tasks, organizer))).toBe(tasks.length);
+    expect(total(classifyDashboard(tasks, organizer))).toBe(4);
     expect(total(classifyDashboard(tasks, holder))).toBe(1);
   });
 
@@ -181,8 +213,6 @@ describe("classifyDashboard", () => {
     expect(classifyDashboard([], organizer)).toEqual({
       needsYou: [],
       atRisk: [],
-      onTrack: [],
-      onTrackCount: 0,
       inactiveRoleTasks: 0,
     });
   });
