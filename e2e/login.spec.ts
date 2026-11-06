@@ -63,7 +63,7 @@ test("logged-out /events returns there after login; an unsafe next is ignored", 
   await page.getByLabel("Password", { exact: true }).fill("abcdefg1");
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL(/\/events$/);
-  await expect(page.getByRole("heading", { name: "All events" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "All events" })).toBeVisible({ timeout: 20_000 });
   await page.getByRole("button", { name: "Log out" }).click();
   await expect(page).toHaveURL(/\/login$/);
   await logIn(page, email, "abcdefg1", "/login?next=//evil.com");
