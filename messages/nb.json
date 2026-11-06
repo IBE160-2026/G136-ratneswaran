@@ -212,6 +212,14 @@
       "continueSetup": "Utkast · fortsett oppsettet"
     },
     "organizer": "Arrangør",
+    "card": {
+      "open": "{count, plural, one {# åpen oppgave} other {# åpne oppgaver}}",
+      "overdue": "{count} forfalt",
+      "needYou": "{count} trenger deg",
+      "atRisk": "{count} i fare",
+      "new": "{count, plural, one {# ny oppgave} other {# nye oppgaver}}",
+      "newBadge": "{count, plural, one {# ny} other {# nye}}"
+    },
     "past": "Tidligere arrangementer ({count})",
     "noAccess": "Du har ikke tilgang til denne delen av arrangementet.",
     "noAccessHint": "Spør arrangøren hvis du trenger det.",

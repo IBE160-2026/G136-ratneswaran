@@ -212,6 +212,14 @@
       "continueSetup": "Draft · continue setup"
     },
     "organizer": "Organizer",
+    "card": {
+      "open": "{count, plural, one {# open task} other {# open tasks}}",
+      "overdue": "{count} overdue",
+      "needYou": "{count} need you",
+      "atRisk": "{count} at risk",
+      "new": "{count, plural, one {# new task} other {# new tasks}}",
+      "newBadge": "{count} new"
+    },
     "past": "Past events ({count})",
     "noAccess": "You don't have access to this part of the event.",
     "noAccessHint": "Ask the Organizer if you need it.",

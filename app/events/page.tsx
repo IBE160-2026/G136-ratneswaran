@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { createClient, getClaims } from "@/lib/supabase/server";
+import { loadCardCounts, noCounts } from "@/modules/events/card-state";
 import { groupEvents } from "@/modules/events/list";
 import { CreateEventButton } from "./create-event-button";
 import { EventCard } from "./event-card";
@@ -49,6 +50,7 @@ export default async function EventsPage({
       t(`roles.${row.roles.key}.name`),
     ]);
   }
+  const counts = await loadCardCounts(supabase);
   const { upcoming, past } = groupEvents(data, new Date());
   return (
     <div className="flex flex-col gap-4 py-12">
@@ -60,7 +62,11 @@ export default async function EventsPage({
       <ul role="list" className={gridClass}>
         {upcoming.map((card) => (
           <li key={card.id}>
-            <EventCard card={card} roleLabels={roleLabels.get(card.id)} />
+            <EventCard
+              card={card}
+              roleLabels={roleLabels.get(card.id)}
+              counts={counts.get(card.id) ?? noCounts}
+            />
           </li>
         ))}
         <li>
@@ -75,7 +81,11 @@ export default async function EventsPage({
           <ul role="list" className={`${gridClass} mt-3`}>
             {past.map((card) => (
               <li key={card.id}>
-                <EventCard card={card} roleLabels={roleLabels.get(card.id)} />
+                <EventCard
+                  card={card}
+                  roleLabels={roleLabels.get(card.id)}
+                  counts={counts.get(card.id) ?? noCounts}
+                />
               </li>
             ))}
           </ul>
