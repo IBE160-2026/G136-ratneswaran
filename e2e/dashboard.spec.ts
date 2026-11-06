@@ -128,3 +128,113 @@ test("nothing needing the viewer shows the quiet line, and a stranger gets no ac
   ).toBeVisible();
   await expect(page.getByText("Secret title")).toHaveCount(0);
 });
+
+const taskId = (event: string, title: string) =>
+  psql(`select id from public.tasks where event_id = '${event}' and title = '${title}'`).trim();
+
+const atRisk = (page: Page) => page.getByRole("region", { name: /^At risk/ });
+const onTrack = (page: Page) => page.getByRole("region", { name: "On track" });
+
+test("the Organizer sees At risk and On track with counts, guests and the inactive-Role line", async ({
+  page,
+  request,
+}) => {
+  const organizer = await signedIn(page, request);
+  const holder = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${holder}')`);
+  const { id, task } = setup(organizer, holder);
+  task("Vendor reply", 12, null);
+  task("Needs permit", 8, null);
+  task("Permit", 15, null);
+  task("Finished one", 5, null);
+  task("Late one", -3, null);
+  psql(`update public.tasks set status = 'done' where id = '${taskId(id, "Finished one")}'`);
+  psql(
+    `update public.tasks set status = 'waiting_external' where id = '${taskId(id, "Vendor reply")}'`,
+  );
+  // Oldest first: an older note, the note that shows, then a newer note the author removed.
+  psql(`insert into public.status_history (task_id, from_status, to_status, note)
+    values ('${taskId(id, "Vendor reply")}', 'not_started', 'waiting_external', 'older note')`);
+  psql(`insert into public.status_history (task_id, from_status, to_status, note)
+    values ('${taskId(id, "Vendor reply")}', 'not_started', 'waiting_external', '${"x".repeat(100)}')`);
+  psql(`insert into public.status_history (task_id, from_status, to_status, note, note_removed_at)
+    values ('${taskId(id, "Vendor reply")}', 'not_started', 'waiting_external', 'removed note', now())`);
+  const pending = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${pending}')`);
+  psql(`insert into public.role_members (event_id, role_id, user_id, name)
+    select '${id}', r.id, u.id, 'Pia Pending'
+    from public.roles r, auth.users u where r.event_id = '${id}' and r.key = 'venue' and u.email = '${pending}'`);
+  psql(
+    `insert into public.task_dependencies values ('${taskId(id, "Needs permit")}', '${taskId(id, "Permit")}')`,
+  );
+  psql(`insert into public.guests (event_id, name) values ('${id}', 'G1'), ('${id}', 'G2')`);
+  psql(`insert into public.tasks (event_id, role_id, title, deadline)
+    select '${id}', r.id, 'Inactive role late', current_date - 4 from public.roles r
+    where r.event_id = '${id}' and r.key = 'guests'`);
+
+  await page.goto(`/events/${id}`);
+  await expect(page.getByRole("heading", { level: 2, name: /^At risk/ })).toContainText(
+    "2 at risk",
+  );
+  const rows = atRisk(page).getByRole("link");
+  await expect(rows).toHaveCount(2);
+  await expect(rows.first()).toContainText("Vendor reply");
+  await expect(rows.first()).toContainText("Waiting on external");
+  await expect(rows.first()).toContainText(`${"x".repeat(80)}…`);
+  await expect(rows.first()).not.toContainText("x".repeat(81));
+  await expect(rows.first()).not.toContainText("older note");
+  await expect(rows.first()).not.toContainText("removed note");
+  await expect(rows.last()).toContainText("Needs permit");
+  await expect(rows.last()).toContainText("Waits for: Permit");
+
+  const venue = onTrack(page).getByRole("listitem").filter({ hasText: "Venue" });
+  await expect(venue).toContainText("Hanna Holder");
+  await expect(venue).toContainText("Pia Pending");
+  await expect(venue).toContainText("Invited · not joined yet");
+  await expect(venue.getByRole("link")).toContainText("1 done");
+  await expect(venue.getByRole("link")).toContainText("4 open");
+  await expect(venue.getByRole("link")).toContainText("1 overdue");
+  await venue.getByRole("link").click();
+  await expect(page).toHaveURL(`/events/${id}/tasks`);
+  await page.goBack();
+  await expect(page.getByText("2 guests added")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "1 task belongs to an inactive Role" }),
+  ).toHaveAttribute("href", `/events/${id}/team`);
+});
+
+test("nothing at risk shows the quiet line", async ({ page, request }) => {
+  const organizer = await signedIn(page, request);
+  const { id, task } = setup(organizer, null);
+  task("Easy one", 20, null);
+  await page.goto(`/events/${id}`);
+  await expect(page.getByRole("heading", { level: 2, name: /^At risk/ })).toBeVisible();
+  await expect(page.getByText("Nothing is at risk right now.")).toBeVisible();
+  await expect(page.getByText("0 guests added")).toBeVisible();
+  await expect(page.getByText(/inactive Role/)).toHaveCount(0);
+});
+
+test("a holder of another Role sees an unreadable row, no foreign title and no organizer lines", async ({
+  page,
+  request,
+}) => {
+  const holder = await signedIn(page, request);
+  const organizer = unique();
+  psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}')`);
+  const { id, task } = setup(organizer, holder);
+  psql(`update public.roles set active = true where event_id = '${id}' and key = 'guests'`);
+  task("Venue task", 10, null);
+  psql(`insert into public.tasks (event_id, role_id, title, deadline)
+    select '${id}', r.id, 'Guests secret', current_date + 3 from public.roles r
+    where r.event_id = '${id}' and r.key = 'guests'`);
+
+  await page.goto(`/events/${id}`);
+  const venue = onTrack(page).getByRole("listitem").filter({ hasText: "Venue" });
+  await expect(venue.getByRole("link")).toContainText("1 open");
+  const guests = onTrack(page).getByRole("listitem").filter({ hasText: "Guests" });
+  await expect(guests).toContainText("Tasks in Guests are visible to its team.");
+  await expect(guests.getByRole("link")).toHaveCount(0);
+  await expect(page.getByText("Guests secret")).toHaveCount(0);
+  await expect(page.getByText(/guests? added/)).toHaveCount(0);
+  await expect(page.getByText(/inactive Role/)).toHaveCount(0);
+});
