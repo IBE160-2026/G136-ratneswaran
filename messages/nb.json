@@ -17,7 +17,8 @@
     "settings": "Arrangementsinnstillinger",
     "tasks": "Oppgaver",
     "myTasks": "Mine oppgaver",
-    "myTasksOverdue": "Mine oppgaver, {count} forfalt"
+    "myTasksOverdue": "Mine oppgaver, {count} forfalt",
+    "timeline": "Tidslinje"
   },
   "home": {
     "surface": "Hjem",
@@ -37,6 +38,25 @@
     "guestsAdded": "{count, plural, one {# gjest lagt til} other {# gjester lagt til}}",
     "inactiveRoleTasks": "{count, plural, one {# oppgave hører til en inaktiv rolle} other {# oppgaver hører til inaktive roller}}",
     "onTrackEmpty": "Ingen aktive roller ennå."
+  },
+  "timeline": {
+    "surface": "Tidslinje",
+    "title": "Tidslinje",
+    "region": "Tidslinje",
+    "today": "I dag",
+    "eventDay": "Arrangementsdag",
+    "jumpToToday": "Hopp til i dag",
+    "showObsolete": "Vis foreldede ({count})",
+    "hideObsolete": "Skjul foreldede",
+    "empty": "Tidslinjen fylles ut etter hvert som oppgaver legges til.",
+    "newTask": "Ny oppgave",
+    "waitsFor": "venter på {task}",
+    "dates": "{start} til {end}",
+    "date": "{date}",
+    "notAccepted": "Ikke akseptert ennå",
+    "waitingExternal": "Venter på andre",
+    "barLabel": "{title}, {dates}, {status}",
+    "barLabelBlocked": "{title}, {dates}, {status}, venter på {task}"
   },
   "status": {
     "decision": "Trenger din beslutning",

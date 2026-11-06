@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
   CalendarDays,
+  ChartGantt,
   ClipboardList,
   Contact,
   House,
@@ -105,6 +106,13 @@ export function AppNav({
           </NavLink>
           <NavLink href={`${eventPath(eventId)}/tasks`} icon={ListChecks} onNavigate={onNavigate}>
             {t("tasks")}
+          </NavLink>
+          <NavLink
+            href={`${eventPath(eventId)}/timeline`}
+            icon={ChartGantt}
+            onNavigate={onNavigate}
+          >
+            {t("timeline")}
           </NavLink>
           <NavLink href={`${eventPath(eventId)}/team`} icon={Users} onNavigate={onNavigate}>
             {t("team")}
