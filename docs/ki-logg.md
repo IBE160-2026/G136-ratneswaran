@@ -473,3 +473,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere ga 18 funn, ingen medium eller høyere. Rettet: bannerteksten er sjekket borte på avlyst Event, antall rader i *Needs you* er sjekket (2), og *Accept task* er sjekket borte etter aksept. Utsatt: rolle-fjernet-toasten (Story 3.10). Avvist med begrunnelse: at testen bare dekker en aldri publisert avlyst Event (det er det eneste tilfellet `isDraft` kunne feile på), skjøre locatorer, og manglende test av dobbel aksept (Story 4.6).
 **Min vurdering:** NIL
 **Spor:** branch `feat/5.4-dashboard-housekeeping`
+
+## 2026-11-06 — Story 5.5: Arrangementskort viser tilstand
+
+**Prompt:** `/bmad-build-auto på story 5.5`, kun Core. Spec-en `spec-5-5-event-cards-show-state.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én SQL-funksjon `events_card_counts()` (security invoker) som grupperer åpne, nye, forfalte, «trenger deg» og «i fare»-Tasks per Event under brukerens RLS, med indeksen `tasks (event_id, owner_user_id)`. Siden kaller den én gang. Kortet viser tallsirkel (Åpne), «N new»-merke, linjen «N overdue» / «N need you» eller «N at risk», og et tilgjengelig navn som «Lucas's 40th, Sat 24 Oct, Organizer, 3 open tasks, 1 overdue, 1 new task». Draft-, avlyste og tidligere kort viser ingen tall.
+**Valg som må forklares:** Funksjonen dupliserer seksjonsreglene fra `classifyDashboard` i SQL, fordi akseptkriteriet krever én gruppert spørring og reglene ikke kan kjøre i TypeScript. «Åpne» er brukerens egne Tasks, mens «forfalt» og «trenger deg» følger Dashboardets omfang (Organizer og leder ser hele Rollen), så en leder kan se «0 open tasks, 1 overdue». Beslutningstellingen er utelatt til Target-historiene (4.8 og utover).
+**Review:** Fire uavhengige reviewere ga 21 funn (4 medium, 13 lav, 4 falske). Rettet: pgTAP for «stale unaccepted» for ledere (ikke for vanlige holdere) og for obsolete og dismissed Tasks, og en e2e-test for «N need you» og «N at risk». Utsatt: beslutningstall (Target). Avvist med begrunnelse: «0 open» ved siden av forfalt (AC definerer Åpne som egne Tasks), at telleren feiler hele siden (samme feilgrense som eventlisten), at indeksbruk ikke er bevist med EXPLAIN, og at mocken ikke viser sideforespørsler (siden har ett rpc-kall).
+**Min vurdering:** NIL
+**Spor:** branch `feat/5.5-event-cards-show-state`
