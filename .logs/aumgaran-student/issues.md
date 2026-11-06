@@ -33,3 +33,7 @@
 - [ ] 2026-11-06 [story-5-2-dashboard-needs-you](988-2026-11-06-05-39-38-story-5-2-dashboard-needs-you.md) — `concurrent_edit`-toast og dobbeltklikkvern på Proposed-rader i Needs you (Stories 4.13-4.14)
 - [ ] 2026-11-06 [story-5-3](987-2026-11-06-06-50-12-story-5-3-dashboard-at-risk-and-on-track.md) — ny review-runde anbefalt: `cache()` i `loadListed` avhenger av at `loadEvent` gir samme objekt per forespørsel
 - [ ] 2026-11-06 [story-5-3](987-2026-11-06-06-50-12-story-5-3-dashboard-at-risk-and-on-track.md) — Retry-kort ved lastefeil og 375px-layout for At risk/On track er ikke testet
+- [ ] 2026-11-06 [story-5-4](986-2026-11-06-07-25-00-story-5-4-dashboard-housekeeping.md) — rolle-fjernet toast/omdirigering (siste AC) er flyttet til Story 3.10; AC-teksten "still apply" stemmer ikke med koden, eier må avgjøre
+- [ ] 2026-11-06 [story-5-4](986-2026-11-06-07-25-00-story-5-4-dashboard-housekeeping.md) — _Show dismissed_/_Restore_ (Story 4.14) og «Your invitation»-kort (Epic 7) er ikke bygget
+- [ ] 2026-11-06 [story-5-4](986-2026-11-06-07-25-00-story-5-4-dashboard-housekeeping.md) — 4 invite-join-tester feilet i første omkjøring, passerte i andre; undersøk mulig flake
+- [ ] 2026-11-06 [story-5-4](986-2026-11-06-07-25-00-story-5-4-dashboard-housekeeping.md) — push feat/5.4, åpne PR med `Closes #104` og post triage fra `out/pr-comment.md`
