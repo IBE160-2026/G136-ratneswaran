@@ -381,6 +381,11 @@ isOneToOne: false
 "events_cancel":
 { Args: { "p_event_id": string,"p_note": string }; Returns: undefined
                            },
+"events_card_counts":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "at_risk_count": number,"event_id": string,"need_you_count": number,"new_count": number,"open_count": number,"overdue_count": number
+            }[]
+                           },
 "events_create":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
