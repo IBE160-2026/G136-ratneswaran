@@ -809,7 +809,7 @@
     "signedIn": "You're logged in with your invitation.",
     "otherAccount": "You're logged in with another account. Log out to open this invitation.",
     "logInIntro": "Log in to see your invitation.",
-    "invalid": "This link doesn't work. Ask the person who sent it for a new one.",
+    "invalid": "This link has expired. Ask the person who invited you for a new one.",
     "revoked": "This link is no longer active. Ask {organizer} for a new one.",
     "revokedGeneric": "This link is no longer active. Ask the organizer for a new one.",
     "cancelled": "This event has been cancelled.",

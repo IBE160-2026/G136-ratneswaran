@@ -162,6 +162,6 @@ test("an unknown link shows the generic text", async ({ page }) => {
   await page.goto(`/api/invite/${token()}`);
   await expect(page).toHaveURL("http://localhost:3000/invite");
   await expect(
-    page.getByText("This link doesn't work. Ask the person who sent it for a new one."),
+    page.getByText("This link has expired. Ask the person who invited you for a new one."),
   ).toBeVisible();
 });

@@ -121,7 +121,7 @@ test("a cancelled Event's link is read-only and an unknown link says nothing", a
   // A fresh token each run: the limiter's per-token bucket outlives the test.
   await guest.goto(`/api/invite/${`${Date.now()}${"x".repeat(43)}`.slice(0, 43)}`);
   await expect(
-    guest.getByText("This link doesn't work. Ask the person who sent it for a new one."),
+    guest.getByText("This link has expired. Ask the person who invited you for a new one."),
   ).toBeVisible();
   await expect(guest.getByText("Seeded")).toHaveCount(0);
 });

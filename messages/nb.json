@@ -809,7 +809,7 @@
     "signedIn": "Du er logget inn med invitasjonen din.",
     "otherAccount": "Du er logget inn med en annen konto. Logg ut for å åpne denne invitasjonen.",
     "logInIntro": "Logg inn for å se invitasjonen din.",
-    "invalid": "Denne lenken virker ikke. Be den som sendte den, om en ny.",
+    "invalid": "Denne lenken har utløpt. Be den som inviterte deg, om en ny.",
     "revoked": "Denne lenken er ikke lenger aktiv. Be {organizer} om en ny.",
     "revokedGeneric": "Denne lenken er ikke lenger aktiv. Be arrangøren om en ny.",
     "cancelled": "Dette arrangementet er avlyst.",
