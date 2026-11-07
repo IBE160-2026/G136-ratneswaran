@@ -6,7 +6,7 @@ export const MAX_GUEST_ROWS = 200;
 const reason = (key: string) => `guests.add.reasons.${key}`;
 
 // Control characters and the Unicode line separators: they could split a future email header.
-const controls = /^[^\u0000-\u001F\u007F-\u009F\u2028\u2029]*$/;
+export const controls = /^[^\u0000-\u001F\u007F-\u009F\u2028\u2029]*$/;
 
 // One guest; shared by adding and editing (FR-5).
 export const guestSchema = z.object({
