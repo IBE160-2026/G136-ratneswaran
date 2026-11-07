@@ -79,7 +79,9 @@
     "newItem": "{count, plural, one {# new item} other {# new items}}",
     "cancelled": "Cancelled",
     "notInvited": "Not invited yet",
-    "notStarted": "Not started"
+    "notStarted": "Not started",
+    "linkCopied": "Link copied · not opened",
+    "opened": "Opened"
   },
   "auth": {
     "signUp": {
@@ -504,6 +506,36 @@
         "restoreFailed": "Couldn't bring back {name}. Add them again by hand.",
         "restoreDuplicate": "That email is on the list again, so nothing was brought back."
       }
+    },
+    "link": {
+      "menu": "Share",
+      "menuLabel": "Share {name}'s link",
+      "copyLink": "Copy link",
+      "copyText": "Copy invitation text",
+      "renew": "New link",
+      "copied": "Link for {name} copied.",
+      "textCopied": "Invitation text for {name} copied.",
+      "renewed": "New link for {name} copied. The old link no longer works.",
+      "copyFailed": "Couldn't copy automatically. Select the text below and copy it.",
+      "fallbackLabel": "Text to copy",
+      "renewTitle": "Make a new link for {name}?",
+      "renewDescription": "The link you shared before stops working, and {name} is logged out where they opened it.",
+      "renewConfirm": "Make new link",
+      "renewKeep": "Keep the link",
+      "all": "Copy all links",
+      "allProgress": "Copying links… {done} of {total}",
+      "allCopied": "{count, plural, one {# link copied} other {# links copied}}. One line per guest: name, email and link.",
+      "allTooMany": "Copy all links works for up to {max} guests. Copy the links one by one instead.",
+      "allFailed": "Couldn't copy all links. Try again; links already made stay the same.",
+      "allFallbackLabel": "All links",
+      "errors": {
+        "unavailable": "Couldn't make the link right now. Try again."
+      },
+      "invitation": {
+        "withDate": "Hi {name}! You're invited to {event} on {date}. Open your personal invitation here: {link}",
+        "noDate": "Hi {name}! You're invited to {event}. Open your personal invitation here: {link}",
+        "untitled": "our event"
+      }
     }
   },
   "privacy": {
@@ -768,5 +800,19 @@
       "emptyPending": "No tasks are waiting for an owner.",
       "showObsolete": "Show obsolete ({count})"
     }
+  },
+  "guestLink": {
+    "greeting": "Hi {name}, this is your invitation to {event}.",
+    "continue": "Continue",
+    "notYou": "Not {name}? Ask {organizer} for your own link.",
+    "notYouGeneric": "Not {name}? Ask the organizer for your own link.",
+    "signedIn": "You're logged in with your invitation.",
+    "otherAccount": "You're logged in with another account. Log out to open this invitation.",
+    "logInIntro": "Log in to see your invitation.",
+    "invalid": "This link doesn't work. Ask the person who sent it for a new one.",
+    "revoked": "This link is no longer active. Ask {organizer} for a new one.",
+    "revokedGeneric": "This link is no longer active. Ask the organizer for a new one.",
+    "cancelled": "This event has been cancelled.",
+    "ended": "Thanks for coming!"
   }
 }
