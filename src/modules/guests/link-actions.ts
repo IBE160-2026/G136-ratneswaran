@@ -18,6 +18,7 @@ const copyInput = z.object({
   guestId: z.uuid(),
   renew: z.boolean().default(false),
 });
+const copyAllInput = z.object({ eventId: z.uuid(), guestIds: z.array(z.uuid()).min(1).max(5) });
 
 const refuseCopy = (code: string) => {
   if (code === "42501") return refuse("forbidden", "events.wizard.errors.forbidden");
@@ -25,28 +26,34 @@ const refuseCopy = (code: string) => {
   return refuse("unavailable", `${E}.unavailable`);
 };
 
-/**
- * *Copy link*, *Copy invitation text* and *New link* (`renew`) through `guests_copy_link` under the
- * Organizer's session (AD-2). On P0002 the guest has no auth user yet: the secret key creates a confirmed,
- * passwordless one (invitee creation, AD-5) and the call runs once more; a concurrent copy that created it
- * first (`email_exists`) is fine. The token is never stored or logged; logs carry ids and codes only.
- */
-export async function copyGuestLink(
-  input: z.input<typeof copyInput>,
-): Promise<Result<{ link: string; text: string }>> {
-  const parsed = copyInput.safeParse(input);
-  if (!parsed.success) return refuse("invalid_input", "events.wizard.errors.invalidInput");
-  const { eventId, guestId, renew } = parsed.data;
+type Copied = { link: string; text: string };
+
+/** Signed-in caller and the request's origin, shared by both copy actions. */
+async function copyContext(eventId: string) {
   const claims = await getClaims();
   if (!claims) redirect(`/login?next=${eventPath(eventId)}/guests`);
-  const fail = (step: string, code: string) => {
-    console.error("copyGuestLink failed", { eventId, guestId, userId: claims.sub, step, code });
-    return refuseCopy(code);
-  };
   const origin = (await headers()).get("origin");
+  return { userId: claims.sub, origin, supabase: await createClient() };
+}
+
+/**
+ * One guest through `guests_copy_link` under the Organizer's session (AD-2). On P0002 the guest has no auth
+ * user yet: the secret key creates a confirmed, passwordless one (invitee creation, AD-5) and the call runs
+ * once more; a concurrent copy that created it first (`email_exists`) is fine. `first` says the row's label
+ * changed. The token is never stored or logged; logs carry ids and codes only.
+ */
+async function copyOne(
+  { userId, origin, supabase }: Awaited<ReturnType<typeof copyContext>>,
+  eventId: string,
+  guestId: string,
+  renew: boolean,
+): Promise<{ result: Result<Copied>; first: boolean }> {
+  const fail = (step: string, code: string) => {
+    console.error("copyGuestLink failed", { eventId, guestId, userId, step, code });
+    return { result: refuseCopy(code), first: false };
+  };
   if (!origin) return fail("origin", "no_origin");
 
-  const supabase = await createClient();
   const { data: guest, error: guestError } = await supabase
     .from("guests")
     .select("name, user_id, events(name, starts_at, time_zone, language)")
@@ -55,7 +62,7 @@ export async function copyGuestLink(
     .maybeSingle();
   if (guestError) return fail("guest", guestError.code);
   // The function only knows the guest; this checks it belongs to the Event in the URL.
-  if (!guest?.events) return refuseCopy("42501");
+  if (!guest?.events) return { result: refuseCopy("42501"), first: false };
 
   const copy = () => supabase.rpc("guests_copy_link", { p_guest_id: guestId, p_renew: renew });
   let { data: token, error } = await copy();
@@ -80,13 +87,44 @@ export async function copyGuestLink(
   if (error) return fail("copy", error.code);
   if (!token) return fail("copy", "no_token");
 
-  // Only a first copy changes the row's label, so *Copy all links* does not re-render the list per guest.
-  if (!guest.user_id) revalidatePath(`${eventPath(eventId)}/guests`);
   const link = `${origin}/api/invite/${token}`;
   return {
-    ok: true,
-    data: { link, text: invitationText({ ...guest.events, guestName: guest.name, link }) },
+    result: {
+      ok: true,
+      data: { link, text: invitationText({ ...guest.events, guestName: guest.name, link }) },
+    },
+    first: !guest.user_id,
   };
+}
+
+// Only a first copy changes a row's label, so a repeat copy re-renders nothing.
+const revalidateGuests = (eventId: string) => revalidatePath(`${eventPath(eventId)}/guests`);
+
+/** *Copy link*, *Copy invitation text* and *New link* (`renew`) for one guest. */
+export async function copyGuestLink(input: z.input<typeof copyInput>): Promise<Result<Copied>> {
+  const parsed = copyInput.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "events.wizard.errors.invalidInput");
+  const { eventId, guestId, renew } = parsed.data;
+  const { result, first } = await copyOne(await copyContext(eventId), eventId, guestId, renew);
+  if (first) revalidateGuests(eventId);
+  return result;
+}
+
+/**
+ * One batch of *Copy all links*: Server Actions from one client run one after another, so the batch runs
+ * in parallel here, in the order given, and revalidates at most once. The first failure answers for all.
+ */
+export async function copyGuestLinks(
+  input: z.input<typeof copyAllInput>,
+): Promise<Result<Copied[]>> {
+  const parsed = copyAllInput.safeParse(input);
+  if (!parsed.success) return refuse("invalid_input", "events.wizard.errors.invalidInput");
+  const { eventId, guestIds } = parsed.data;
+  const context = await copyContext(eventId);
+  const copied = await Promise.all(guestIds.map((id) => copyOne(context, eventId, id, false)));
+  if (copied.some(({ first }) => first)) revalidateGuests(eventId);
+  for (const { result } of copied) if (!result.ok) return result;
+  return { ok: true, data: copied.flatMap(({ result }) => (result.ok ? [result.data] : [])) };
 }
 
 /**
