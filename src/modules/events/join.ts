@@ -20,7 +20,11 @@ const forget = async () => (await cookies()).delete(INVITE_COOKIE);
 /** A link that can no longer be used takes its cookie with it. */
 async function ended(status: string) {
   await forget();
-  return status === "expired" ? refuse("expired", "invite.expired") : refuse("used", "invite.used");
+  if (status === "expired") return refuse("expired", "invite.expired");
+  // Unknown reads like an unknown guest link: one copy without Event or email (AD-4).
+  return status === "invalid"
+    ? refuse("invalid", "guestLink.invalid")
+    : refuse("used", "invite.used");
 }
 
 /** The pending invitation behind the cookie; the email always comes from here, never from the client. */
@@ -57,7 +61,7 @@ async function join(token: string, userId: string): Promise<Result<null>> {
 /** Step 1 for a new invitee: an email one-time code to the invited address, no account created. */
 export async function sendJoinCode(): Promise<Result<null>> {
   const token = (await cookies()).get(INVITE_COOKIE)?.value;
-  if (!token) return ended("used");
+  if (!token) return ended("invalid");
   const refused = await limit("invite", { token }, E);
   if (refused) return refused;
   const pending = await pendingInvite();
@@ -81,7 +85,7 @@ export async function verifyJoinCode(
     return refuse("invalid_input", `${E}.invalidInput`, { code: parsed.error.issues[0].message });
   }
   const token = (await cookies()).get(INVITE_COOKIE)?.value;
-  if (!token) return ended("used");
+  if (!token) return ended("invalid");
   // Its own budget per IP and per link, so a forwarded link cannot have its code guessed from many IPs.
   const refused = await limit("join_code", { token }, E);
   if (refused) return refused;
@@ -149,7 +153,7 @@ export async function setPasswordAndJoin(
 /** *Join* for someone already signed in as the invited account. */
 export async function joinEvent(): Promise<Result<null>> {
   const token = (await cookies()).get(INVITE_COOKIE)?.value;
-  if (!token) return ended("used");
+  if (!token) return ended("invalid");
   const claims = await getClaims();
   if (!claims) redirect("/login?next=/invite");
   return join(token, claims.sub);
