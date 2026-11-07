@@ -1,5 +1,5 @@
 begin;
-select plan(51);
+select plan(55);
 
 -- A organizes Events 1 (live), 2 (cancelled), 3 (ended), 5 (draft); B organizes 4. G1 is a guest on 1, 2, 3, 5;
 -- G2 on 1; G4 on 4; R holds a Role on 1; Z is a stranger.
@@ -35,6 +35,9 @@ insert into public.guests (id, event_id, name, user_id) values
   ('77000000-0000-0000-0000-000000000004', '57000000-0000-0000-0000-000000000003', 'Gro', '11111111-1111-1111-1111-111111111111'),
   ('77000000-0000-0000-0000-000000000005', '57000000-0000-0000-0000-000000000004', 'Geir', '44444444-4444-4444-4444-444444444444'),
   ('77000000-0000-0000-0000-000000000006', '57000000-0000-0000-0000-000000000005', 'Gro', '11111111-1111-1111-1111-111111111111');
+insert into public.guest_contacts (guest_id, event_id, email) values
+  ('77000000-0000-0000-0000-000000000001', '57000000-0000-0000-0000-000000000001', 'guest-1@example.test'),
+  ('77000000-0000-0000-0000-000000000002', '57000000-0000-0000-0000-000000000001', 'guest-2@example.test');
 
 -- Schema and grants
 select is((select confdeltype from pg_constraint where conrelid = 'public.rsvps'::regclass and contype = 'f'
@@ -114,6 +117,14 @@ select lives_ok($$select public.guests_submit_rsvp('57000000-0000-0000-0000-0000
 select is((select count(*) from public.rsvps where guest_id = '77000000-0000-0000-0000-000000000002'), 0::bigint,
   'another guest''s row stays untouched');
 
+-- No row yet but an expected timestamp: a stale tab, so nothing is written
+set local request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
+select throws_ok($$select public.guests_submit_rsvp('57000000-0000-0000-0000-000000000001',
+  '{"attending": true}', '2020-01-01 00:00:00+00')$$, '40001', 'concurrent_edit',
+  'no row with a non-null expected is concurrent_edit');
+select is((select count(*) from public.rsvps), 0::bigint, 'and writes no row');
+set local request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
+
 -- Bad answers
 select throws_ok($$select public.guests_submit_rsvp('57000000-0000-0000-0000-000000000001',
   '{"attending": "yes"}', null)$$, '22023', null, 'attending must be a boolean');
@@ -192,8 +203,19 @@ set local request.jwt.claims = '{"sub": "99999999-9999-9999-9999-999999999999", 
 select is((select count(*) from public.events), 0::bigint, 'events_select_guest: a stranger reads no Event');
 reset role;
 
+-- Edits by the Organizer: a rename keeps the answer, a changed email is another person and drops it
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "authenticated"}';
+select public.guests_update('77000000-0000-0000-0000-000000000001', 'Gro H', 'GUEST-1@example.test');
+select is((select count(*) from public.rsvps), 1::bigint, 'a name-only edit keeps the rsvp');
+select public.guests_update('77000000-0000-0000-0000-000000000001', 'Gro H', 'other@example.test');
+select is((select count(*) from public.rsvps), 0::bigint, 'an email change deletes the rsvp');
+reset role;
+
 -- FK cascade
-delete from public.guests where id = '77000000-0000-0000-0000-000000000001';
+insert into public.rsvps (guest_id, event_id, attending) values
+  ('77000000-0000-0000-0000-000000000002', '57000000-0000-0000-0000-000000000001', true);
+delete from public.guests where id = '77000000-0000-0000-0000-000000000002';
 select is((select count(*) from public.rsvps), 0::bigint, 'removing the guest removes the rsvp');
 
 select * from finish();
