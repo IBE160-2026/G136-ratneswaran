@@ -16,7 +16,10 @@ export type Guest = {
   id: string;
   name: string;
   email: string;
-  link?: "notInvited" | "linkCopied" | "opened";
+  link?: "notInvited" | "linkCopied" | "opened" | "coming" | "notComing";
+  // The plus-one's name, or true when they bring one without a name.
+  plusOne?: string | true;
+  otherNeeds?: string;
 };
 
 const secondaryClass = "min-h-touch border-input rounded-full border px-4";
@@ -119,6 +122,18 @@ export function GuestRows({
                 <span className="min-w-0 break-words">{guest.name}</span>
                 <span className="text-muted-foreground min-w-0 break-all">{guest.email}</span>
                 <StatusLabel status={guest.link ?? "notInvited"} className="ml-auto" />
+                {guest.plusOne && (
+                  <span className="w-full break-words">
+                    {guest.plusOne === true
+                      ? t("guests.list.plusOneNoName")
+                      : t("guests.list.plusOne", { name: guest.plusOne })}
+                  </span>
+                )}
+                {guest.otherNeeds && (
+                  <span className="w-full break-words whitespace-pre-line">
+                    {t("guests.list.needs", { needs: guest.otherNeeds })}
+                  </span>
+                )}
                 {!readOnly && (
                   <span className="flex flex-wrap gap-2">
                     {links && <CopyMenu eventId={eventId} guest={guest} />}

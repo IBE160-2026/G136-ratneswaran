@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getClaims } from "@/lib/supabase/server";
 import { readInvite, sameEmail } from "@/modules/events/invite";
 import { firstName, type GuestLinkPreview, readGuestLink } from "@/modules/guests/link";
@@ -148,6 +149,10 @@ async function GuestView({ preview }: { preview: GuestLinkPreview }) {
 
   const first = firstName(preview.guest_name);
   const claims = await getClaims();
+  // The link's own signed-in session goes on to the RSVP.
+  if (claims && claims.sub === preview.user_id && preview.event_id) {
+    redirect(`/rsvp/${preview.event_id}`);
+  }
   return (
     <Shell title={t("greeting", { name: first, event })}>
       {!claims && (
@@ -159,7 +164,6 @@ async function GuestView({ preview }: { preview: GuestLinkPreview }) {
           }
         />
       )}
-      {claims && claims.sub === preview.user_id && <p>{t("signedIn")}</p>}
       {claims && claims.sub !== preview.user_id && <Mismatch message="guestLink.otherAccount" />}
     </Shell>
   );

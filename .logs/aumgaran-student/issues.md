@@ -50,3 +50,6 @@
 - [ ] 2026-11-07 [story-7-1](983-2026-11-07-14-26-25-story-7-1-personal-guest-link.md) — gjestesession kan sette passord/koble OAuth og beholde kontoen etter New link; krever Auth-beslutning (høy)
 - [ ] 2026-11-07 [story-7-1](983-2026-11-07-14-26-25-story-7-1-personal-guest-link.md) — vault.create_secret i skymigrasjonen uverifisert til CI har kjørt
 - [ ] 2026-11-07 [story-7-1](983-2026-11-07-14-26-25-story-7-1-personal-guest-link.md) — e2e team/gjester får tidsavbrudd ved parallell kjøring under last
+- [ ] 2026-11-07 [story-7-3](982-2026-11-07-18-30-00-story-7-3-rsvp.md) — `events_select_guest` gir gjester hele Event-raden mot AD-3; eier må avgjøre smalere gjestevisning (bmad-correct-course)
+- [ ] 2026-11-07 [story-7-3](982-2026-11-07-18-30-00-story-7-3-rsvp.md) — _Undo_ etter fjerning av gjest mister RSVP-en (Story 7.8)
+- [ ] 2026-11-07 [story-7-3](982-2026-11-07-18-30-00-story-7-3-rsvp.md) — verifiser `Cache-Control: no-store` på `/rsvp` mot produksjonsbygg

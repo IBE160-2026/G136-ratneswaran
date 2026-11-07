@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   headers: async () => [
     { source: "/invite", headers: noReferrer },
     { source: "/api/invite/:path*", headers: noReferrer },
+    // A Guest's answers are never cached or sent on in a Referer.
+    {
+      source: "/rsvp/:path*",
+      headers: [...noReferrer, { key: "Cache-Control", value: "no-store" }],
+    },
   ],
 };
 

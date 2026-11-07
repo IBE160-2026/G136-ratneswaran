@@ -23,9 +23,9 @@ export default async function EventsPage({
   if (!claims) redirect("/login?next=/events");
   const t = await getTranslations("events");
   const { deleted } = await searchParams;
-  // RLS limits this to the Organizer's own Events.
+  // RLS also shows Events the viewer is only a Guest of; those are filtered out below.
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data: visible, error } = await supabase
     .from("events")
     .select(
       "id, organizer_id, name, starts_at, ends_at, time_zone, published_at, cancelled_at, event_type, unknown_answers, guests(count)",
@@ -41,6 +41,9 @@ export default async function EventsPage({
     .not("joined_at", "is", null)
     .order("created_at");
   if (heldError) throw new Error("Could not load events");
+  // Only Events the viewer organizes or holds a joined Role on; a Guest's Event is no card here.
+  const heldIds = new Set(held.map((row) => row.event_id));
+  const data = visible.filter((e) => e.organizer_id === claims.sub || heldIds.has(e.id));
   const organized = new Set(data.filter((e) => e.organizer_id === claims.sub).map((e) => e.id));
   const roleLabels = new Map<string, string[]>();
   for (const row of held) {
