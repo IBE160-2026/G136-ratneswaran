@@ -509,3 +509,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere ga 25 funn (0 høye, 0 medium, 10 lave, 15 falske). Rettet: `break-words` på lead og holdere, bredere trykkflate på veksleren, e2e for at veksleren beholder `obsolete`, Hide obsolete og ukjent `view`. Utsatt: beslutningsord i lenkenavnet (Story 4.8). Avvist med begrunnelse: inaktiv-linjen bare i listen (AC står under listehistorien), lead og holdere på ulesbar Rolle (kreves av AC), og at begge visninger ligger i HTML (display:none er utenfor tilgjengelighetstreet).
 **Min vurdering:** NIL
 **Spor:** branch `feat/5.8-timeline-list-view`
+
+## 2026-11-07 — Story 5.9: Flaggskip-sjekk
+
+**Prompt:** `/bmad-build-auto på story 5.9`, kun Core. Spec-en `spec-5-9-flagship-check.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** `supabase/seed.sql` med 40-årsdagen (fiktive brukere som kan logge inn, fire aktive Roller, Task-grafen med ferdig, forfalt, blokkert, venter, ikke akseptert etter 48 timer, Subtask og én foreslått rad), pgTAP over de seedede radene, Playwright for Organizer og Venue-holder og et tidsatt manuelt skript.
+**Valg som må forklares:** Problem, Decision Task og Proposed-kort finnes ikke i Core, så seeden dekker bare Core-tilstander og testene hevder at ingen plassholdere vises. Seeden er gjenkjørbar: den sletter først sine egne brukere (kaskade). Tre eldre pgTAP-tester som talte alle rader i tabellen ble avgrenset, siden seeden nå ligger i databasen.
+**Review:** Fire review-lag fant 5 fikser (manuelt skript manglet en Task til testeren, seed-datoer i UTC i stedet for Oslo og for nær i tid, lane-telling, lokal-advarsel); 3 utsatt (re-seed i pgTAP, plassholderstrenger, Problem/Decision/Proposed-kort). Triage står som PR-kommentar.
+**Min vurdering:** NIL
+**Spor:** branch `feat/5.9-flagship-check`, PR for 5.9
