@@ -43,3 +43,4 @@
 - [ ] 2026-11-06 [story-5-5](985-2026-11-06-16-39-00-story-5-5-event-cards-show-state.md) — push feat/5.5, åpne PR med `Closes #106` og post triage fra `out/pr-comment.md`
 - [ ] 2026-11-06 [story-5-6](984-2026-11-06-20-45-00-story-5-6-timeline-computation.md) — vurder refleksjonsnotat: `tasks.created_at` fantes ikke og ble lagt til
 - [ ] 2026-11-06 [story-5-6](984-2026-11-06-20-45-00-story-5-6-timeline-computation.md) — beslutningspunkter i tidslinjen venter på Story 4.8 (Target); loader testet bare mot mock til 5.7
+- [ ] 2026-11-07 [story-5-8](2026-11-07-story-5-8-timeline-list-view.md) — beslutningsord i listens lenkenavn og render-test venter på Story 4.8
