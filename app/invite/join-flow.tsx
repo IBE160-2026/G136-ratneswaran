@@ -33,13 +33,13 @@ export function Ended({ message }: { message: string }) {
   );
 }
 
-export function Mismatch() {
-  const t = useTranslations("invite");
+export function Mismatch({ message = "invite.mismatch" }: { message?: string }) {
+  const t = useTranslations();
   return (
     <form action={leaveAndRetry} className="flex flex-col gap-4">
-      <p role="alert">{t("mismatch")}</p>
+      <p role="alert">{t(message)}</p>
       <button type="submit" className={secondaryClass + " self-start"}>
-        {t("logOut")}
+        {t("invite.logOut")}
       </button>
     </form>
   );

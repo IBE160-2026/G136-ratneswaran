@@ -5,11 +5,11 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { logIn, resendVerification } from "@/modules/auth/actions";
 import { buttonClass, inputClass } from "@/components/form";
 
-export function LogInForm({ next }: { next: string }) {
+export function LogInForm({ next, email: prefilled = "" }: { next: string; email?: string }) {
   const t = useTranslations();
   const [state, action, pending] = useActionState(logIn, null);
   const [resent, resend, resending] = useActionState(resendVerification, null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefilled);
   const [password, setPassword] = useState("");
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
