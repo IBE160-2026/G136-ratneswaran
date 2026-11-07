@@ -500,3 +500,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere ga 29 funn (0 høye, 3 medium, 11 lave, 15 falske eller avvist). Rettet: «ikke akseptert» står nå som ord i søyle og lenkenavn (ikke bare stiplet kant), canvas vokser så en søyle med 112px minimumsbredde ikke havner utenfor, «I dag»- og «Arrangementsdag»-etikettene ligger på hver sin rad, kantfaden følger breddeendring ved *Show obsolete*, *Jump to today* ruller uten animasjon (reduced motion), døde meldingsnøkler fjernet, og e2e dekker tom tidslinje, avlyst arrangement, forfalt-ord og to års rulling. Avvist med begrunnelse: parameter-array i `?obsolete`, hardkodede scroll-margin-tall, duplisert `addDays`, ukjente avhengigheter (RLS skjuler dem med vilje) og at «Utgått»-ordet er gjennomstreket (statusvokabularet krever det).
 **Min vurdering:** NIL
 **Spor:** branch `feat/5.7-timeline-swimlane-view`
+
+## 2026-11-07 — Story 5.8: Tidslinje, listevisning
+
+**Prompt:** `/bmad-build-auto på story 5.8`, kun Core. Spec-en `spec-5-8-timeline-list-view.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Samme side `/events/[eventId]/timeline` med en lenkebasert veksler (`?view=list|lanes`). Uten `view` rendres begge visningene og CSS velger liste under 768px og svømmebaner over, så det trengs ingen klient-JS. Listen har én gruppe per Rolle med lead og holdere, nestede Subtasks, rader på minst 44px som bryter lange titler, «No tasks in this Role yet», ulesbar Rolle og Organizerens linje om inaktive Roller. En delt hook `useBarText` gir lik lenketekst i begge visninger.
+**Valg som må forklares:** «Standard under 768px» kan serveren ikke avgjøre, så begge visninger sendes og veksleren rendres to ganger (riktig `aria-current` per bredde). URL bærer bare tilstand etter et valg. Beslutningspunkter vises som ord pluss rombe, men er utestet fordi lasteren ikke leverer dem i Core.
+**Review:** Fire uavhengige reviewere ga 25 funn (0 høye, 0 medium, 10 lave, 15 falske). Rettet: `break-words` på lead og holdere, bredere trykkflate på veksleren, e2e for at veksleren beholder `obsolete`, Hide obsolete og ukjent `view`. Utsatt: beslutningsord i lenkenavnet (Story 4.8). Avvist med begrunnelse: inaktiv-linjen bare i listen (AC står under listehistorien), lead og holdere på ulesbar Rolle (kreves av AC), og at begge visninger ligger i HTML (display:none er utenfor tilgjengelighetstreet).
+**Min vurdering:** NIL
+**Spor:** branch `feat/5.8-timeline-list-view`
