@@ -6,6 +6,7 @@ import {
   CircleDot,
   CircleMinus,
   CircleQuestionMark,
+  CircleX,
   Flag,
   Hourglass,
   Link,
@@ -38,6 +39,9 @@ export const STATUSES = {
   notInvited: { icon: Mail, tone: "text-muted-foreground" },
   linkCopied: { icon: Link, tone: "text-muted-foreground" },
   opened: { icon: MailOpen, tone: "text-primary" },
+  // A guest's answer (Story 7.3); it replaces the link labels once given.
+  coming: { icon: CircleCheck, tone: "text-status-done" },
+  notComing: { icon: CircleX, tone: "text-muted-foreground" },
 } satisfies Record<string, { icon: LucideIcon | null; tone: string }>;
 
 export type Status = keyof typeof STATUSES;

@@ -81,7 +81,9 @@
     "notInvited": "Not invited yet",
     "notStarted": "Not started",
     "linkCopied": "Link copied · not opened",
-    "opened": "Opened"
+    "opened": "Opened",
+    "coming": "Coming",
+    "notComing": "Not coming"
   },
   "auth": {
     "signUp": {
@@ -505,7 +507,10 @@
         "removeFailed": "Couldn't remove {name}. Try again.",
         "restoreFailed": "Couldn't bring back {name}. Add them again by hand.",
         "restoreDuplicate": "That email is on the list again, so nothing was brought back."
-      }
+      },
+      "plusOne": "Plus-one: {name}",
+      "plusOneNoName": "Brings a plus-one",
+      "needs": "Other needs: {needs}"
     },
     "link": {
       "menu": "Share",
@@ -806,7 +811,6 @@
     "continue": "Continue",
     "notYou": "Not {name}? Ask {organizer} for your own link.",
     "notYouGeneric": "Not {name}? Ask the organizer for your own link.",
-    "signedIn": "You're logged in with your invitation.",
     "otherAccount": "You're logged in with another account. Log out to open this invitation.",
     "logInIntro": "Log in to see your invitation.",
     "invalid": "This link has expired. Ask the person who invited you for a new one.",
@@ -814,5 +818,58 @@
     "revokedGeneric": "This link is no longer active. Ask the organizer for a new one.",
     "cancelled": "This event has been cancelled.",
     "ended": "Thanks for coming!"
+  },
+  "rsvp": {
+    "surface": "RSVP",
+    "greeting": "Hi {name}",
+    "eventLine": "{event} · {date}",
+    "replyBy": "Reply by {date}",
+    "progress": "Question {step} of {total}",
+    "attending": {
+      "question": "Will you be there?",
+      "yes": "Yes, I'll be there",
+      "no": "No, I can't make it"
+    },
+    "plusOne": {
+      "question": "Are you bringing a plus-one?",
+      "yes": "Yes, I'm bringing someone",
+      "no": "No, just me",
+      "nameLabel": "Their name (optional)"
+    },
+    "needs": {
+      "question": "Is there anything else we should know?",
+      "label": "Other needs",
+      "hint": "Please don't write health details here."
+    },
+    "chooseOne": "Choose one answer to continue.",
+    "back": "Back",
+    "next": "Next",
+    "send": "Send my answer",
+    "sending": "Sending…",
+    "retry": "Retry",
+    "seeChanges": "See changes.",
+    "change": "Change my answer",
+    "confirmYes": "You're on the list, {name}! We'll send the details closer to the day.",
+    "confirmNo": "Thanks for letting us know, {name}.",
+    "summary": {
+      "title": "Your answer",
+      "plusOne": "Plus-one: {name}",
+      "plusOneNoName": "You're bringing a plus-one",
+      "needs": "Other needs: {needs}"
+    },
+    "cancelled": "This event has been cancelled.",
+    "ended": "Thanks for coming!",
+    "noSession": "Open your personal invitation link again to answer.",
+    "errors": {
+      "tooLong": "That is too long.",
+      "invalidCharacters": "Remove the special characters.",
+      "forbidden": "You can't answer this invitation.",
+      "readOnly": "This event is over or cancelled, so answers can no longer be changed.",
+      "concurrentEdit": "Your answer was changed on another device. See changes.",
+      "concurrentEditLead": "Your answer was changed on another device.",
+      "invalid": "Check your answer and try again.",
+      "unavailable": "We couldn't save your answer. It's still here, so try again.",
+      "noSession": "Open your personal invitation link again to answer."
+    }
   }
 }

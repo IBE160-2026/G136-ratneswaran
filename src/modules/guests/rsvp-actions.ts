@@ -1,9 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { refuse, type Result } from "@/lib/result";
 import { createClient, getClaims } from "@/lib/supabase/server";
-import { eventPath } from "@/modules/events/list";
 import { rsvpInputSchema } from "./rsvp-schemas";
 
 const E = "rsvp.errors";
@@ -19,7 +17,8 @@ const refuseRsvp = (code: string) => {
 /**
  * A Guest's answer through `guests_submit_rsvp` under their own session (AD-2, AD-17); the function finds
  * the Guest from the session and the Event. Logs carry the Event id, user id and error code, never the
- * answers (AD-11). Returns the row's `updated_at` for the next change.
+ * answers (AD-11). Returns the row's `updated_at` for the next change. No revalidation: the Guests tab is dynamic, and a
+ * refresh here would remount the Guest's own flow.
  */
 export async function submitRsvp(input: unknown): Promise<Result<{ updatedAt: string }>> {
   const parsed = rsvpInputSchema.safeParse(input);
@@ -50,6 +49,5 @@ export async function submitRsvp(input: unknown): Promise<Result<{ updatedAt: st
     console.error("submitRsvp failed", { eventId, userId: claims.sub, code: error.code });
     return refuseRsvp(error.code);
   }
-  revalidatePath(`${eventPath(eventId)}/guests`);
   return { ok: true, data: { updatedAt: data } };
 }

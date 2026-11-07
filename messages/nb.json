@@ -81,7 +81,9 @@
     "notInvited": "Ikke invitert ennå",
     "notStarted": "Ikke startet",
     "linkCopied": "Lenke kopiert · ikke åpnet",
-    "opened": "Åpnet"
+    "opened": "Åpnet",
+    "coming": "Kommer",
+    "notComing": "Kommer ikke"
   },
   "auth": {
     "signUp": {
@@ -505,7 +507,10 @@
         "removeFailed": "Kunne ikke fjerne {name}. Prøv igjen.",
         "restoreFailed": "Kunne ikke hente tilbake {name}. Legg gjesten til igjen for hånd.",
         "restoreDuplicate": "E-posten står på listen igjen, så ingenting ble hentet tilbake."
-      }
+      },
+      "plusOne": "Følgesvenn: {name}",
+      "plusOneNoName": "Tar med en følgesvenn",
+      "needs": "Andre behov: {needs}"
     },
     "link": {
       "menu": "Del",
@@ -806,7 +811,6 @@
     "continue": "Fortsett",
     "notYou": "Ikke {name}? Be {organizer} om din egen lenke.",
     "notYouGeneric": "Ikke {name}? Be arrangøren om din egen lenke.",
-    "signedIn": "Du er logget inn med invitasjonen din.",
     "otherAccount": "Du er logget inn med en annen konto. Logg ut for å åpne denne invitasjonen.",
     "logInIntro": "Logg inn for å se invitasjonen din.",
     "invalid": "Denne lenken har utløpt. Be den som inviterte deg, om en ny.",
@@ -814,5 +818,58 @@
     "revokedGeneric": "Denne lenken er ikke lenger aktiv. Be arrangøren om en ny.",
     "cancelled": "Dette arrangementet er avlyst.",
     "ended": "Takk for at du kom!"
+  },
+  "rsvp": {
+    "surface": "Svar",
+    "greeting": "Hei {name}",
+    "eventLine": "{event} · {date}",
+    "replyBy": "Svar innen {date}",
+    "progress": "Spørsmål {step} av {total}",
+    "attending": {
+      "question": "Kommer du?",
+      "yes": "Ja, jeg kommer",
+      "no": "Nei, jeg kan ikke komme"
+    },
+    "plusOne": {
+      "question": "Tar du med deg en følgesvenn?",
+      "yes": "Ja, jeg tar med noen",
+      "no": "Nei, bare meg",
+      "nameLabel": "Navn på følgesvennen (valgfritt)"
+    },
+    "needs": {
+      "question": "Er det noe annet vi bør vite?",
+      "label": "Andre behov",
+      "hint": "Ikke skriv helseopplysninger her."
+    },
+    "chooseOne": "Velg ett svar for å gå videre.",
+    "back": "Tilbake",
+    "next": "Neste",
+    "send": "Send svaret mitt",
+    "sending": "Sender …",
+    "retry": "Prøv igjen",
+    "seeChanges": "Se endringene.",
+    "change": "Endre svaret mitt",
+    "confirmYes": "Du står på listen, {name}! Vi sender detaljene nærmere dagen.",
+    "confirmNo": "Takk for at du ga beskjed, {name}.",
+    "summary": {
+      "title": "Svaret ditt",
+      "plusOne": "Følgesvenn: {name}",
+      "plusOneNoName": "Du tar med en følgesvenn",
+      "needs": "Andre behov: {needs}"
+    },
+    "cancelled": "Dette arrangementet er avlyst.",
+    "ended": "Takk for at du kom!",
+    "noSession": "Åpne den personlige invitasjonslenken din på nytt for å svare.",
+    "errors": {
+      "tooLong": "Dette er for langt.",
+      "invalidCharacters": "Fjern spesialtegnene.",
+      "forbidden": "Du kan ikke svare på denne invitasjonen.",
+      "readOnly": "Arrangementet er over eller avlyst, så svar kan ikke lenger endres.",
+      "concurrentEdit": "Svaret ditt ble endret på en annen enhet. Se endringene.",
+      "concurrentEditLead": "Svaret ditt ble endret på en annen enhet.",
+      "invalid": "Sjekk svaret ditt og prøv igjen.",
+      "unavailable": "Vi fikk ikke lagret svaret ditt. Det står fortsatt her, så prøv igjen.",
+      "noSession": "Åpne den personlige invitasjonslenken din på nytt for å svare."
+    }
   }
 }

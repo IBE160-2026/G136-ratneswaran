@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const rpc = vi.fn();
 const getClaims = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ rpc }), getClaims }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const { submitRsvp } = await import("./rsvp-actions");
 
