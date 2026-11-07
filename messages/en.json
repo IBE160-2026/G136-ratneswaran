@@ -17,7 +17,8 @@
     "settings": "Event settings",
     "tasks": "Tasks",
     "myTasks": "My tasks",
-    "myTasksOverdue": "My tasks, {count} overdue"
+    "myTasksOverdue": "My tasks, {count} overdue",
+    "timeline": "Timeline"
   },
   "home": {
     "surface": "Home",
@@ -37,6 +38,25 @@
     "guestsAdded": "{count, plural, one {# guest added} other {# guests added}}",
     "inactiveRoleTasks": "{count, plural, one {# task belongs to an inactive Role} other {# tasks belong to inactive Roles}}",
     "onTrackEmpty": "No active Roles yet."
+  },
+  "timeline": {
+    "surface": "Timeline",
+    "title": "Timeline",
+    "region": "Timeline",
+    "today": "Today",
+    "eventDay": "Event day",
+    "jumpToToday": "Jump to today",
+    "showObsolete": "Show obsolete ({count})",
+    "hideObsolete": "Hide obsolete",
+    "empty": "The timeline fills in as tasks are added.",
+    "newTask": "New task",
+    "waitsFor": "waits for {task}",
+    "dates": "{start} to {end}",
+    "date": "{date}",
+    "notAccepted": "Not yet accepted",
+    "waitingExternal": "Waiting on external",
+    "barLabel": "{title}, {dates}, {status}",
+    "barLabelBlocked": "{title}, {dates}, {status}, waits for {task}"
   },
   "status": {
     "decision": "Needs your decision",

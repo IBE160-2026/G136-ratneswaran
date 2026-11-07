@@ -26,6 +26,9 @@ const task = (id: string, over: Partial<TimelineTask> = {}): TimelineTask => ({
   createdAt: "2026-11-01T10:00:00Z",
   lifecycle: "active",
   obsolete: false,
+  status: "not_started",
+  delegated: false,
+  accepted: false,
   dependsOn: [],
   ...over,
 });
@@ -142,6 +145,54 @@ describe("computeTimeline", () => {
     expect(t.lanes[0].tasks[0]).toMatchObject({ id: "n", dependsOn: [], start: "2026-12-08" });
   });
 
+  it("derives the display status with the precedence obsolete, done, overdue, waiting, in progress, not started", () => {
+    const t = run(
+      [
+        task("a", { deadline: "2026-11-01" }),
+        task("b", { deadline: "2026-11-01", status: "done" }),
+        task("c", { deadline: "2026-11-01", obsolete: true }),
+        task("d", { status: "waiting_external" }),
+        task("e", { status: "in_progress" }),
+        task("f"),
+      ],
+      [role("r1")],
+      { includeObsolete: true },
+    );
+    const by = Object.fromEntries(t.lanes[0].tasks.map((b) => [b.id, b]));
+    expect(by.a).toMatchObject({ status: "overdue", overdueDays: 5 });
+    expect(by.b).toMatchObject({ status: "done", overdueDays: 0 });
+    expect(by.c).toMatchObject({ status: "obsolete", overdueDays: 0 });
+    expect(["d", "e", "f"].map((id) => by[id].status)).toEqual([
+      "waiting",
+      "inProgress",
+      "notStarted",
+    ]);
+  });
+
+  it("blocks on live, open dependencies only and names the earliest-deadline blocker", () => {
+    const t = run([
+      task("x", { deadline: "2026-12-05", title: "Late blocker" }),
+      task("y", { deadline: "2026-12-02", title: "Early blocker" }),
+      task("z", { deadline: "2026-12-01", status: "done" }),
+      task("w", { deadline: "2026-12-01", obsolete: true }),
+      task("b", { deadline: "2026-12-20", dependsOn: ["x", "y", "z", "w"] }),
+      task("c", { deadline: "2026-12-20", dependsOn: ["z", "w"] }),
+    ]);
+    const by = Object.fromEntries(t.lanes[0].tasks.map((b) => [b.id, b]));
+    expect(by.b).toMatchObject({ blocked: true, waitsFor: "Early blocker" });
+    expect(by.c).toMatchObject({ blocked: false, waitsFor: null });
+  });
+
+  it("flags delegated, unaccepted, open Tasks as not accepted", () => {
+    const t = run([
+      task("a", { delegated: true }),
+      task("b", { delegated: true, accepted: true }),
+      task("c"),
+      task("d", { delegated: true, status: "done" }),
+    ]);
+    expect(t.lanes[0].tasks.map((b) => b.notAccepted)).toEqual([true, false, false, false]);
+  });
+
   it("marks Decision points", () => {
     const t = run([
       task("a", { decision: "open" }),
@@ -220,6 +271,16 @@ describe("loadTimelineInput lanes", () => {
     expect((await load(roles, [], "other", true)).roles.every((r) => r.readable)).toBe(true);
   });
 
+  it("lets the Organizer or a joined Lead of an active Role create", async () => {
+    const lead = (active: boolean, joined: string | null) => [
+      { id: "a", key: "venue", active, role_members: [member("u", joined, true)] },
+    ];
+    expect((await load(lead(true, "x"), [], "u", false)).canCreate).toBe(true);
+    expect((await load(lead(false, "x"), [], "u", false)).canCreate).toBe(false);
+    expect((await load(lead(true, null), [], "u", false)).canCreate).toBe(false);
+    expect((await load([], [], "o", true)).canCreate).toBe(true);
+  });
+
   it("drops a Task without a deadline", async () => {
     const t = {
       id: "t",
@@ -230,6 +291,9 @@ describe("loadTimelineInput lanes", () => {
       created_at: "x",
       lifecycle: "active",
       obsolete: false,
+      status: "not_started",
+      owner_user_id: null,
+      accepted_at: null,
       task_dependencies: [],
     };
     expect((await load([], [t], "u", true)).tasks).toEqual([]);
@@ -250,6 +314,9 @@ describe("loadTimelineInput", () => {
       created_at: "2026-11-01T00:00:00Z",
       lifecycle: "active",
       obsolete: false,
+      status: "not_started",
+      owner_user_id: null,
+      accepted_at: null,
       task_dependencies: [],
     }));
     const roles = [
