@@ -179,3 +179,51 @@ test("the RSVP page sends no referrer, and asks a stranger to open the link", as
     stranger.getByText("Open your personal invitation link again to answer."),
   ).toBeVisible();
 });
+
+test("an ended Event shows thanks and no way to change the answer", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  await guest.getByLabel("No, I can't make it").check();
+  await guest.getByRole("button", { name: "Send my answer" }).click();
+  await expect(guest.getByRole("button", { name: "Change my answer" })).toBeVisible();
+
+  psql(`update public.events set starts_at = now() - interval '3 hours',
+    ends_at = now() - interval '1 hour', rsvp_due_date = null where id = '${id}'`);
+  await guest.goto(`/rsvp/${id}`);
+  await expect(guest.getByRole("heading", { name: "Thanks for coming!" })).toBeVisible();
+  await expect(guest.getByText("No, I can't make it")).toBeVisible();
+  await expect(guest.getByRole("button", { name: "Change my answer" })).toHaveCount(0);
+});
+
+test("a plus-one without a name reads as such on the Guests tab", async ({ page, request }) => {
+  const { id } = await invite(page, request);
+  psql(`insert into public.rsvps (guest_id, event_id, attending, plus_one)
+    select id, event_id, true, true from public.guests where event_id = '${id}'`);
+  await page.goto(`/events/${id}/guests`);
+  await expect(page.getByText("Brings a plus-one")).toBeVisible();
+});
+
+test("an Event the viewer is only a guest of is not on All events", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const email = await signedIn(page, request);
+  seed(email, "7 days");
+  const other = await (
+    await browser.newContext({ baseURL: "http://localhost:3000", extraHTTPHeaders: ip() })
+  ).newPage();
+  const host = await signedIn(other, request);
+  const hosted = seed(host, "7 days");
+  psql(`update public.events set name = 'Hosted by someone else' where id = '${hosted}'`);
+  psql(`insert into public.guests (event_id, name, user_id)
+    select '${hosted}', 'Me', id from auth.users where email = '${email}'`);
+
+  await page.goto("/events");
+  await expect(page.getByRole("link", { name: /Seeded/ })).toHaveCount(1);
+  await expect(page.getByText("Hosted by someone else")).toHaveCount(0);
+});
