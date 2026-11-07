@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-13-2026 16:05
-last_updated: 11-05-2026 22:40
+last_updated: 11-07-2026 09:10
 project: Arrangly
 project_key: NOKEY
 tracking_system: file-system
@@ -100,8 +100,8 @@ development_status:
   5-6-timeline-computation: done
   5-7-timeline-swimlane-view: done
   5-8-timeline-list-view: done
-  5-9-flagship-check: review
-  epic-5-retrospective: optional
+  5-9-flagship-check: done
+  epic-5-retrospective: done
 
   epic-6: backlog
   6-1-usage-ledger-and-ai_reserve: backlog
@@ -305,3 +305,72 @@ action_items:
     owner: "Aumgaran"
     status: open
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
+  - id: "epic-5-retro-item-21-add-a-parity-test-for-classifydashboard"
+    epic: 5
+    action: "Add a parity test for classifyDashboard, card-state.ts and events_card_counts()
+      over the flagship seed"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-22-decide-cross-role-visibility-of-an-owned"
+    epic: 5
+    action: "Decide cross-Role visibility of an owned Task on the Timeline and pin
+      it with a test"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-23-widen-the-no-leak-assertion-to-page-cont"
+    epic: 5
+    action: "Widen the no-leak assertion to page content incl. aria-label in both
+      Timeline views and the Dashboard"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-24-make-e2e-and-pgtap-fixtures-use-the-even"
+    epic: 5
+    action: "Make e2e and pgTAP fixtures use the Event-zone date instead of current_date
+      (fix: commit)"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-25-run-format-check-after-the-session-log-i"
+    epic: 5
+    action: "Run format:check after the session log is written in the story runner
+      last step"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-26-add-a-browser-look-to-the-done-check-of"
+    epic: 5
+    action: "Add a browser look to the done-check of UI stories and pin the Today
+      pill position"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-27-record-the-epic-5-deferrals-in-deferred"
+    epic: 5
+    action: "Record the Epic 5 deferrals in deferred-work.md and offer a reflection
+      entry on the Core-only 5.9 deviation"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-28-add-the-re-seed-idempotency-assertion-to"
+    epic: 5
+    action: "Add the re-seed idempotency assertion to pgTAP"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-29-move-loadlisted-into-src-modules-tasks-w"
+    epic: 5
+    action: "Move loadListed into src/modules/tasks when the next Dashboard story
+      touches it"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
+  - id: "epic-5-retro-item-30-run-the-sm-3-and-nfr12-manual-script-fro"
+    epic: 5
+    action: "Run the SM-3 and NFR12 manual script from docs/flagship-manual-check.md
+      before launch"
+    owner: "Aumgaran"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-07.md"
