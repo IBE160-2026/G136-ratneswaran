@@ -49,7 +49,7 @@ export async function copyGuestLink(
   const supabase = await createClient();
   const { data: guest, error: guestError } = await supabase
     .from("guests")
-    .select("name, events(name, starts_at, time_zone, language)")
+    .select("name, user_id, events(name, starts_at, time_zone, language)")
     .eq("id", guestId)
     .eq("event_id", eventId)
     .maybeSingle();
@@ -80,7 +80,8 @@ export async function copyGuestLink(
   if (error) return fail("copy", error.code);
   if (!token) return fail("copy", "no_token");
 
-  revalidatePath(`${eventPath(eventId)}/guests`);
+  // Only a first copy changes the row's label, so *Copy all links* does not re-render the list per guest.
+  if (!guest.user_id) revalidatePath(`${eventPath(eventId)}/guests`);
   const link = `${origin}/api/invite/${token}`;
   return {
     ok: true,
