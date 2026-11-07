@@ -179,7 +179,7 @@ action_items:
     action: "After CI is green on main, confirm the first supabase db push applies
       both migrations to the cloud project and sign-up works there"
     owner: "Aumgaran"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-17.md"
   - id: "epic-1-retro-item-3-delete-stale-deferred-work-entries-ci-ty"
     epic: 1
@@ -242,7 +242,7 @@ action_items:
       1 and Epic 2 migration and an Organizer can create and publish an Event in the
       cloud"
     owner: "Aumgaran"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-10-20.md"
   - id: "epic-2-retro-item-12-make-the-draft-card-open-the-first-incom"
     epic: 2
