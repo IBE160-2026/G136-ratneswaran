@@ -47,3 +47,6 @@
 - [ ] 2026-11-07 [story-5-9](2026-11-07-story-5-9-flagship-check.md) — Problem, Decision Task og Proposed-kort mangler i seed og flagship-spec (Story 4.8, 4.10-4.14, Epic 6)
 - [ ] 2026-11-07 [story-5-9](2026-11-07-story-5-9-flagship-check.md) — manuelt SM-3/NFR12-skript er skrevet men ikke kjørt
 - [ ] 2026-11-07 [story-5-9](2026-11-07-story-5-9-flagship-check.md) — re-seed-idempotens kun i Playwright; plassholderstrenger i flagship-spec er gjetninger
+- [ ] 2026-11-07 [story-7-1](983-2026-11-07-14-26-25-story-7-1-personal-guest-link.md) — gjestesession kan sette passord/koble OAuth og beholde kontoen etter New link; krever Auth-beslutning (høy)
+- [ ] 2026-11-07 [story-7-1](983-2026-11-07-14-26-25-story-7-1-personal-guest-link.md) — vault.create_secret i skymigrasjonen uverifisert til CI har kjørt
+- [ ] 2026-11-07 [story-7-1](983-2026-11-07-14-26-25-story-7-1-personal-guest-link.md) — e2e team/gjester får tidsavbrudd ved parallell kjøring under last
