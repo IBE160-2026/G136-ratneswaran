@@ -474,7 +474,7 @@ isOneToOne: false
 { Args: { "p_guest_id": string }; Returns: undefined
                            },
 "guests_submit_rsvp":
-{ Args: { "p_answers": Json,"p_event_id": string,"p_expected_updated_at": string }; Returns: string
+{ Args: { "p_answers": Json,"p_event_id": string,"p_expected_updated_at"?: string }; Returns: string
                            },
 "guests_update":
 { Args: { "p_email": string,"p_guest_id": string,"p_name": string }; Returns: undefined

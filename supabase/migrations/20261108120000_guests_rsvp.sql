@@ -46,7 +46,7 @@ create policy events_select_guest on public.events
 
 -- AD-2/AD-5 mutation function. Takes no guest or user id: the caller's own guest row is found by
 -- Event and auth.uid(). Anything but a Guest of a published Event gets one refusal that reveals nothing.
-create function public.guests_submit_rsvp(p_event_id uuid, p_answers jsonb, p_expected_updated_at timestamptz)
+create function public.guests_submit_rsvp(p_event_id uuid, p_answers jsonb, p_expected_updated_at timestamptz default null)
 returns timestamptz
 language plpgsql
 security definer
