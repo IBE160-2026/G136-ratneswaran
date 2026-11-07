@@ -1,5 +1,5 @@
 begin;
-select plan(61);
+select plan(63);
 
 -- A organizes (named Ada); B organizes another Event; G1 and G2 are guest-only (created by copyGuestLink:
 -- Auth's random password, marked pending); R holds a Role; P has a password; H signed up with GitHub.
@@ -229,8 +229,8 @@ select results_eq(
   $$values ('sign_in'::text, '33333333-3333-3333-3333-333333333333'::uuid, 'holder-r@example.test'::text)$$,
   'a Role-holder signs in instead'
 );
-select is((select first_opened_at from public.guests where id = '77000000-0000-0000-0000-000000000003'),
-  null, 'signing in is not an open');
+select isnt((select first_opened_at from public.guests where id = '77000000-0000-0000-0000-000000000003'),
+  null, 'Continue to log in is an open too');
 
 -- RLS for a guest session (G1)
 set local role authenticated;
@@ -252,6 +252,9 @@ select ok(public.is_guest_self('77000000-0000-0000-0000-000000000001'), 'is_gues
 set local request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
 select ok(not public.is_guest_of('57000000-0000-0000-0000-000000000004'), 'is_guest_of: not another Event');
 select ok(not public.is_guest_self('77000000-0000-0000-0000-000000000001'), 'is_guest_self: not another guest');
+select is((select count(*) from public.events), 0::bigint, 'a guest reads no Event row');
+select results_eq($$select id from public.guests$$, $$values ('77000000-0000-0000-0000-000000000002'::uuid)$$,
+  'a guest on one Event sees only their own row');
 set local request.jwt.claims = '{"sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "authenticated"}';
 select is((select count(*) from public.guests), 7::bigint, 'the Organizer still sees all their guests');
 reset role;
@@ -282,6 +285,7 @@ select is(pg_temp.active('11111111-1111-1111-1111-111111111111'), 4::bigint,
   'still one active token per Event (1, 2, 3, 4)');
 
 -- Edit and remove
+update public.guests set first_opened_at = now() where id = '77000000-0000-0000-0000-000000000002';
 create temp table g2_link as select pg_temp.token('57000000-0000-0000-0000-000000000001',
   '22222222-2222-2222-2222-222222222222') as token;
 set local role authenticated;
@@ -294,7 +298,8 @@ set local role authenticated;
 select public.guests_update('77000000-0000-0000-0000-000000000002', 'Gunn B', 'other@example.test');
 reset role;
 select ok(
-  (select user_id is null from public.guests where id = '77000000-0000-0000-0000-000000000002')
+  (select user_id is null and first_opened_at is null from public.guests
+   where id = '77000000-0000-0000-0000-000000000002')
     and pg_temp.active('22222222-2222-2222-2222-222222222222') = 0
     and (select status from public.guests_link_preview((select token from g2_link))) = 'invalid',
   'a changed email detaches the user and the old link reads invalid'
