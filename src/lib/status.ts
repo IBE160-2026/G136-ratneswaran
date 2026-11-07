@@ -8,8 +8,10 @@ import {
   CircleQuestionMark,
   Flag,
   Hourglass,
+  Link,
   Lock,
   Mail,
+  MailOpen,
   UserRound,
   UserRoundCheck,
   type LucideIcon,
@@ -32,8 +34,10 @@ export const STATUSES = {
   atRisk: { icon: null, tone: "text-at-risk-text" },
   newItem: { icon: null, tone: "bg-badge px-2 py-0.5 text-badge-foreground" },
   cancelled: { icon: CalendarX, tone: "text-muted-foreground" },
-  // Constant until Epic 7 adds invitations.
+  // A guest's personal link: never copied, copied but not opened, opened (Story 7.1).
   notInvited: { icon: Mail, tone: "text-muted-foreground" },
+  linkCopied: { icon: Link, tone: "text-muted-foreground" },
+  opened: { icon: MailOpen, tone: "text-primary" },
 } satisfies Record<string, { icon: LucideIcon | null; tone: string }>;
 
 export type Status = keyof typeof STATUSES;

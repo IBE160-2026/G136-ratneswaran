@@ -186,7 +186,7 @@ select throws_ok(
   '53400', null, 'the 31st Role invitation in 24 hours is refused'
 );
 select lives_ok(
-  $$select public.invite_tokens_create('51000000-0000-0000-0000-000000000001', 'guest',
+  $$select public.invite_tokens_create('51000000-0000-0000-0000-000000000002', 'guest',
       'cccccccc-cccc-cccc-cccc-cccccccccccc', null),
     public.invite_tokens_create('51000000-0000-0000-0000-000000000001', 'shared_event', null, null)$$,
   'guest and shared-event tokens are not capped'

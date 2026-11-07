@@ -153,7 +153,7 @@ test("another signed-in account is told so, logs out and gets the invitation bac
   await expect(other.getByText(email)).toBeVisible();
 });
 
-test("an unknown link shows the used text", async ({ page }) => {
+test("an unknown link shows the generic text", async ({ page }) => {
   // A fresh token each run: the limiter's per-token bucket outlives the test.
   const token = () => `${Date.now()}${"x".repeat(43)}`.slice(0, 43);
   const route = await page.request.get(`/api/invite/${token()}`, { maxRedirects: 0 });
@@ -161,5 +161,7 @@ test("an unknown link shows the used text", async ({ page }) => {
   expect(route.headers()["referrer-policy"]).toBe("no-referrer");
   await page.goto(`/api/invite/${token()}`);
   await expect(page).toHaveURL("http://localhost:3000/invite");
-  await expect(page.getByText("This invite has already been used. Log in instead.")).toBeVisible();
+  await expect(
+    page.getByText("This link has expired. Ask the person who invited you for a new one."),
+  ).toBeVisible();
 });

@@ -9,22 +9,23 @@ type PreviewRow = Database["public"]["Functions"]["events_invite_preview"]["Retu
 
 export type InvitePreview =
   | ({ status: "valid" } & Omit<PreviewRow, "status">)
-  | { status: "used" | "expired" | "unavailable" };
+  | { status: "used" | "expired" | "invalid" | "unavailable" };
 
 /**
  * The invitation behind the cookie, through the system function `events_invite_preview` and the secret key
- * (AD-5). Unknown, used and revoked tokens, and no cookie at all, read the same: used.
+ * (AD-5). Used and revoked tokens read used; unknown tokens and no cookie at all read invalid.
  */
 export async function readInvite(): Promise<{ token: string | null; preview: InvitePreview }> {
   const token = (await cookies()).get(INVITE_COOKIE)?.value ?? null;
-  if (!token) return { token, preview: { status: "used" } };
+  if (!token) return { token, preview: { status: "invalid" } };
   const { data, error } = await createAdminClient().rpc("events_invite_preview", {
     p_token: token,
   });
   const row = data?.[0];
   if (error || !row) return { token, preview: { status: "unavailable" } };
   if (row.status === "valid") return { token, preview: { ...row, status: "valid" } };
-  return { token, preview: { status: row.status === "expired" ? "expired" : "used" } };
+  const status = row.status === "expired" || row.status === "invalid" ? row.status : "used";
+  return { token, preview: { status } };
 }
 
 /** Same address, ignoring case: decides only what /invite shows; `events_join_role` makes the real check. */

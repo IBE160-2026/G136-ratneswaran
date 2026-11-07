@@ -79,7 +79,9 @@
     "newItem": "{count, plural, one {# ny sak} other {# nye saker}}",
     "cancelled": "Avlyst",
     "notInvited": "Ikke invitert ennå",
-    "notStarted": "Ikke startet"
+    "notStarted": "Ikke startet",
+    "linkCopied": "Lenke kopiert · ikke åpnet",
+    "opened": "Åpnet"
   },
   "auth": {
     "signUp": {
@@ -504,6 +506,36 @@
         "restoreFailed": "Kunne ikke hente tilbake {name}. Legg gjesten til igjen for hånd.",
         "restoreDuplicate": "E-posten står på listen igjen, så ingenting ble hentet tilbake."
       }
+    },
+    "link": {
+      "menu": "Del",
+      "menuLabel": "Del lenken til {name}",
+      "copyLink": "Kopier lenke",
+      "copyText": "Kopier invitasjonstekst",
+      "renew": "Ny lenke",
+      "copied": "Lenken til {name} er kopiert.",
+      "textCopied": "Invitasjonsteksten til {name} er kopiert.",
+      "renewed": "Ny lenke til {name} er kopiert. Den gamle lenken virker ikke lenger.",
+      "copyFailed": "Kunne ikke kopiere automatisk. Merk teksten nedenfor og kopier den.",
+      "fallbackLabel": "Tekst å kopiere",
+      "renewTitle": "Lage en ny lenke til {name}?",
+      "renewDescription": "Lenken du delte før, slutter å virke, og {name} blir logget ut der lenken ble åpnet.",
+      "renewConfirm": "Lag ny lenke",
+      "renewKeep": "Behold lenken",
+      "all": "Kopier alle lenker",
+      "allProgress": "Kopierer lenker … {done} av {total}",
+      "allCopied": "{count, plural, one {# lenke kopiert} other {# lenker kopiert}}. Én linje per gjest: navn, e-post og lenke.",
+      "allTooMany": "Kopier alle lenker virker for opptil {max} gjester. Kopier lenkene én og én i stedet.",
+      "allFailed": "Kunne ikke kopiere alle lenkene. Prøv igjen; lenker som allerede er laget, forblir de samme.",
+      "allFallbackLabel": "Alle lenker",
+      "errors": {
+        "unavailable": "Kunne ikke lage lenken akkurat nå. Prøv igjen."
+      },
+      "invitation": {
+        "withDate": "Hei {name}! Du er invitert til {event} {date}. Åpne den personlige invitasjonen din her: {link}",
+        "noDate": "Hei {name}! Du er invitert til {event}. Åpne den personlige invitasjonen din her: {link}",
+        "untitled": "arrangementet vårt"
+      }
     }
   },
   "privacy": {
@@ -768,5 +800,19 @@
       "emptyPending": "Ingen oppgaver venter på en eier.",
       "showObsolete": "Vis utgåtte ({count})"
     }
+  },
+  "guestLink": {
+    "greeting": "Hei {name}, dette er invitasjonen din til {event}.",
+    "continue": "Fortsett",
+    "notYou": "Ikke {name}? Be {organizer} om din egen lenke.",
+    "notYouGeneric": "Ikke {name}? Be arrangøren om din egen lenke.",
+    "signedIn": "Du er logget inn med invitasjonen din.",
+    "otherAccount": "Du er logget inn med en annen konto. Logg ut for å åpne denne invitasjonen.",
+    "logInIntro": "Logg inn for å se invitasjonen din.",
+    "invalid": "Denne lenken har utløpt. Be den som inviterte deg, om en ny.",
+    "revoked": "Denne lenken er ikke lenger aktiv. Be {organizer} om en ny.",
+    "revokedGeneric": "Denne lenken er ikke lenger aktiv. Be arrangøren om en ny.",
+    "cancelled": "Dette arrangementet er avlyst.",
+    "ended": "Takk for at du kom!"
   }
 }

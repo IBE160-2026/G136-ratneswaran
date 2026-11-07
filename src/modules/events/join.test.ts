@@ -92,9 +92,9 @@ describe("sendJoinCode", () => {
     expect(auth.signInWithOtp).not.toHaveBeenCalled();
   });
 
-  it("reads no cookie as used", async () => {
+  it("reads no cookie as an unknown link", async () => {
     jar.clear();
-    expect(await sendJoinCode()).toMatchObject({ error: { message: "invite.used" } });
+    expect(await sendJoinCode()).toMatchObject({ error: { message: "guestLink.invalid" } });
     expect(limit).not.toHaveBeenCalled();
     expect(adminRpc).not.toHaveBeenCalled();
   });
@@ -211,7 +211,7 @@ describe("joinEvent", () => {
   it.each([
     ["mismatch", "invite.mismatch"],
     ["used", "invite.used"],
-    ["invalid", "invite.used"],
+    ["invalid", "guestLink.invalid"],
     ["expired", "invite.expired"],
   ])("maps %s", async (status, message) => {
     adminRpc.mockResolvedValue({ data: [{ status, event_id: null }], error: null });

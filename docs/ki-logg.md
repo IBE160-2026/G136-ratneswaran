@@ -518,3 +518,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire review-lag fant 5 fikser (manuelt skript manglet en Task til testeren, seed-datoer i UTC i stedet for Oslo og for nær i tid, lane-telling, lokal-advarsel); 3 utsatt (re-seed i pgTAP, plassholderstrenger, Problem/Decision/Proposed-kort). Triage står som PR-kommentar.
 **Min vurdering:** NIL
 **Spor:** branch `feat/5.9-flagship-check`, PR for 5.9
+
+## 2026-11-07 — Story 7.1: Personlig gjestelenke
+
+**Prompt:** `/bmad-build-auto på story 7.1`, kun Core, sikkerhetskritisk. Spec-en `spec-7-1-personal-guest-link.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** *Copy link*, *Copy invitation text*, *Copy all links* og *New link* på Guests-siden. Kopieringen finner eller lager en passordløs gjestebruker med secret key (invitee creation, AD-5) og gir gjestens ene aktive `guest`-token. `/invite` hilser gjesten, og *Continue* (POST, egen limiter-bucket) gir session bare til en guest-only bruker, ellers innlogging med e-posten utfylt. Guest-only avgjøres ett sted i SQL, og en trigger på `auth.users` fjerner `password_pending` og opphever gjestelenker når passordet endres.
+**Valg som må forklares:** Tokenet er HMAC-SHA256 av token-id med en nøkkel i Supabase Vault, så samme lenke kan kopieres igjen (også i *Copy all links* etter en feil) mens bare SHA-256 lagres. Session lages med admin `generateLink` + `verifyOtp` på serveren med en gang; hashen forlater aldri serveren. *New link* avslutter sessions bare for guest-only brukere. En slettet Event gir den generelle teksten, fordi tokens slettes med Eventen (Story 3.5).
+**Review:** Fire uavhengige reviewere ga 39 funn (1 høy, 10 medium, 24 lave, 4 falske). Rettet: endret e-post nullstiller «Opened» og låser raden, første åpning registreres også ved innlogging, *Copy all links* går gjennom én batch-action (Next kjører actions i rekkefølge), avlyst/avsluttet beholder cookien, AC-teksten for ugyldig lenke med Vitest, pgTAP for andre Events, fire nye e2e og tvungen rekkefølge i race-testen. Utsatt (høy): en gjestesession kan sette passord eller koble OAuth-identitet og beholde kontoen etter *New link*; krever eierens beslutning om Auth-innstillinger. Triage står som PR-kommentar.
+**Min vurdering:** NIL
+**Spor:** branch `feat/7.1-personal-guest-link`, PR for 7.1

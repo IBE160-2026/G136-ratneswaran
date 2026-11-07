@@ -2,7 +2,9 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { getClaims } from "@/lib/supabase/server";
 import { readInvite, sameEmail } from "@/modules/events/invite";
+import { firstName, type GuestLinkPreview, readGuestLink } from "@/modules/guests/link";
 import { OAuthButtons } from "../oauth-buttons";
+import { GuestContinue, GuestEnded } from "./guest-flow";
 import { Ended, JoinButton, Mismatch, NewInvitee, PasswordStep } from "./join-flow";
 
 export async function generateMetadata() {
@@ -12,7 +14,10 @@ export async function generateMetadata() {
 
 const NEXT = "/invite";
 
-/** Where the invite link lands, token-free (FR-1, AD-4); the state comes from the cookie's invitation. */
+/**
+ * Where the invite link lands, token-free (FR-1, FR-6, AD-4); the state comes from the cookie's token.
+ * A guest link has its own view; a Role invitation keeps the join flow.
+ */
 export default async function InvitePage({
   searchParams,
 }: {
@@ -27,6 +32,16 @@ export default async function InvitePage({
       </Shell>
     );
   }
+  const { preview: guest } = await readGuestLink();
+  if (guest.status === "unavailable") {
+    return (
+      <Shell>
+        <p role="alert">{t("invite.errors.unavailable")}</p>
+      </Shell>
+    );
+  }
+  if (guest.status !== "other_kind") return <GuestView preview={guest} />;
+
   const { preview } = await readInvite();
   if (preview.status === "unavailable") {
     return (
@@ -38,7 +53,11 @@ export default async function InvitePage({
   if (preview.status !== "valid") {
     return (
       <Shell>
-        <Ended message={`invite.${preview.status}`} />
+        {preview.status === "invalid" ? (
+          <GuestEnded>{t("guestLink.invalid")}</GuestEnded>
+        ) : (
+          <Ended message={`invite.${preview.status}`} />
+        )}
       </Shell>
     );
   }
@@ -93,5 +112,55 @@ async function Shell({ title, children }: { title?: string; children: React.Reac
       <h1 className="text-large-title break-words">{title ?? t("surface")}</h1>
       {children}
     </div>
+  );
+}
+
+/** The guest side of a personal link: a greeting and *Continue*, or the text of a link that has ended. */
+async function GuestView({ preview }: { preview: GuestLinkPreview }) {
+  const t = await getTranslations("guestLink");
+  const organizer = preview.organizer_name?.trim();
+  if (preview.status === "invalid") {
+    return (
+      <Shell>
+        <GuestEnded>{t("invalid")}</GuestEnded>
+      </Shell>
+    );
+  }
+  if (preview.status === "revoked") {
+    return (
+      <Shell>
+        <GuestEnded>{organizer ? t("revoked", { organizer }) : t("revokedGeneric")}</GuestEnded>
+      </Shell>
+    );
+  }
+  const event = preview.event_name ?? (await getTranslations("events.draft"))("untitled");
+  if (preview.status === "cancelled" || preview.status === "ended") {
+    return (
+      // Read-only, and the cookie stays: a reload still shows the Event and the Organizer's note.
+      <Shell title={event}>
+        <p role="alert">{t(preview.status)}</p>
+        {preview.cancellation_note && (
+          <p className="break-words whitespace-pre-line">{preview.cancellation_note}</p>
+        )}
+      </Shell>
+    );
+  }
+
+  const first = firstName(preview.guest_name);
+  const claims = await getClaims();
+  return (
+    <Shell title={t("greeting", { name: first, event })}>
+      {!claims && (
+        <GuestContinue
+          notYou={
+            organizer
+              ? t("notYou", { name: first, organizer })
+              : t("notYouGeneric", { name: first })
+          }
+        />
+      )}
+      {claims && claims.sub === preview.user_id && <p>{t("signedIn")}</p>}
+      {claims && claims.sub !== preview.user_id && <Mismatch message="guestLink.otherAccount" />}
+    </Shell>
   );
 }

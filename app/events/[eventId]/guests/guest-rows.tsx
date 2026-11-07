@@ -10,8 +10,14 @@ import type { Result } from "@/lib/result";
 import { callSafely } from "@/modules/events/save";
 import { removeGuest, restoreGuest, updateGuest } from "@/modules/guests/actions";
 import { useSaveFeedback } from "../setup/form";
+import { CopyAllLinks, CopyMenu } from "./copy-menu";
 
-export type Guest = { id: string; name: string; email: string };
+export type Guest = {
+  id: string;
+  name: string;
+  email: string;
+  link?: "notInvited" | "linkCopied" | "opened";
+};
 
 const secondaryClass = "min-h-touch border-input rounded-full border px-4";
 
@@ -23,10 +29,12 @@ export function GuestRows({
   eventId,
   guests,
   readOnly,
+  links = false,
 }: {
   eventId: string;
   guests: Guest[];
   readOnly: boolean;
+  links?: boolean;
 }) {
   const t = useTranslations();
   // A removed row hides until the action ends; the revalidated list then has it gone, or back on failure.
@@ -93,6 +101,7 @@ export function GuestRows({
       <h2 id="guest-count" className="text-headline">
         {t("guests.list.count", { count: shown.length })}
       </h2>
+      {links && !readOnly && <CopyAllLinks eventId={eventId} guests={shown} />}
       <ul role="list" className="divide-border flex flex-col divide-y">
         {shown.map((guest, index) => (
           <li key={guest.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-2 py-2">
@@ -109,9 +118,10 @@ export function GuestRows({
               <>
                 <span className="min-w-0 break-words">{guest.name}</span>
                 <span className="text-muted-foreground min-w-0 break-all">{guest.email}</span>
-                <StatusLabel status="notInvited" className="ml-auto" />
+                <StatusLabel status={guest.link ?? "notInvited"} className="ml-auto" />
                 {!readOnly && (
-                  <span className="flex gap-2">
+                  <span className="flex flex-wrap gap-2">
+                    {links && <CopyMenu eventId={eventId} guest={guest} />}
                     <button
                       type="button"
                       ref={(button) => {
