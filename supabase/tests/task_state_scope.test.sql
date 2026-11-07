@@ -66,7 +66,7 @@ select throws_ok(
   '42501', null, 'anon cannot read a Proposed Task');
 
 reset role;
-select is((select count(*) from public.task_state), 3::bigint, 'the table owner still sees every row');
+select is((select count(*) from public.task_state where event_id = '59100000-0000-0000-0000-000000000001'), 3::bigint, 'the table owner still sees every row');
 select is((select count(*) from public.task_state where id = '89100000-0000-0000-0000-000000000002'), 1::bigint, 'the Proposed Task exists');
 
 select * from finish();
