@@ -118,28 +118,37 @@ export function RsvpFlow({
   const total = totalSteps(attending);
   const answers = { attending: attending ?? false, plusOne, plusOneName, otherNeeds };
 
-  async function send() {
+  /** Parses the answers; on failure shows the inline errors, on the step that owns the first one. */
+  function parse() {
     const parsed = rsvpAnswersSchema.safeParse(answers);
-    if (!parsed.success) {
-      setErrors(
-        Object.fromEntries(
-          parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
-        ),
-      );
-      return;
-    }
+    if (parsed.success) return parsed.data;
+    const found = Object.fromEntries(
+      parsed.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
+    );
+    setErrors(found);
+    setStep(found.plusOneName ? 2 : found.otherNeeds ? 3 : step);
+    return null;
+  }
+
+  async function send() {
+    const parsed = parse();
+    if (!parsed) return;
     setErrors({});
     setFailed(null);
     setPending(true);
     const result = await callSafely(() =>
-      submitRsvp({ eventId, answers: parsed.data, expectedUpdatedAt: updatedAt }),
+      submitRsvp({ eventId, answers: parsed, expectedUpdatedAt: updatedAt }),
     );
     setPending(false);
-    if (!result.ok) return setFailed(result.error);
-    const done = parsed.data;
-    setPlusOne(done.plusOne);
-    setPlusOneName(done.plusOneName);
-    setOtherNeeds(done.otherNeeds);
+    if (!result.ok) {
+      setFailed(result.error);
+      // The server knows better: the Event may have ended, or the session or Guest gone.
+      if (["read_only", "no_session", "forbidden"].includes(result.error.code)) router.refresh();
+      return;
+    }
+    setPlusOne(parsed.plusOne);
+    setPlusOneName(parsed.plusOneName);
+    setOtherNeeds(parsed.otherNeeds);
     setUpdatedAt(result.data.updatedAt);
     setAnswered(true);
     setEditing(false);
@@ -150,6 +159,7 @@ export function RsvpFlow({
     setErrors({});
     // A No is complete here; so is the last question.
     if (attending === false || step === 3) return void send();
+    if (step === 2 && !parse()) return;
     setStep(step + 1);
   }
 
@@ -308,7 +318,12 @@ export function RsvpFlow({
             {pending ? t("sending") : last ? t("send") : t("next")}
           </button>
           {failed?.code === "unavailable" && (
-            <button type="button" className={secondaryClass} onClick={() => void send()}>
+            <button
+              type="button"
+              disabled={pending}
+              className={secondaryClass}
+              onClick={() => void send()}
+            >
               {t("retry")}
             </button>
           )}
