@@ -26,11 +26,19 @@ test("two copies of one guest's link at once give one active token and the same 
     session(`begin; set local role authenticated;
       set local request.jwt.claims = '{"sub": "${uid}", "role": "authenticated"}';
       select public.guests_copy_link('${guestId}'); select pg_sleep(${pause}); commit;`);
-  const [first, second] = await Promise.all([copy(1), copy(0)]);
+  // copy(1) takes the row lock and sleeps holding it; only then does copy(0) start, so it must wait.
+  const first = copy(1);
+  await expect
+    .poll(() =>
+      psql(`select count(*) from pg_stat_activity
+        where pid <> pg_backend_pid() and wait_event = 'PgSleep' and query like '%${guestId}%'`).trim(),
+    )
+    .toBe("1");
+  const [holder, second] = await Promise.all([first, copy(0)]);
 
   const token = (output: string) => output.split("\n").find((line) => /^[\w-]{43}$/.test(line));
-  expect(token(first)).toBeTruthy();
-  expect(token(second)).toBe(token(first));
+  expect(token(holder)).toBeTruthy();
+  expect(token(second)).toBe(token(holder));
   expect(
     psql(`select count(*) from public.invite_tokens
       where event_id = '${eventId}' and kind = 'guest' and revoked_at is null`).trim(),
