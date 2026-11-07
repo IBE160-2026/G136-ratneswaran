@@ -136,13 +136,12 @@ async function GuestView({ preview }: { preview: GuestLinkPreview }) {
   const event = preview.event_name ?? (await getTranslations("events.draft"))("untitled");
   if (preview.status === "cancelled" || preview.status === "ended") {
     return (
+      // Read-only, and the cookie stays: a reload still shows the Event and the Organizer's note.
       <Shell title={event}>
-        <GuestEnded>
-          <p>{t(preview.status)}</p>
-          {preview.cancellation_note && (
-            <p className="break-words whitespace-pre-line">{preview.cancellation_note}</p>
-          )}
-        </GuestEnded>
+        <p role="alert">{t(preview.status)}</p>
+        {preview.cancellation_note && (
+          <p className="break-words whitespace-pre-line">{preview.cancellation_note}</p>
+        )}
       </Shell>
     );
   }
