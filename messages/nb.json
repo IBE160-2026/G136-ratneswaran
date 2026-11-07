@@ -56,7 +56,13 @@
     "notAccepted": "Ikke akseptert ennå",
     "waitingExternal": "Venter på andre",
     "barLabel": "{title}, {dates}, {status}",
-    "barLabelBlocked": "{title}, {dates}, {status}, venter på {task}"
+    "barLabelBlocked": "{title}, {dates}, {status}, venter på {task}",
+    "viewLabel": "Visning",
+    "viewLanes": "Svømmebaner",
+    "viewList": "Liste",
+    "emptyRole": "Ingen oppgaver i denne rollen ennå",
+    "decisionOpen": "Trenger en beslutning",
+    "decisionResolved": "Avgjort"
   },
   "status": {
     "decision": "Trenger din beslutning",

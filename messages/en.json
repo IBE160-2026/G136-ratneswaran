@@ -56,7 +56,13 @@
     "notAccepted": "Not yet accepted",
     "waitingExternal": "Waiting on external",
     "barLabel": "{title}, {dates}, {status}",
-    "barLabelBlocked": "{title}, {dates}, {status}, waits for {task}"
+    "barLabelBlocked": "{title}, {dates}, {status}, waits for {task}",
+    "viewLabel": "View",
+    "viewLanes": "Swimlanes",
+    "viewList": "List",
+    "emptyRole": "No tasks in this Role yet",
+    "decisionOpen": "Needs a decision",
+    "decisionResolved": "Decided"
   },
   "status": {
     "decision": "Needs your decision",

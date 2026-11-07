@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
 import Link from "next/link";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { STATUSES } from "@/lib/status";
 import { eventPath } from "@/modules/events/list";
@@ -16,34 +16,18 @@ import {
   ROLE_COLUMN,
   type PlacedBar,
 } from "@/modules/tasks/timeline-layout";
+import { useBarText } from "./bar-text";
+import { TimelineList } from "./timeline-list";
 import { TimelineScroller } from "./timeline-scroller";
 
 const addDays = (iso: string, days: number) =>
   new Date(Date.parse(`${iso}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
 
 function Bar({ eventId, placed, child }: { eventId: string; placed: PlacedBar; child: boolean }) {
-  const t = useTranslations();
-  const format = useFormatter();
   const { bar } = placed;
-  const day = (iso: string) =>
-    format.dateTime(new Date(`${iso}T12:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
-  const dates =
-    bar.start === bar.end
-      ? t("timeline.date", { date: day(bar.end) })
-      : t("timeline.dates", { start: day(bar.start), end: day(bar.end) });
-  const word =
-    bar.status === "overdue"
-      ? t("status.overdue", { days: bar.overdueDays })
-      : bar.status === "waiting"
-        ? t("timeline.waitingExternal")
-        : t(`status.${bar.status}`);
+  const { word, waits, label } = useBarText(bar);
+  const t = useTranslations();
   const { icon: Icon } = STATUSES[bar.status];
-  const waitsFor = bar.blocked ? bar.waitsFor : null;
-  const waits = waitsFor ? t("timeline.waitsFor", { task: waitsFor }) : null;
-  const base = waitsFor
-    ? t("timeline.barLabelBlocked", { title: bar.title, dates, status: word, task: waitsFor })
-    : t("timeline.barLabel", { title: bar.title, dates, status: word });
-  const label = bar.notAccepted ? `${base}, ${t("timeline.notAccepted")}` : base;
   return (
     <Link
       href={`${eventPath(eventId)}/tasks/${bar.id}`}
@@ -193,6 +177,7 @@ export function TimelineView({
   eventDay,
   readOnly,
   canCreate,
+  view,
 }: {
   eventId: string;
   timeline: Timeline;
@@ -201,6 +186,7 @@ export function TimelineView({
   eventDay: string | null;
   readOnly: boolean;
   canCreate: boolean;
+  view: "list" | "lanes" | undefined;
 }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -220,6 +206,33 @@ export function TimelineView({
   const todayOffset = dayOffset(axis.start, axis.today);
   const mark = (offset: number) => offset >= 0 && offset < days;
   const hasBars = timeline.axis !== null;
+  const q = (params: Record<string, string | null>) => {
+    const sp = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) if (v) sp.set(k, v);
+    const str = sp.toString();
+    return str ? `${base}?${str}` : base;
+  };
+  const obsolete = includeObsolete ? "1" : null;
+  // Without a view param both views render and CSS picks one at 768px.
+  const toggle = (current: "list" | "lanes", cls: string) => (
+    <nav aria-label={t("timeline.viewLabel")} className={cn("gap-4", cls)}>
+      {(["lanes", "list"] as const).map((v) => (
+        <Link
+          key={v}
+          href={q({ view: v, obsolete })}
+          aria-current={current === v ? "true" : undefined}
+          className={cn(
+            "min-h-touch min-w-touch flex items-center justify-center underline",
+            current === v ? "font-semibold" : "text-primary",
+          )}
+        >
+          {t(v === "list" ? "timeline.viewList" : "timeline.viewLanes")}
+        </Link>
+      ))}
+    </nav>
+  );
+  const showLanes = view !== "list" ? (view ? "" : "hidden md:block") : "hidden";
+  const showList = view !== "lanes" ? (view ? "" : "md:hidden") : "hidden";
 
   return (
     <div className="flex flex-col gap-6 py-12">
@@ -235,7 +248,7 @@ export function TimelineView({
         )}
         {timeline.obsoleteCount > 0 && (
           <Link
-            href={includeObsolete ? base : `${base}?obsolete=1`}
+            href={q({ view: view ?? null, obsolete: includeObsolete ? null : "1" })}
             className="text-primary min-h-touch flex items-center underline"
           >
             {includeObsolete
@@ -246,70 +259,83 @@ export function TimelineView({
       </div>
       {readOnly && <p className="text-muted-foreground">{t("tasks.readOnly")}</p>}
       {!hasBars && <p className="text-muted-foreground">{t("timeline.empty")}</p>}
-      <TimelineScroller todayX={todayOffset * DAY_WIDTH + DAY_WIDTH / 2}>
-        <div className="relative" style={{ width: ROLE_COLUMN + width }}>
-          <div className="flex h-[4.5rem]">
+      {view ? (
+        toggle(view, "flex")
+      ) : (
+        <>
+          {toggle("list", "flex md:hidden")}
+          {toggle("lanes", "hidden md:flex")}
+        </>
+      )}
+      <div className={showList}>
+        <TimelineList eventId={eventId} timeline={timeline} />
+      </div>
+      <div className={showLanes}>
+        <TimelineScroller todayX={todayOffset * DAY_WIDTH + DAY_WIDTH / 2}>
+          <div className="relative" style={{ width: ROLE_COLUMN + width }}>
+            <div className="flex h-[4.5rem]">
+              <div
+                className="bg-card border-border sticky left-0 z-10 shrink-0 border-r border-b"
+                style={{ width: ROLE_COLUMN }}
+              />
+              <div className="border-border relative flex-1 border-b">
+                {weeks.map((w) => (
+                  <span
+                    key={w.offset}
+                    className="border-border text-muted-foreground absolute top-0 border-l pl-1 text-xs leading-6 whitespace-nowrap"
+                    style={{ left: w.offset * DAY_WIDTH }}
+                  >
+                    {w.label}
+                  </span>
+                ))}
+                {eventDay && mark(dayOffset(axis.start, eventDay)) && (
+                  <span
+                    className="text-primary absolute top-6 text-xs leading-6 font-semibold whitespace-nowrap"
+                    style={{ left: dayOffset(axis.start, eventDay) * DAY_WIDTH }}
+                  >
+                    {t("timeline.eventDay")}
+                  </span>
+                )}
+                {mark(todayOffset) && (
+                  <span
+                    className="bg-primary text-primary-foreground absolute top-12 rounded-full px-2 text-xs leading-5 font-semibold whitespace-nowrap"
+                    style={{ left: todayOffset * DAY_WIDTH + DAY_WIDTH / 2 }}
+                  >
+                    {t("timeline.today")}
+                  </span>
+                )}
+              </div>
+            </div>
             <div
-              className="bg-card border-border sticky left-0 z-10 shrink-0 border-r border-b"
-              style={{ width: ROLE_COLUMN }}
-            />
-            <div className="border-border relative flex-1 border-b">
-              {weeks.map((w) => (
-                <span
-                  key={w.offset}
-                  className="border-border text-muted-foreground absolute top-0 border-l pl-1 text-xs leading-6 whitespace-nowrap"
-                  style={{ left: w.offset * DAY_WIDTH }}
-                >
-                  {w.label}
-                </span>
-              ))}
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0"
+              style={{ left: ROLE_COLUMN, width }}
+            >
               {eventDay && mark(dayOffset(axis.start, eventDay)) && (
-                <span
-                  className="text-primary absolute top-6 text-xs leading-6 font-semibold whitespace-nowrap"
-                  style={{ left: dayOffset(axis.start, eventDay) * DAY_WIDTH }}
-                >
-                  {t("timeline.eventDay")}
-                </span>
+                <div
+                  className="bg-primary-soft absolute inset-y-0"
+                  style={{ left: dayOffset(axis.start, eventDay) * DAY_WIDTH, width: DAY_WIDTH }}
+                />
               )}
               {mark(todayOffset) && (
-                <span
-                  className="bg-primary text-primary-foreground absolute top-12 rounded-full px-2 text-xs leading-5 font-semibold whitespace-nowrap"
-                  style={{ left: todayOffset * DAY_WIDTH + DAY_WIDTH / 2 }}
-                >
-                  {t("timeline.today")}
-                </span>
+                <div
+                  className="bg-primary absolute inset-y-0 z-[2] w-0.5"
+                  style={{ left: todayOffset * DAY_WIDTH + DAY_WIDTH / 2 - 1 }}
+                />
               )}
             </div>
-          </div>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0"
-            style={{ left: ROLE_COLUMN, width }}
-          >
-            {eventDay && mark(dayOffset(axis.start, eventDay)) && (
-              <div
-                className="bg-primary-soft absolute inset-y-0"
-                style={{ left: dayOffset(axis.start, eventDay) * DAY_WIDTH, width: DAY_WIDTH }}
+            {timeline.lanes.map((lane, i) => (
+              <Lane
+                key={lane.roleId}
+                eventId={eventId}
+                lane={lane}
+                placement={placements[i]}
+                name={t(`events.roles.${lane.key}.name`)}
               />
-            )}
-            {mark(todayOffset) && (
-              <div
-                className="bg-primary absolute inset-y-0 z-[2] w-0.5"
-                style={{ left: todayOffset * DAY_WIDTH + DAY_WIDTH / 2 - 1 }}
-              />
-            )}
+            ))}
           </div>
-          {timeline.lanes.map((lane, i) => (
-            <Lane
-              key={lane.roleId}
-              eventId={eventId}
-              lane={lane}
-              placement={placements[i]}
-              name={t(`events.roles.${lane.key}.name`)}
-            />
-          ))}
-        </div>
-      </TimelineScroller>
+        </TimelineScroller>
+      </div>
     </div>
   );
 }

@@ -123,3 +123,131 @@ test("an empty Event offers New task; a cancelled one is read-only; two years sc
   await expect(page.getByText(/can no longer be changed/)).toBeVisible();
   await expect(page.getByRole("link", { name: "New task" })).toHaveCount(0);
 });
+
+test.describe("List view", () => {
+  test("phone default is the List; rows wrap, stay 44px high and open the Task", async ({
+    page,
+    request,
+  }) => {
+    const organizer = await signedIn(page, request);
+    const { id, task, idOf } = setup(organizer, null);
+    const long = "Confirm the extremely long named caterer delivery arrangements for the hall";
+    task("venue", long, 10);
+    task("venue", "Hang banner", 15);
+    psql(`update public.tasks set parent_task_id = '${idOf(long)}'
+      where id = '${idOf("Hang banner")}'`);
+    task("program", "Plan speeches", 12);
+    psql(
+      `update public.roles set active = true where event_id = '${id}' and key = 'entertainment'`,
+    );
+    const noOverflow = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      );
+
+    for (const width of [375, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto(`/events/${id}/timeline`);
+      await expect(page.getByRole("heading", { level: 2, name: "Venue" })).toBeVisible();
+      await expect(page.getByRole("region", { name: "Timeline" })).toBeHidden();
+      await expect(page.getByRole("link", { name: "List" })).toHaveAttribute(
+        "aria-current",
+        "true",
+      );
+      expect(await noOverflow()).toBe(true);
+      for (const link of await page.getByRole("list", { name: "Venue" }).getByRole("link").all()) {
+        expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      }
+    }
+    await expect(page.getByText("No tasks in this Role yet")).toBeVisible();
+    const parent = page.getByRole("listitem").filter({ hasText: long }).first();
+    await expect(
+      parent.getByRole("list").getByRole("link", { name: /^Hang banner/ }),
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Swimlanes" }).click();
+    await expect(page).toHaveURL(`/events/${id}/timeline?view=lanes`);
+    await expect(page.getByRole("region", { name: "Timeline" })).toBeVisible();
+    await page.getByRole("link", { name: "List" }).click();
+    await expect(page).toHaveURL(`/events/${id}/timeline?view=list`);
+
+    await page.getByRole("link", { name: /^Plan speeches/ }).click();
+    await expect(page).toHaveURL(new RegExp(`/events/${id}/tasks/${idOf("Plan speeches")}`));
+  });
+
+  test("desktop default is swimlanes; ?view=list shows the List with matching link names", async ({
+    page,
+    request,
+  }) => {
+    const organizer = await signedIn(page, request);
+    const { id, task } = setup(organizer, null);
+    task("venue", "Book hall", 10);
+    task("venue", "Old task", 11, "obsolete");
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(`/events/${id}/timeline`);
+    await expect(page.getByRole("region", { name: "Timeline" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Swimlanes" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    const laneName = await page
+      .getByRole("region", { name: "Timeline" })
+      .getByRole("link", { name: /^Book hall/ })
+      .getAttribute("aria-label");
+
+    await page.goto(`/events/${id}/timeline?view=list`);
+    await expect(page.getByRole("region", { name: "Timeline" })).toBeHidden();
+    await expect(page.getByRole("link", { name: /^Book hall/ })).toHaveAttribute(
+      "aria-label",
+      laneName!,
+    );
+    await page.getByRole("link", { name: "Show obsolete (1)" }).click();
+    await expect(page).toHaveURL(`/events/${id}/timeline?view=list&obsolete=1`);
+    await expect(page.getByRole("link", { name: /^Old task, .*Obsolete/ })).toBeVisible();
+    await page.getByRole("link", { name: "Swimlanes" }).click();
+    await expect(page).toHaveURL(`/events/${id}/timeline?view=lanes&obsolete=1`);
+    await page.getByRole("link", { name: "Hide obsolete" }).click();
+    await expect(page).toHaveURL(`/events/${id}/timeline?view=lanes`);
+
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.goto(`/events/${id}/timeline?view=bogus`);
+    await expect(page.getByRole("link", { name: /^Book hall/ })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Timeline" })).toBeHidden();
+    await expect(page.getByRole("link", { name: "List" })).toHaveAttribute("aria-current", "true");
+  });
+
+  test("a holder sees the unreadable text and no inactive-Role line; the Organizer does", async ({
+    page,
+    request,
+  }) => {
+    const holder = await signedIn(page, request);
+    const organizer = unique();
+    psql(`insert into auth.users (id, email) values (gen_random_uuid(), '${organizer}')`);
+    const { id, task } = setup(organizer, holder);
+    task("venue", "Mine to do", 10);
+    task("program", "Secret program task", 12);
+
+    await page.goto(`/events/${id}/timeline?view=list`);
+    await expect(
+      page.getByText("Tasks in Program are visible to its team.").filter({ visible: true }),
+    ).toBeVisible();
+    await expect(page.getByText("Secret program task")).toHaveCount(0);
+    await expect(page.getByText(/belong to inactive Roles?/)).toHaveCount(0);
+  });
+
+  test("the Organizer sees the inactive-Role line linking to Team & Roles", async ({
+    page,
+    request,
+  }) => {
+    const organizer = await signedIn(page, request);
+    const { id, task } = setup(organizer, null);
+    task("venue", "Book hall", 10);
+    task("program", "Plan speeches", 12);
+    task("program", "Plan music", 13);
+    psql(`update public.roles set active = false where event_id = '${id}' and key = 'program'`);
+    await page.goto(`/events/${id}/timeline?view=list`);
+    await expect(
+      page.getByRole("link", { name: "2 tasks belong to inactive Roles" }),
+    ).toHaveAttribute("href", `/events/${id}/team`);
+  });
+});
