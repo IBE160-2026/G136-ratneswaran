@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useId, useState, useTransition } from "react";
 import { buttonClass, inputClass, secondaryClass } from "@/components/form";
 import { callSafely } from "@/modules/events/save";
-import { copyGuestLink } from "@/modules/guests/link-actions";
+import { copyGuestLink, copyGuestLinks } from "@/modules/guests/link-actions";
 import type { Guest } from "./guest-rows";
 
 /** Same cap as the Guests tab's 500-guest budget. */
@@ -153,7 +153,7 @@ export function CopyMenu({ eventId, guest }: { eventId: string; guest: Guest }) 
 }
 
 /**
- * *Copy all links*: one `name<TAB>email<TAB>link` line per guest, fetched in batches of 5. Safe to repeat:
+ * *Copy all links*: one `name<TAB>email<TAB>link` line per guest, fetched in batches of 5 (one action each). Safe to repeat:
  * every copy returns the same active link, so a retry after a failure runs the whole list again.
  */
 export function CopyAllLinks({ eventId, guests }: { eventId: string; guests: Guest[] }) {
@@ -173,17 +173,16 @@ export function CopyAllLinks({ eventId, guests }: { eventId: string; guests: Gue
       for (let start = 0; start < guests.length; start += BATCH) {
         setProgress(t("guests.link.allProgress", { done: start, total: guests.length }));
         const batch = guests.slice(start, start + BATCH);
-        const results = await Promise.all(
-          batch.map((guest) => callSafely(() => copyGuestLink({ eventId, guestId: guest.id }))),
+        const result = await callSafely(() =>
+          copyGuestLinks({ eventId, guestIds: batch.map((guest) => guest.id) }),
         );
-        const failed = results.find((result) => !result.ok);
-        if (failed && !failed.ok) {
+        if (!result.ok) {
           setProgress(null);
           setOutcome({ message: "guests.link.allFailed" });
           return;
         }
-        results.forEach((result, i) => {
-          if (result.ok) lines.push(`${batch[i].name}\t${batch[i].email}\t${result.data.link}`);
+        result.data.forEach(({ link }, i) => {
+          lines.push(`${batch[i].name}\t${batch[i].email}\t${link}`);
         });
       }
       setProgress(null);
