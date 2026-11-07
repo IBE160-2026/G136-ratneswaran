@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 
 const MAILPIT = "http://127.0.0.1:54324/api/v1";
@@ -106,4 +107,13 @@ export function seed(email: string, starts: string, published = true) {
   psql(`insert into public.roles (event_id, key)
     select '${id}', k from unnest(enum_range(null::public.role_key)) as k`);
   return id;
+}
+
+/** Re-applies supabase/seed.sql, which first removes its own users, so the flagship dates are fresh. */
+export function reseedFlagship() {
+  execFileSync(
+    "docker",
+    ["exec", "-i", "supabase_db_Arrangly", "psql", "-U", "postgres", "-v", "ON_ERROR_STOP=1"],
+    { input: readFileSync("supabase/seed.sql") },
+  );
 }

@@ -101,7 +101,7 @@ select throws_ok(
   '42501', null, 'anon cannot execute the function'
 );
 reset role;
-select is((select count(*) from public.role_members), 8::bigint, 'the refused calls changed nothing');
+select is((select count(*) from public.role_members where event_id::text not like 'f1a90000-%'), 8::bigint, 'the refused calls changed nothing');
 
 -- The Organizer
 set local role authenticated;
