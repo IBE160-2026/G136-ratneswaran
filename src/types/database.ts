@@ -79,14 +79,14 @@ isOneToOne: false
                   ]
                 },"guests": {
                   Row: {
-                    "created_at": string,"event_id": string,"id": string,"name": string
+                    "created_at": string,"event_id": string,"first_opened_at": string | null,"id": string,"name": string,"user_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"event_id": string,"id"?: string,"name": string
+                    "created_at"?: string,"event_id": string,"first_opened_at"?: string | null,"id"?: string,"name": string,"user_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"event_id"?: string,"id"?: string,"name"?: string
+                    "created_at"?: string,"event_id"?: string,"first_opened_at"?: string | null,"id"?: string,"name"?: string,"user_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -428,6 +428,22 @@ isOneToOne: false
 "guests_add":
 { Args: { "p_event_id": string,"p_rows": Json }; Returns: (string)[]
                            },
+"guests_copy_link":
+{ Args: { "p_guest_id": string,"p_renew"?: boolean }; Returns: string
+                           },
+"guests_is_guest_only":
+{ Args: { "p_user_id": string }; Returns: boolean
+                           },
+"guests_link_preview":
+{ Args: { "p_token": string }; Returns: {
+              "cancellation_note": string,"event_id": string,"event_name": string,"guest_name": string,"organizer_name": string,"status": string,"user_id": string
+            }[]
+                           },
+"guests_open_link":
+{ Args: { "p_token": string }; Returns: {
+              "cancellation_note": string,"email": string,"event_id": string,"event_name": string,"guest_name": string,"organizer_name": string,"status": string,"user_id": string
+            }[]
+                           },
 "guests_remove":
 { Args: { "p_guest_id": string }; Returns: undefined
                            },
@@ -443,6 +459,12 @@ isOneToOne: false
 "invite_tokens_create":
 { Args: { "p_event_id": string,"p_kind": Database["public"]['Enums']["invite_kind"],"p_role_id"?: string,"p_user_id"?: string }; Returns: string
                            },
+"invite_tokens_guest_link":
+{ Args: { "p_event_id": string,"p_renew": boolean,"p_user_id": string }; Returns: string
+                           },
+"invite_tokens_guest_token":
+{ Args: { "p_token_id": string }; Returns: string
+                           },
 "invite_tokens_lookup":
 { Args: { "p_token": string }; Returns: {
               "event_id": string,"kind": Database["public"]['Enums']["invite_kind"],"role_id": string,"status": string,"token_id": string,"user_id": string
@@ -451,10 +473,19 @@ isOneToOne: false
 "invite_tokens_revoke_for_user":
 { Args: { "p_user_id": string }; Returns: undefined
                            },
+"invite_tokens_revoke_guest":
+{ Args: { "p_event_id": string,"p_user_id": string }; Returns: undefined
+                           },
 "invite_tokens_validate":
 { Args: { "p_event_id": string,"p_kind": Database["public"]['Enums']["invite_kind"],"p_token": string }; Returns: {
               "event_id": string,"kind": Database["public"]['Enums']["invite_kind"],"role_id": string,"status": string,"token_id": string,"user_id": string
             }[]
+                           },
+"is_guest_of":
+{ Args: { "p_event_id": string }; Returns: boolean
+                           },
+"is_guest_self":
+{ Args: { "p_guest_id": string }; Returns: boolean
                            },
 "is_organizer":
 { Args: { "p_event_id": string }; Returns: boolean
