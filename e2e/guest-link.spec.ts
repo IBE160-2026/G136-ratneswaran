@@ -62,7 +62,8 @@ test("the Organizer copies a link and the guest opens it", async ({ page, reques
   ).toBeVisible();
   await expect(guest.getByText("Not Ann? Ask the organizer for your own link.")).toBeVisible();
   await guest.getByRole("button", { name: "Continue" }).click();
-  await expect(guest.getByText("You're logged in with your invitation.")).toBeVisible();
+  await expect(guest).toHaveURL(/\/rsvp\/[0-9a-f-]{36}$/);
+  await expect(guest.getByRole("heading", { name: "Will you be there?" })).toBeVisible();
 
   await page.reload();
   await expect(row.getByText("Opened")).toBeVisible();
@@ -144,11 +145,8 @@ test("a guest with an account logs in with their email filled in", async ({
   await expect(guest.getByLabel("Email")).toHaveValue(email);
   await guest.getByLabel("Password", { exact: true }).fill("abcdefg1");
   await guest.getByRole("button", { name: "Log in" }).click();
-  await expect(guest).toHaveURL("http://localhost:3000/invite");
-  await expect(
-    guest.getByRole("heading", { name: "Hi Ann, this is your invitation to Seeded." }),
-  ).toBeVisible();
-  await expect(guest.getByText("You're logged in with your invitation.")).toBeVisible();
+  await expect(guest).toHaveURL(/\/rsvp\/[0-9a-f-]{36}$/);
+  await expect(guest.getByRole("heading", { name: "Will you be there?" })).toBeVisible();
 });
 
 test("someone logged in with another account is told so and offered Log out", async ({
