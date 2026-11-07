@@ -41,7 +41,9 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const { copyGuestLink, openGuestLink } = await import("./link-actions");
+import en from "../../../messages/en.json";
+
+const { copyGuestLink, copyGuestLinks, openGuestLink } = await import("./link-actions");
 const { invitationText, readGuestLink } = await import("./link");
 
 const eventId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -142,6 +144,53 @@ describe("copyGuestLink", () => {
   });
 });
 
+describe("copyGuestLinks", () => {
+  const second = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+
+  it("copies a batch in the order given", async () => {
+    rpc.mockResolvedValueOnce({ data: TOKEN, error: null });
+    rpc.mockResolvedValueOnce({ data: "B".repeat(43), error: null });
+    const result = await copyGuestLinks({ eventId, guestIds: [guestId, second] });
+    expect(result).toMatchObject({
+      ok: true,
+      data: [
+        { link: `https://arrangly.test/api/invite/${TOKEN}` },
+        { link: `https://arrangly.test/api/invite/${"B".repeat(43)}` },
+      ],
+    });
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("revalidates once, and not at all when every guest was copied before", async () => {
+    const { revalidatePath } = await import("next/cache");
+    await copyGuestLinks({ eventId, guestIds: [guestId, second] });
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
+    vi.mocked(revalidatePath).mockClear();
+    guestRow.mockResolvedValue({
+      data: { name: "Ann", user_id: userId, events: event },
+      error: null,
+    });
+    await copyGuestLinks({ eventId, guestIds: [guestId, second] });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("answers with the first failure", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    rpc.mockResolvedValueOnce({ data: TOKEN, error: null });
+    rpc.mockResolvedValueOnce({ data: null, error: { code: "55000" } });
+    expect(await copyGuestLinks({ eventId, guestIds: [guestId, second] })).toMatchObject({
+      error: { code: "read_only" },
+    });
+  });
+
+  it.each([[[]], [Array(6).fill(guestId)], [["x"]]])("refuses %j before any call", async (ids) => {
+    expect(await copyGuestLinks({ eventId, guestIds: ids })).toMatchObject({
+      error: { code: "invalid_input" },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
 describe("invitationText", () => {
   it("writes Norwegian for a Norwegian Event and has a variant without a date", () => {
     const link = "https://x/api/invite/t";
@@ -155,14 +204,24 @@ describe("invitationText", () => {
 });
 
 describe("readGuestLink", () => {
+  // Every rejection without an Organizer to name reads the same copy, with no Event or email (AD-4).
   it.each([
     ["no cookie", null],
     ["a malformed token", "short"],
-  ])("reads %s as invalid without a call", async (_case, token) => {
+    ["an unknown token", TOKEN],
+    ["a removed guest's token", TOKEN],
+    ["a deleted Event's token", TOKEN],
+  ])("reads %s as invalid", async (_case, token) => {
     jar.clear();
     if (token) jar.set("invite_token", token);
+    adminRpc.mockResolvedValue({ data: [{ status: "invalid" }], error: null });
     expect((await readGuestLink()).preview).toEqual({ status: "invalid" });
-    expect(adminRpc).not.toHaveBeenCalled();
+  });
+
+  it("shows the agreed text for an invalid link", () => {
+    expect(en.guestLink.invalid).toBe(
+      "This link has expired. Ask the person who invited you for a new one.",
+    );
   });
 
   it("passes the preview's status on, and reads a failure as unavailable", async () => {
