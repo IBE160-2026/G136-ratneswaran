@@ -17,18 +17,24 @@ const text = (max: number, lines: boolean) =>
     });
 
 /** The answers of one Guest. A No carries no plus-one and no text, as the database CHECK demands. */
-export const rsvpAnswersSchema = z
-  .object({
-    attending: z.boolean(),
-    plusOne: z.boolean(),
-    plusOneName: text(NAME_MAX, false),
-    otherNeeds: text(NEEDS_MAX, true),
-  })
-  .transform((answers) =>
-    answers.attending
-      ? { ...answers, plusOneName: answers.plusOne ? answers.plusOneName : "" }
-      : { attending: false, plusOne: false, plusOneName: "", otherNeeds: "" },
-  );
+export const rsvpAnswersSchema = z.preprocess(
+  // Hidden fields of a No are blanked first, so stale text the Guest cannot see never fails validation.
+  (input) =>
+    input && typeof input === "object" && (input as { attending?: unknown }).attending === false
+      ? { ...input, plusOne: false, plusOneName: "", otherNeeds: "" }
+      : input,
+  z
+    .object({
+      attending: z.boolean(),
+      plusOne: z.boolean(),
+      plusOneName: text(NAME_MAX, false),
+      otherNeeds: text(NEEDS_MAX, true),
+    })
+    .transform((answers) => ({
+      ...answers,
+      plusOneName: answers.plusOne ? answers.plusOneName : "",
+    })),
+);
 
 export type RsvpAnswers = z.output<typeof rsvpAnswersSchema>;
 

@@ -23,6 +23,16 @@ describe("rsvpAnswersSchema", () => {
     expect(rsvpAnswersSchema.parse({ ...yes, plusOne: false }).plusOneName).toBe("");
   });
 
+  it("ignores stale invalid hidden text after a No", () => {
+    const stale = { ...yes, attending: false, plusOneName: "a".repeat(81), otherNeeds: "x\u0007" };
+    expect(rsvpAnswersSchema.safeParse(stale).data).toEqual({
+      attending: false,
+      plusOne: false,
+      plusOneName: "",
+      otherNeeds: "",
+    });
+  });
+
   it("keeps <script> verbatim", () => {
     expect(rsvpAnswersSchema.parse({ ...yes, otherNeeds: "<script>x</script>" }).otherNeeds).toBe(
       "<script>x</script>",
