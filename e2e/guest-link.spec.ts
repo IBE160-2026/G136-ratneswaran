@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { psql, seed, signedIn } from "./support";
+import { confirmed, psql, seed, signedIn } from "./support";
 
 // Limiter buckets are per IP and shared by every test, so give each browser its own.
 const ip = () => {
@@ -124,4 +124,82 @@ test("a cancelled Event's link is read-only and an unknown link says nothing", a
     guest.getByText("This link has expired. Ask the person who invited you for a new one."),
   ).toBeVisible();
   await expect(guest.getByText("Seeded")).toHaveCount(0);
+});
+
+test("a guest with an account logs in with their email filled in", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const email = await confirmed(await guestBrowser(browser), request);
+  const id = await guestsPage(page, request);
+  psql(`update public.guest_contacts set email = '${email}'
+    where event_id = '${id}' and email like 'ann-%'`);
+  const link = await copyLink(page, "Ann Berg");
+
+  const guest = await guestBrowser(browser);
+  await guest.goto(link);
+  await guest.getByRole("button", { name: "Continue" }).click();
+  await expect(guest.getByText("Log in to see your invitation.")).toBeVisible();
+  await expect(guest.getByLabel("Email")).toHaveValue(email);
+  await guest.getByLabel("Password", { exact: true }).fill("abcdefg1");
+  await guest.getByRole("button", { name: "Log in" }).click();
+  await expect(guest).toHaveURL("http://localhost:3000/invite");
+  await expect(
+    guest.getByRole("heading", { name: "Hi Ann, this is your invitation to Seeded." }),
+  ).toBeVisible();
+  await expect(guest.getByText("You're logged in with your invitation.")).toBeVisible();
+});
+
+test("someone logged in with another account is told so and offered Log out", async ({
+  page,
+  request,
+  browser,
+}) => {
+  await guestsPage(page, request);
+  const link = await copyLink(page, "Ann Berg");
+
+  const other = await guestBrowser(browser);
+  await signedIn(other, request);
+  await other.goto(link);
+  await expect(
+    other.getByRole("heading", { name: "Hi Ann, this is your invitation to Seeded." }),
+  ).toBeVisible();
+  await expect(
+    other.getByText("You're logged in with another account. Log out to open this invitation."),
+  ).toBeVisible();
+  await expect(other.getByRole("button", { name: "Log out" })).toBeVisible();
+  await expect(other.getByRole("button", { name: "Continue" })).toHaveCount(0);
+});
+
+test("a refused clipboard leaves the link to select", async ({ page, request }) => {
+  await page.context().clearPermissions();
+  await guestsPage(page, request);
+  await page.getByRole("button", { name: "Share Ann Berg's link" }).click();
+  await page.getByRole("menuitem", { name: "Copy link" }).click();
+  await expect(
+    page.getByText("Couldn't copy automatically. Select the text below and copy it."),
+  ).toBeVisible();
+  await expect(page.getByLabel("Text to copy")).toHaveValue(
+    /^http:\/\/localhost:3000\/api\/invite\/[A-Za-z0-9_-]{43}$/,
+  );
+});
+
+test("Copy all links refuses more than 500 guests and creates nothing", async ({
+  page,
+  request,
+}) => {
+  const id = await guestsPage(page, request);
+  psql(`with g as (insert into public.guests (event_id, name)
+      select '${id}', 'Guest ' || n from generate_series(1, 499) as n returning id)
+    insert into public.guest_contacts (guest_id, event_id, email)
+    select id, '${id}', 'bulk-' || id || '@example.com' from g`);
+  await page.reload();
+  await page.getByRole("button", { name: "Copy all links" }).click();
+  await expect(
+    page.getByText("Copy all links works for up to 500 guests. Copy the links one by one instead."),
+  ).toBeVisible();
+  expect(psql(`select count(*) from public.invite_tokens where event_id = '${id}'`).trim()).toBe(
+    "0",
+  );
 });
