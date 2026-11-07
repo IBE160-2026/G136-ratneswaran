@@ -221,6 +221,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"rsvps": {
+                  Row: {
+                    "answered_at": string,"attending": boolean,"event_id": string,"guest_id": string,"id": string,"other_needs": string,"plus_one": boolean,"plus_one_name": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answered_at"?: string,"attending": boolean,"event_id": string,"guest_id": string,"id"?: string,"other_needs"?: string,"plus_one"?: boolean,"plus_one_name"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "answered_at"?: string,"attending"?: boolean,"event_id"?: string,"guest_id"?: string,"id"?: string,"other_needs"?: string,"plus_one"?: boolean,"plus_one_name"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "rsvps_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rsvps_guest_id_event_id_fkey"
+      columns: ["guest_id","event_id"]
+isOneToOne: false
+      referencedRelation: "guests"
+      referencedColumns: ["id","event_id"]
+    }
+                  ]
                 },"status_history": {
                   Row: {
                     "changed_by": string | null,"created_at": string,"from_status": string,"id": string,"note": string | null,"note_removed_at": string | null,"task_id": string,"to_status": string
@@ -446,6 +472,9 @@ isOneToOne: false
                            },
 "guests_remove":
 { Args: { "p_guest_id": string }; Returns: undefined
+                           },
+"guests_submit_rsvp":
+{ Args: { "p_answers": Json,"p_event_id": string,"p_expected_updated_at": string }; Returns: string
                            },
 "guests_update":
 { Args: { "p_email": string,"p_guest_id": string,"p_name": string }; Returns: undefined

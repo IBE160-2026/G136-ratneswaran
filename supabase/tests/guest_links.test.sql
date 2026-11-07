@@ -252,7 +252,7 @@ select ok(public.is_guest_self('77000000-0000-0000-0000-000000000001'), 'is_gues
 set local request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
 select ok(not public.is_guest_of('57000000-0000-0000-0000-000000000004'), 'is_guest_of: not another Event');
 select ok(not public.is_guest_self('77000000-0000-0000-0000-000000000001'), 'is_guest_self: not another guest');
-select is((select count(*) from public.events), 0::bigint, 'a guest reads no Event row');
+select is((select count(*) from public.events), 1::bigint, 'a guest reads only the Event they are a guest of');
 select results_eq($$select id from public.guests$$, $$values ('77000000-0000-0000-0000-000000000002'::uuid)$$,
   'a guest on one Event sees only their own row');
 set local request.jwt.claims = '{"sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "authenticated"}';
