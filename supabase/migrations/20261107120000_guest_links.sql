@@ -296,6 +296,7 @@ set search_path = ''
 as $$
 declare
   v_preview record;
+  v_guest_only boolean;
 begin
   select p.* into v_preview from public.guests_link_preview(p_token) p;
   if v_preview.status <> 'valid' then
@@ -304,12 +305,12 @@ begin
     return;
   end if;
 
-  if public.guests_is_guest_only(v_preview.user_id) then
-    update public.guests g set first_opened_at = coalesce(g.first_opened_at, now())
-    where g.event_id = v_preview.event_id and g.user_id = v_preview.user_id;
-  end if;
+  v_guest_only := public.guests_is_guest_only(v_preview.user_id);
+  -- Continue is an open for both: the row reads Opened whether the guest gets a session or logs in.
+  update public.guests g set first_opened_at = coalesce(g.first_opened_at, now())
+  where g.event_id = v_preview.event_id and g.user_id = v_preview.user_id;
   return query select
-    case when public.guests_is_guest_only(v_preview.user_id) then 'session' else 'sign_in' end,
+    case when v_guest_only then 'session' else 'sign_in' end,
     v_preview.event_id, v_preview.user_id, u.email::text, v_preview.guest_name, v_preview.event_name,
     v_preview.organizer_name, null::text
   from auth.users u where u.id = v_preview.user_id;
@@ -331,7 +332,8 @@ declare
   v_published_at timestamptz;
   v_ends_at timestamptz;
 begin
-  select g.* into v_guest from public.guests g where g.id = p_guest_id;
+  -- Locked as guests_copy_link locks it, so a concurrent copy cannot re-attach the old user afterwards.
+  select g.* into v_guest from public.guests g where g.id = p_guest_id for update;
   -- An unknown guest looks the same as someone else's, so ids cannot be probed.
   if v_guest.id is null or not public.is_organizer(v_guest.event_id) then
     raise exception 'only the Organizer can edit guests' using errcode = '42501';
@@ -349,7 +351,7 @@ begin
     where c.guest_id = p_guest_id and lower(c.email) <> lower(btrim(coalesce(p_email, '')))
   ) then
     perform public.invite_tokens_revoke_guest(v_guest.event_id, v_guest.user_id);
-    update public.guests set user_id = null where id = p_guest_id;
+    update public.guests set user_id = null, first_opened_at = null where id = p_guest_id;
   end if;
 
   -- The CHECKs refuse bad data (23514) and the unique index another guest's email (23505).
