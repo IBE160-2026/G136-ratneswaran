@@ -8,7 +8,7 @@ import { TimelineView } from "./timeline-view";
 
 type Props = {
   params: Promise<{ eventId: string }>;
-  searchParams: Promise<{ obsolete?: string }>;
+  searchParams: Promise<{ obsolete?: string; view?: string }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -27,7 +27,9 @@ export default async function TimelinePage({ params, searchParams }: Props) {
   if (!claims) redirect(`/login?next=${eventPath(eventId)}/timeline`);
   const event = await loadEvent(eventId);
   const organizer = event.organizer_id === claims.sub;
-  const includeObsolete = (await searchParams).obsolete === "1";
+  const { obsolete, view: rawView } = await searchParams;
+  const includeObsolete = obsolete === "1";
+  const view = rawView === "list" || rawView === "lanes" ? rawView : undefined;
   const { roles, tasks, canCreate } = await loadTimelineInput(
     await createClient(),
     eventId,
@@ -51,6 +53,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
       eventDay={event.starts_at ? eventToday(new Date(event.starts_at), event.time_zone) : null}
       readOnly={!isDraft(event) && isPast(event, new Date())}
       canCreate={canCreate}
+      view={view}
     />
   );
 }
