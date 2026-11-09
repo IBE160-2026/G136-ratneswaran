@@ -79,8 +79,14 @@ export function RsvpFlow({
         {closed === "cancelled" && note && (
           <p className="break-words whitespace-pre-line">{note}</p>
         )}
+        <p className="break-words">
+          {date ? t("eventLine", { event: eventName, date }) : eventName}
+        </p>
         {answered && (
-          <section aria-labelledby="rsvp-summary" className="flex flex-col gap-1">
+          <section
+            aria-labelledby="rsvp-summary"
+            className="bg-card flex flex-col items-start gap-1 rounded-lg border p-4"
+          >
             <h2 id="rsvp-summary" className="text-headline">
               {t("summary.title")}
             </h2>
@@ -97,19 +103,19 @@ export function RsvpFlow({
                 {t("summary.needs", { needs: otherNeeds })}
               </p>
             )}
+            {!closed && (
+              <button
+                type="button"
+                className={`${secondaryClass} mt-3`}
+                onClick={() => {
+                  setStep(1);
+                  setEditing(true);
+                }}
+              >
+                {t("change")}
+              </button>
+            )}
           </section>
-        )}
-        {!closed && (
-          <button
-            type="button"
-            className={secondaryClass}
-            onClick={() => {
-              setStep(1);
-              setEditing(true);
-            }}
-          >
-            {t("change")}
-          </button>
         )}
       </>,
     );
