@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CookieNotice } from "@/components/cookie-notice";
 import { getClaims } from "@/lib/supabase/server";
 import { readInvite, sameEmail } from "@/modules/events/invite";
 import { firstName, type GuestLinkPreview, readGuestLink } from "@/modules/guests/link";
@@ -55,7 +56,9 @@ export default async function InvitePage({
     return (
       <Shell>
         {preview.status === "invalid" ? (
-          <GuestEnded>{t("guestLink.invalid")}</GuestEnded>
+          <GuestEnded>
+            <CookieNotice>{t("guestLink.invalid")}</CookieNotice>
+          </GuestEnded>
         ) : (
           <Ended message={`invite.${preview.status}`} />
         )}
@@ -123,7 +126,9 @@ async function GuestView({ preview }: { preview: GuestLinkPreview }) {
   if (preview.status === "invalid") {
     return (
       <Shell>
-        <GuestEnded>{t("invalid")}</GuestEnded>
+        <GuestEnded>
+          <CookieNotice>{t("invalid")}</CookieNotice>
+        </GuestEnded>
       </Shell>
     );
   }
