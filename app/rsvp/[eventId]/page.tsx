@@ -20,13 +20,13 @@ export default async function RsvpPage({ params }: { params: Promise<{ eventId: 
   const claims = await getClaims();
   if (!claims) {
     const { preview } = await readGuestLink();
-    // The link still works: the guest presses *Continue* again.
-    if (preview.status === "valid") redirect("/invite");
-    // Only a token that proves membership may name the Organizer; the Event is never named.
-    const organizer = preview.organizer_name?.trim();
-    const text = organizer
-      ? t("expired", { organizer })
-      : (await getTranslations("guestLink"))("invalid");
+    if (preview.status === "unavailable") throw new Error("Could not load the RSVP");
+    // Anything `/invite` has a view for goes there: *Continue*, the cancelled or ended text, a Role invitation.
+    if (preview.status !== "invalid" && preview.status !== "revoked") redirect("/invite");
+    // Only a reissued link, which proved membership, may name the Organizer; the Event is never named.
+    const organizer = preview.status === "revoked" ? preview.organizer_name?.trim() : undefined;
+    const g = await getTranslations("guestLink");
+    const text = organizer ? t("expired", { organizer }) : g("invalid");
     return (
       <div className="flex max-w-md flex-col gap-4 py-12">
         <h1 className="text-large-title">{t("surface")}</h1>
