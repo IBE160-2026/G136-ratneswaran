@@ -1,5 +1,5 @@
 begin;
-select plan(55);
+select plan(58);
 
 -- A organizes Events 1 (live), 2 (cancelled), 3 (ended), 5 (draft); B organizes 4. G1 is a guest on 1, 2, 3, 5;
 -- G2 on 1; G4 on 4; R holds a Role on 1; Z is a stranger.
@@ -140,6 +140,22 @@ select throws_ok($$select public.guests_submit_rsvp('57000000-0000-0000-0000-000
 select throws_ok($$select public.guests_submit_rsvp('57000000-0000-0000-0000-000000000001',
   jsonb_build_object('attending', true, 'plus_one', true, 'plus_one_name', 'a' || chr(10)), null)$$,
   '22023', null, 'a line break in the name');
+
+-- A second Guest of the same Event answers: each reads exactly one row, their own
+set local request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
+select lives_ok($$select public.guests_submit_rsvp('57000000-0000-0000-0000-000000000001',
+  '{"attending": true}', null)$$, 'a second guest of the same Event answers');
+select results_eq($$select guest_id from public.rsvps$$,
+  $$values ('77000000-0000-0000-0000-000000000002'::uuid)$$,
+  'with two answers on the Event, the second guest reads only their own row');
+set local request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
+select results_eq($$select guest_id from public.rsvps$$,
+  $$values ('77000000-0000-0000-0000-000000000001'::uuid)$$,
+  'and the first guest reads only their own row');
+reset role;
+delete from public.rsvps where guest_id = '77000000-0000-0000-0000-000000000002';
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
 
 -- Reads and direct writes
 select is((select count(*) from public.rsvps), 1::bigint, 'a guest reads their own rsvp');
