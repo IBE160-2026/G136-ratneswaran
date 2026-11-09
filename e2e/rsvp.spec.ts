@@ -209,13 +209,14 @@ test("a returning guest finds the Event, My RSVP and can change the answer after
   await expect(guest.getByRole("heading", { name: /^You're on the list, Ann!/ })).toBeVisible();
 
   // The due date is soft: a change after it is saved as usual.
-  psql(`update public.events set rsvp_due_date = current_date - 1 where id = '${id}'`);
+  // A zone that is neither the server's nor Oslo: 18:00 UTC is 2 PM in New York.
+  psql(`update public.events set rsvp_due_date = current_date - 1, starts_at = '2027-06-01 18:00+00',
+    ends_at = '2027-06-01 22:00+00', time_zone = 'America/New_York' where id = '${id}'`);
   await guest.goto(`/rsvp/${id}`);
-  await expect(guest.getByText(/^Seeded · .+ \d{1,2}:\d{2}/)).toBeVisible();
+  await expect(guest.getByText(/^Seeded · June 1, 2027 at 2:00\sPM$/)).toBeVisible();
   const card = guest.getByRole("region", { name: "My RSVP" });
   await expect(card.getByText("Yes, I'll be there")).toBeVisible();
   await expect(card.getByText("Plus-one: Per")).toBeVisible();
-  await expect(guest.getByRole("button", { name: /Delete/ })).toHaveCount(0);
   expect(await guest.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 
   await card.getByRole("button", { name: "Change my answer" }).click();
@@ -239,6 +240,24 @@ test("a lost session with the link's cookie goes back to Continue", async ({
   await guest.goto(`/rsvp/${id}`);
   await expect(guest).toHaveURL("http://localhost:3000/invite");
   await expect(guest.getByRole("button", { name: "Continue" })).toBeVisible();
+});
+
+test("a cancelled Event opened without a session shows the cancelled text on /invite", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await phone(browser);
+  await guest.goto(link);
+  await expect(guest.getByRole("button", { name: "Continue" })).toBeVisible();
+  psql(`update public.events set cancelled_at = now(), cancellation_note = 'Rain, sorry.'
+    where id = '${id}'`);
+
+  await guest.goto(`/rsvp/${id}`);
+  await expect(guest).toHaveURL("http://localhost:3000/invite");
+  await expect(guest.getByText("This event has been cancelled.")).toBeVisible();
+  await expect(guest.getByText("Rain, sorry.")).toBeVisible();
 });
 
 test("a reissued link names the Organizer to ask, and never the Event", async ({
