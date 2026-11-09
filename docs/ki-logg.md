@@ -536,3 +536,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere ga 24 funn (0 høy, 7 medium, 14 lave, 3 falske). Rettet: usynlig navnefeil på steg 3, skjult tekst som avviste et gyldig *No*, skjema som sto åpent etter avlysning, Retry under sending, tidsstempel tatt før radlåsen, svar som ble igjen etter e-postbytte, gjeste-Events i *All events*, manglende pgTAP-gren og e2e for avsluttet Event. `loadEvent` gir nå 404 for gjester. Utsatt: `events_select_guest` gir gjesten hele Event-raden (AD-3), og *Undo* etter fjerning mister svaret. Triage står som PR-kommentar.
 **Min vurdering:** NIL
 **Spor:** branch `feat/7.3-rsvp-yes-or-no-plus-one`
+
+## 2026-11-09 — Story 7.5: Gjestens Dashboard
+
+**Prompt:** `/bmad-build-auto på story 7.5`, kun Core. Spec-en `spec-7-5-guest-dashboard.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** `/rsvp/[eventId]` er gjestens Dashboard, uten ny rute, tabell, funksjon eller policy. Den besvarte visningen fra 7.3 fikk Eventens navn med dato og klokkeslett i Eventens tidssone og et kort «My RSVP» med *Change my answer* inni. Siden fikk `loading.tsx` (skjelett i endelig form) og `error.tsx` (det delte Retry-kortet). Uten session leses invitasjons-cookien: gyldig token sender gjesten til `/invite`, ellers vises «This link has expired. Ask {organizer} for a new one.» bare når tokenet beviser medlemskap, og den generelle teksten ellers. Klientkomponenten `CookieNotice` bytter teksten med cookie-forklaringen når `navigator.cookieEnabled` er false.
+**Valg som må forklares:** *Delete my data* står i historiens aksepttekst, men funksjonen, dialogen og «session avsluttes» er Story 7.8 sitt første kriterium, så knappen er utelatt her i stedet for å stå død. Dashboardet deler rute med RSVP-en fordi lenken, `/invite` og 7.3 allerede ender der. En avlyst eller avsluttet Event uten session får den samme utløpt-teksten (med Organizerens navn), ikke avlysningsteksten; den vises på `/invite`. pgTAP viser at to gjester på samme Event hver leser bare sin egen `rsvps`-rad; ingen migrasjon trengtes.
+**Review:** Ikke kjørt ennå.
+**Min vurdering:** NIL
+**Spor:** branch `feat/7.5-guest-dashboard`
