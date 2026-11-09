@@ -817,7 +817,8 @@
     "revoked": "Denne lenken er ikke lenger aktiv. Be {organizer} om en ny.",
     "revokedGeneric": "Denne lenken er ikke lenger aktiv. Be arrangøren om en ny.",
     "cancelled": "Dette arrangementet er avlyst.",
-    "ended": "Takk for at du kom!"
+    "ended": "Takk for at du kom!",
+    "cookiesBlocked": "Nettleseren din blokkerer informasjonskapsler. Åpne lenken i nettleseren du vanligvis bruker."
   },
   "rsvp": {
     "surface": "Svar",
@@ -860,7 +861,6 @@
     "cancelled": "Dette arrangementet er avlyst.",
     "ended": "Takk for at du kom!",
     "expired": "Denne lenken har utløpt. Be {organizer} om en ny.",
-    "cookiesBlocked": "Nettleseren din blokkerer informasjonskapsler. Åpne lenken i nettleseren du vanligvis bruker.",
     "errors": {
       "tooLong": "Dette er for langt.",
       "invalidCharacters": "Fjern spesialtegnene.",

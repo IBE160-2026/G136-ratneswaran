@@ -56,9 +56,7 @@ export default async function InvitePage({
     return (
       <Shell>
         {preview.status === "invalid" ? (
-          <GuestEnded>
-            <CookieNotice>{t("guestLink.invalid")}</CookieNotice>
-          </GuestEnded>
+          <GuestEnded>{t("guestLink.invalid")}</GuestEnded>
         ) : (
           <Ended message={`invite.${preview.status}`} />
         )}
