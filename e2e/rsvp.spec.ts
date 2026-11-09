@@ -160,24 +160,128 @@ test("a cancelled Event shows the answer read-only", async ({ page, request, bro
     guest.getByRole("heading", { name: "This event has been cancelled." }),
   ).toBeVisible();
   await expect(guest.getByText("Rain, sorry.")).toBeVisible();
-  await expect(guest.getByText("No, I can't make it")).toBeVisible();
+  await expect(guest.getByText(/^Seeded · /)).toBeVisible();
+  await expect(
+    guest.getByRole("region", { name: "My RSVP" }).getByText("No, I can't make it"),
+  ).toBeVisible();
   await expect(guest.getByRole("button", { name: "Change my answer" })).toHaveCount(0);
 });
 
-test("the RSVP page sends no referrer, and asks a stranger to open the link", async ({
+const GENERIC = "This link has expired. Ask the person who invited you for a new one.";
+
+/** A phone-width browser with no cookies at all. */
+const phone = async (browser: Browser) =>
+  (
+    await browser.newContext({
+      baseURL: "http://localhost:3000",
+      extraHTTPHeaders: ip(),
+      viewport: { width: 375, height: 812 },
+    })
+  ).newPage();
+
+test("the RSVP page sends no referrer, and tells a stranger only that the link has expired", async ({
   page,
   request,
   browser,
 }) => {
   const { id } = await invite(page, request);
-  const stranger = await (
-    await browser.newContext({ baseURL: "http://localhost:3000", extraHTTPHeaders: ip() })
-  ).newPage();
+  const stranger = await phone(browser);
   const response = await stranger.goto(`/rsvp/${id}`);
   expect(response?.headers()["referrer-policy"]).toBe("no-referrer");
-  await expect(
-    stranger.getByText("Open your personal invitation link again to answer."),
-  ).toBeVisible();
+  await expect(stranger.getByText(GENERIC)).toBeVisible();
+  await expect(stranger.getByRole("textbox")).toHaveCount(0);
+  await expect(stranger.getByText("Seeded")).toHaveCount(0);
+});
+
+test("a returning guest finds the Event, My RSVP and can change the answer after the due date", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  await guest.getByLabel("Yes, I'll be there").check();
+  await guest.getByRole("button", { name: "Next", exact: true }).click();
+  await guest.getByLabel("Yes, I'm bringing someone").check();
+  await guest.getByLabel("Their name (optional)").fill("Per");
+  await guest.getByRole("button", { name: "Next", exact: true }).click();
+  await guest.getByRole("button", { name: "Send my answer" }).click();
+  await expect(guest.getByRole("heading", { name: /^You're on the list, Ann!/ })).toBeVisible();
+
+  // The due date is soft: a change after it is saved as usual.
+  psql(`update public.events set rsvp_due_date = current_date - 1 where id = '${id}'`);
+  await guest.goto(`/rsvp/${id}`);
+  await expect(guest.getByText(/^Seeded · .+ \d{1,2}:\d{2}/)).toBeVisible();
+  const card = guest.getByRole("region", { name: "My RSVP" });
+  await expect(card.getByText("Yes, I'll be there")).toBeVisible();
+  await expect(card.getByText("Plus-one: Per")).toBeVisible();
+  await expect(guest.getByRole("button", { name: /Delete/ })).toHaveCount(0);
+  expect(await guest.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+
+  await card.getByRole("button", { name: "Change my answer" }).click();
+  await expect(guest.getByText("Question 1 of 3")).toBeVisible();
+  await expect(guest.getByLabel("Yes, I'll be there")).toBeChecked();
+  await guest.getByLabel("No, I can't make it").check();
+  await guest.getByRole("button", { name: "Send my answer" }).click();
+  await expect(card.getByText("No, I can't make it")).toBeVisible();
+  await expect(card.getByText("Plus-one: Per")).toHaveCount(0);
+  expect(psql(`select attending from public.rsvps where event_id = '${id}'`).trim()).toBe("f");
+});
+
+test("a lost session with the link's cookie goes back to Continue", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  await guest.context().clearCookies({ name: /^sb-/ });
+  await guest.goto(`/rsvp/${id}`);
+  await expect(guest).toHaveURL("http://localhost:3000/invite");
+  await expect(guest.getByRole("button", { name: "Continue" })).toBeVisible();
+});
+
+test("a reissued link names the Organizer to ask, and never the Event", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  psql(`update auth.users set raw_user_meta_data = raw_user_meta_data || '{"name": "Olga"}'
+    where id = (select organizer_id from public.events where id = '${id}')`);
+  // The guest holds the link's cookie but never pressed Continue.
+  const guest = await phone(browser);
+  await guest.goto(link);
+  await expect(guest.getByRole("button", { name: "Continue" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Share Ann Berg's link" }).click();
+  await page.getByRole("menuitem", { name: "New link" }).click();
+  await page.getByRole("button", { name: "Make new link" }).click();
+  await expect(page.getByText("New link for Ann Berg copied.")).toBeVisible();
+
+  await guest.goto(`/rsvp/${id}`);
+  await expect(guest.getByText("This link has expired. Ask Olga for a new one.")).toBeVisible();
+  await expect(guest.getByRole("textbox")).toHaveCount(0);
+  await expect(guest.getByText("Seeded")).toHaveCount(0);
+});
+
+test("a browser that blocks cookies is told so instead of the expired text", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id } = await invite(page, request);
+  const guest = await phone(browser);
+  await guest.addInitScript(() =>
+    Object.defineProperty(Navigator.prototype, "cookieEnabled", { get: () => false }),
+  );
+  const blocked = "Your browser blocks cookies. Open the link in your usual browser.";
+  await guest.goto(`/rsvp/${id}`);
+  await expect(guest.getByText(blocked)).toBeVisible();
+  await expect(guest.getByText(GENERIC)).toHaveCount(0);
+  await guest.goto("/invite");
+  await expect(guest.getByText(blocked)).toBeVisible();
+  await expect(guest.getByText(GENERIC)).toHaveCount(0);
 });
 
 test("an ended Event shows thanks and no way to change the answer", async ({
