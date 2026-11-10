@@ -53,3 +53,8 @@
 - [ ] 2026-11-07 [story-7-3](982-2026-11-07-18-30-00-story-7-3-rsvp.md) — `events_select_guest` gir gjester hele Event-raden mot AD-3; eier må avgjøre smalere gjestevisning (bmad-correct-course)
 - [ ] 2026-11-07 [story-7-3](982-2026-11-07-18-30-00-story-7-3-rsvp.md) — _Undo_ etter fjerning av gjest mister RSVP-en (Story 7.8)
 - [ ] 2026-11-07 [story-7-3](982-2026-11-07-18-30-00-story-7-3-rsvp.md) — verifiser `Cache-Control: no-store` på `/rsvp` mot produksjonsbygg
+- [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — _Delete my data_ må på `/rsvp/[eventId]` i Story 7.8, også for avlyste og avsluttede Events
+- [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — erstattet lenke navngir Organizer uten Event-sjekk; `guests_link_preview` trenger `event_id` for erstattede token (migrasjon)
+- [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — e2e feilet én gang med 404 på Organizerens gjesteside og bestod ved ny kjøring; årsak ikke funnet
+- [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — `loading.tsx` gir myk 404 (HTTP 200) for fremmede på `/rsvp`; eier avgjør
+- [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — «Min vurdering» i `docs/ki-logg.md` for 7.5, push og PR gjenstår
