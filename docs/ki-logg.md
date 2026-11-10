@@ -554,3 +554,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere (Sonnet 5.5; bygget på Fable 5.2) ga 20 funn (0 høy, 1 medium, 13 lave, 6 falske). Rettet: test av fokus etter fjerning under et filter, åpen redigering lukkes når en flis trykkes, og 1000-radersgrensen er skrevet inn i Dashboard-spørringen. Utsatt: holderens lesetilgang til gjester i et avlyst Event, og eksakt telling over 1000 gjester. Triage står i spec-en.
 **Min vurdering:** NIL
 **Spor:** branch `feat/7.7-guests-tab-and-rsvp-summary`
+
+## 2026-11-10 — Story 7.8: Slett gjestedata
+
+**Prompt:** `/bmad-build-auto på story 7.8`, kun Core. Spec-en `spec-7-8-delete-guest-data.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med `guests_delete_guest_data(guest_id)` (mutation function, AD-5): den låser gjesteraden, sletter gjestens `guest`-tokens og `guests`-raden (kontakt og svar går med kaskade) og sletter `auth.users`-raden i SQL bare når brukeren er guest-only og ikke gjest i noe annet Event. Den returnerer `deleted`, `deleted_with_user` eller `nothing`. `guests_remove` og `events_delete` går nå gjennom samme funksjon. Server Action-en `deleteMyData({ eventId })` finner gjeste-id-en fra sessionen, og gjestens Dashboard fikk *Delete my data* med en bekreftelsesdialog som navngir Eventet og hva som fjernes. Personvernerklæringen fikk setningen om tekst i Tasks.
+**Valg som må forklares:** Ukjent, allerede slettet og andres gjeste-id gir `nothing` uten feil, så id-er ikke kan prøves. Auth-brukeren låses før guest-only-sjekken, slik at to samtidige slettinger for samme bruker ikke etterlater en bruker uten data. Tokens slettes i stedet for å oppheves, fordi en opphevet rad fortsatt bærer bruker-id-en. En bruker som beholdes (konto, Rolle, eget Event eller gjest et annet sted) beholder sessionen. Etter sletting settes en `httpOnly`-cookie (`guest_deleted`, ti minutter, bare under `/rsvp`) med Event-id-en: Next rendrer siden på nytt når en action setter en cookie, og uten session er cookien det eneste beviset på at denne nettleseren slettet dataene. Uten den får et trykk etter utløpt session den vanlige teksten om å åpne lenken igjen. Ingen purge-hooks finnes i Core; stedet der Epic 6 og 8 legger til sine er markert med én kommentar. Knappen vises i den besvarte og den lukkede visningen, ikke mens gjesten svarer for første gang.
+**Review:** NIL
+**Min vurdering:** NIL
+**Spor:** branch `feat/7.8-delete-guest-data`
