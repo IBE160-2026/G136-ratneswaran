@@ -545,3 +545,12 @@ Utgangspunktet fikk også én korrigering: issue-teksten var avkortet, så siste
 **Review:** Fire uavhengige reviewere ga 21 funn (0 høy, 5 medium, 14 lave, 2 falske). Rettet 8: `unavailable` leses ikke lenger som utløpt, avlyste og avsluttede Events og Rolle-invitasjoner uten session sendes til `/invite`, Organizer navngis bare for en erstattet lenke, tidssonen og Retry-kortet er testet, cookie-teksten er flyttet til `guestLink`. Utsatt: *Delete my data* (Story 7.8) og Event-sjekk for erstattet lenke (trenger migrasjon). Triage står i spec-en.
 **Min vurdering:** NIL
 **Spor:** branch `feat/7.5-guest-dashboard`
+
+## 2026-11-10 — Story 7.7: Guests-fanen og RSVP-oversikt
+
+**Prompt:** `/bmad-build-auto på story 7.7`, kun Core. Spec-en `spec-7-7-guests-tab-and-rsvp-summary.md` ble skrevet av KI og implementert av en subagent med spec-en som eneste kilde.
+**KI foreslo:** Én migrasjon med to select-policyer (`guests_select_guests_role`, `rsvps_select_guests_role`) som lar en holder som har blitt med i Eventens aktive Guests-Rolle lese `guests` og `rsvps`, bygget på `holds_role`; `guest_contacts` og alle skrivefunksjoner er urørt. Guests-fanen fikk fire fliser (Guests, Coming, Not coming, Not answered) som `aria-pressed`-knapper som filtrerer listen og kunngjør filteret i en høflig live-region, de 100 første radene med *Show more*, og en skrivebeskyttet visning uten e-post for holderen. *On track* viser RSVP-oversikten som et inline-SVG-kakediagram med tabell for den som kan lese svar, og spørreskjemaets forventede antall for andre Rolle-holdere. Regnestykket ligger i én ren funksjon, `summarizeRsvps`, brukt begge steder.
+**Valg som må forklares:** Policyen er skrevet inline to ganger i stedet for en ny hjelpefunksjon, så det ikke trengs en ny funksjon med egne grants. Holderens side spør aldri `guest_contacts` (én spørring; Organizer har fortsatt to). Alle rader lastes og kuttes på klienten; grensen er API-ets 1000 rader, ikke «noen tusen» som spec-en antyder. Skivene skilles med mønster (heltrukket, striper, prikker), ikke bare farge. Sidemenyen viser *Guests* ut fra én spørring i rot-layouten, som deles med sidens tilgangssjekk. Flisene vises bare på Guests-fanen, ikke i veiviserens steg 2.
+**Review:** Ikke gjennomført ennå.
+**Min vurdering:** NIL
+**Spor:** branch `feat/7.7-guests-tab-and-rsvp-summary`
