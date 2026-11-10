@@ -817,7 +817,8 @@
     "revoked": "Denne lenken er ikke lenger aktiv. Be {organizer} om en ny.",
     "revokedGeneric": "Denne lenken er ikke lenger aktiv. Be arrangøren om en ny.",
     "cancelled": "Dette arrangementet er avlyst.",
-    "ended": "Takk for at du kom!"
+    "ended": "Takk for at du kom!",
+    "cookiesBlocked": "Nettleseren din blokkerer informasjonskapsler. Åpne lenken i nettleseren du vanligvis bruker."
   },
   "rsvp": {
     "surface": "Svar",
@@ -852,14 +853,14 @@
     "confirmYes": "Du står på listen, {name}! Vi sender detaljene nærmere dagen.",
     "confirmNo": "Takk for at du ga beskjed, {name}.",
     "summary": {
-      "title": "Svaret ditt",
+      "title": "Mitt svar",
       "plusOne": "Følgesvenn: {name}",
       "plusOneNoName": "Du tar med en følgesvenn",
       "needs": "Andre behov: {needs}"
     },
     "cancelled": "Dette arrangementet er avlyst.",
     "ended": "Takk for at du kom!",
-    "noSession": "Åpne den personlige invitasjonslenken din på nytt for å svare.",
+    "expired": "Denne lenken har utløpt. Be {organizer} om en ny.",
     "errors": {
       "tooLong": "Dette er for langt.",
       "invalidCharacters": "Fjern spesialtegnene.",

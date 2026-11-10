@@ -817,7 +817,8 @@
     "revoked": "This link is no longer active. Ask {organizer} for a new one.",
     "revokedGeneric": "This link is no longer active. Ask the organizer for a new one.",
     "cancelled": "This event has been cancelled.",
-    "ended": "Thanks for coming!"
+    "ended": "Thanks for coming!",
+    "cookiesBlocked": "Your browser blocks cookies. Open the link in your usual browser."
   },
   "rsvp": {
     "surface": "RSVP",
@@ -852,14 +853,14 @@
     "confirmYes": "You're on the list, {name}! We'll send the details closer to the day.",
     "confirmNo": "Thanks for letting us know, {name}.",
     "summary": {
-      "title": "Your answer",
+      "title": "My RSVP",
       "plusOne": "Plus-one: {name}",
       "plusOneNoName": "You're bringing a plus-one",
       "needs": "Other needs: {needs}"
     },
     "cancelled": "This event has been cancelled.",
     "ended": "Thanks for coming!",
-    "noSession": "Open your personal invitation link again to answer.",
+    "expired": "This link has expired. Ask {organizer} for a new one.",
     "errors": {
       "tooLong": "That is too long.",
       "invalidCharacters": "Remove the special characters.",
