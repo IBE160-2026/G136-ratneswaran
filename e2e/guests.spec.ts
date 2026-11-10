@@ -244,3 +244,84 @@ test("Undo after the email was added again duplicates nothing", async ({ page, r
     /^Ann Berg/,
   ]);
 });
+
+/** Stores the named guest's answer; callers pass literals without quotes. */
+const answer = (eventId: string, name: string, attending: boolean, plusOne = false) =>
+  psql(`insert into public.rsvps (guest_id, event_id, attending, plus_one)
+    select id, event_id, ${attending}, ${plusOne} from public.guests
+    where event_id = '${eventId}' and name = '${name}'`);
+
+test("the tiles count, filter and announce at 320px, and a new answer shows after a reload", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "7 days");
+  for (const name of ["Ann", "Bo", "Cia", "Dan", "Eli"]) {
+    addGuest(id, name, `${name.toLowerCase()}@x.no`);
+  }
+  answer(id, "Ann", true, true);
+  answer(id, "Bo", true);
+  answer(id, "Cia", false);
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto(`/events/${id}/guests`);
+
+  const tile = (name: string, count: number) =>
+    page.getByRole("button", { name: new RegExp(`^${name}\\s*${count}$`) });
+  const rows = page.getByRole("region", { name: "5 guests" }).getByRole("listitem");
+  await expect(tile("Guests", 5)).toHaveAttribute("aria-pressed", "true");
+  await expect(tile("Coming", 2)).toHaveAttribute("aria-pressed", "false");
+  await expect(tile("Not coming", 1)).toBeVisible();
+  await expect(rows).toHaveCount(5);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+
+  await tile("Not answered", 2).click();
+  await expect(tile("Not answered", 2)).toHaveAttribute("aria-pressed", "true");
+  await expect(tile("Guests", 5)).toHaveAttribute("aria-pressed", "false");
+  await expect(rows).toHaveText([/^Dan/, /^Eli/]);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Showing 2 guests who have not answered" }),
+  ).toBeVisible();
+
+  // Dan answers elsewhere; the Organizer sees it on the next load, with no polling.
+  answer(id, "Dan", false);
+  await page.reload();
+  await expect(tile("Not answered", 1)).toBeVisible();
+  await expect(tile("Not coming", 2)).toBeVisible();
+  await expect(rows.filter({ hasText: "Dan" })).toContainText("Not coming");
+
+  psql(`delete from public.rsvps where event_id = '${id}' and not attending`);
+  await page.reload();
+  await tile("Not coming", 0).click();
+  await expect(page.getByText("No guests match this filter.")).toBeVisible();
+  await expect(rows).toHaveCount(0);
+  await page.getByRole("button", { name: "Clear filter" }).click();
+  await expect(rows).toHaveCount(5);
+  await expect(tile("Guests", 5)).toHaveAttribute("aria-pressed", "true");
+});
+
+test("a long list renders 100 guests and Show more adds 100 at a time", async ({
+  page,
+  request,
+}) => {
+  const email = await signedIn(page, request);
+  const id = seed(email, "7 days");
+  psql(`with g as (insert into public.guests (event_id, name)
+      select '${id}', 'Guest ' || i from generate_series(1, 250) as i returning id, event_id, name)
+    insert into public.guest_contacts (guest_id, event_id, email)
+    select id, event_id, replace(lower(name), ' ', '') || '@example.com' from g`);
+  await page.goto(`/events/${id}/guests`);
+  const rows = page.getByRole("region", { name: "250 guests" }).getByRole("listitem");
+  await expect(rows).toHaveCount(100);
+  await expect(page.getByRole("button", { name: /^Guests\s*250$/ })).toBeVisible();
+  const more = page.getByRole("button", { name: "Show more" });
+  await more.click();
+  await expect(rows).toHaveCount(200);
+  await more.click();
+  await expect(rows).toHaveCount(250);
+  await expect(more).toHaveCount(0);
+});

@@ -118,7 +118,8 @@ test("a No ends at the first question and clears an earlier Yes", async ({
       where event_id = '${id}'`).trim(),
   ).toBe("f|f||");
   await page.goto(`/events/${id}/guests`);
-  await expect(page.getByText("Not coming", { exact: true })).toBeVisible();
+  // The tile carries the same words, so look in the guest's row.
+  await expect(page.getByRole("listitem").getByText("Not coming", { exact: true })).toBeVisible();
 });
 
 test("an answer changed on another device asks to see the changes", async ({
