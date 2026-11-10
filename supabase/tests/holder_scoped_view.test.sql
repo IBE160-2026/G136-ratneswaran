@@ -76,7 +76,7 @@ select is(
   (select count(*) from public.roles where event_id = '54000000-0000-0000-0000-000000000001'),
   2::bigint, 'a holder reads every Role of their Event'
 );
-select is((select count(*) from public.guests), 0::bigint, 'a holder of a Role reads no guests row');
+select is((select count(*) from public.guests), 0::bigint, 'a holder of another Role reads no guests row');
 select is((select count(*) from public.guest_contacts), 0::bigint, 'a holder reads no guest contacts');
 select is((select count(*) from public.role_membership_log), 0::bigint, 'a holder reads no access history');
 select is(
