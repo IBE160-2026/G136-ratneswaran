@@ -9,6 +9,7 @@ import { undoToast } from "@/lib/feedback";
 import type { Result } from "@/lib/result";
 import { callSafely } from "@/modules/events/save";
 import { removeGuest, restoreGuest, updateGuest } from "@/modules/guests/actions";
+import { summarizeRsvps } from "@/modules/guests/summary";
 import { useSaveFeedback } from "../setup/form";
 import { CopyAllLinks, CopyMenu } from "./copy-menu";
 
@@ -24,6 +25,17 @@ export type Guest = {
 
 const secondaryClass = "min-h-touch border-input rounded-full border px-4";
 
+// The summary tiles and what each one keeps in the list; "all" is no filter.
+const FILTERS = ["all", "coming", "notComing", "notAnswered"] as const;
+type Filter = (typeof FILTERS)[number];
+const PAGE = 100;
+
+const attending = (guest: Guest) =>
+  guest.link === "coming" ? true : guest.link === "notComing" ? false : null;
+const matches = (guest: Guest, filter: Filter) =>
+  filter === "all" ||
+  (filter === "coming" ? true : filter === "notComing" ? false : null) === attending(guest);
+
 // Sonner has no role option, so the message itself carries role="alert".
 const errorToast = (message: string) => toast.error(<span role="alert">{message}</span>);
 
@@ -33,11 +45,13 @@ export function GuestRows({
   guests,
   readOnly,
   links = false,
+  tiles = false,
 }: {
   eventId: string;
   guests: Guest[];
   readOnly: boolean;
   links?: boolean;
+  tiles?: boolean;
 }) {
   const t = useTranslations();
   // A removed row hides until the action ends; the revalidated list then has it gone, or back on failure.
@@ -45,6 +59,22 @@ export function GuestRows({
     list.filter((guest) => guest.id !== id),
   );
   const [editing, setEditing] = useState<string | null>(null);
+  // null until a tile is pressed, so nothing is announced on load.
+  const [pressed, setPressed] = useState<Filter | null>(null);
+  const [limit, setLimit] = useState(PAGE);
+  const filter = pressed ?? "all";
+  const filtered = shown.filter((guest) => matches(guest, filter));
+  const visible = filtered.slice(0, limit);
+  const summary = summarizeRsvps(
+    shown.map((guest) => ({ attending: attending(guest), plusOne: Boolean(guest.plusOne) })),
+  );
+  const counts = { ...summary, all: summary.invited };
+  const press = (next: Filter) => {
+    setPressed(next);
+    setLimit(PAGE);
+    // An open edit would stay mounted but hidden if its row is filtered out.
+    setEditing(null);
+  };
   const editButtons = useRef(new Map<string, HTMLButtonElement>());
   const returnFocus = useRef<string | null>(null);
 
@@ -67,7 +97,7 @@ export function GuestRows({
     });
 
   const remove = (guest: Guest, index: number) => {
-    const next = shown[index + 1] ?? shown[index - 1];
+    const next = visible[index + 1] ?? visible[index - 1];
     const button = next && editButtons.current.get(next.id);
     // Focus leaves the row before it hides; the h1 needs tabindex to take it.
     const target = button || document.querySelector<HTMLElement>("main h1");
@@ -104,9 +134,45 @@ export function GuestRows({
       <h2 id="guest-count" className="text-headline">
         {t("guests.list.count", { count: shown.length })}
       </h2>
+      {tiles && (
+        <>
+          <div
+            role="group"
+            aria-label={t("guests.tiles.label")}
+            className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+          >
+            {FILTERS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={filter === key}
+                // A second press on a filter lifts it.
+                onClick={() => press(filter === key ? "all" : key)}
+                className="min-h-touch bg-card aria-pressed:border-primary aria-pressed:bg-primary-soft flex flex-col rounded-md border p-3 text-left"
+              >
+                <span className="text-subhead text-muted-foreground">
+                  {t(`guests.tiles.${key}`)}
+                </span>
+                <span className="text-title">{counts[key]}</span>
+              </button>
+            ))}
+          </div>
+          <p role="status" className="sr-only">
+            {pressed && t(`guests.filter.showing.${pressed}`, { count: filtered.length })}
+          </p>
+        </>
+      )}
       {links && !readOnly && <CopyAllLinks eventId={eventId} guests={shown} />}
+      {filtered.length === 0 && (
+        <div className="flex flex-wrap items-center gap-3 py-2">
+          <p className="text-muted-foreground">{t("guests.filter.noMatch")}</p>
+          <button type="button" className={secondaryClass} onClick={() => press("all")}>
+            {t("guests.filter.clear")}
+          </button>
+        </div>
+      )}
       <ul role="list" className="divide-border flex flex-col divide-y">
-        {shown.map((guest, index) => (
+        {visible.map((guest, index) => (
           <li key={guest.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-2 py-2">
             {editing === guest.id ? (
               <EditGuest
@@ -120,7 +186,9 @@ export function GuestRows({
             ) : (
               <>
                 <span className="min-w-0 break-words">{guest.name}</span>
-                <span className="text-muted-foreground min-w-0 break-all">{guest.email}</span>
+                {guest.email && (
+                  <span className="text-muted-foreground min-w-0 break-all">{guest.email}</span>
+                )}
                 <StatusLabel status={guest.link ?? "notInvited"} className="ml-auto" />
                 {guest.plusOne && (
                   <span className="w-full break-words">
@@ -164,6 +232,15 @@ export function GuestRows({
           </li>
         ))}
       </ul>
+      {filtered.length > limit && (
+        <button
+          type="button"
+          className={`${secondaryClass} self-start`}
+          onClick={() => setLimit(limit + PAGE)}
+        >
+          {t("guests.list.showMore")}
+        </button>
+      )}
     </section>
   );
 }

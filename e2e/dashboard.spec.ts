@@ -168,6 +168,8 @@ test("the Organizer sees At risk and On track with counts, guests and the inacti
     `insert into public.task_dependencies values ('${taskId(id, "Needs permit")}', '${taskId(id, "Permit")}')`,
   );
   psql(`insert into public.guests (event_id, name) values ('${id}', 'G1'), ('${id}', 'G2')`);
+  psql(`insert into public.rsvps (guest_id, event_id, attending, plus_one)
+    select id, event_id, true, true from public.guests where event_id = '${id}' and name = 'G1'`);
   psql(`insert into public.tasks (event_id, role_id, title, deadline)
     select '${id}', r.id, 'Inactive role late', current_date - 4 from public.roles r
     where r.event_id = '${id}' and r.key = 'guests'`);
@@ -197,7 +199,18 @@ test("the Organizer sees At risk and On track with counts, guests and the inacti
   await venue.getByRole("link").click();
   await expect(page).toHaveURL(`/events/${id}/tasks`);
   await page.goBack();
-  await expect(page.getByText("2 guests added")).toBeVisible();
+  await expect(
+    onTrack(page).getByRole("img", {
+      name: "RSVP summary: 2 invited, 1 coming, 0 not coming, 1 not answered.",
+    }),
+  ).toBeVisible();
+  await expect(onTrack(page).getByRole("row")).toHaveText([
+    /Invited\s*2/,
+    /Coming\s*1/,
+    /Not coming\s*0/,
+    /Not answered\s*1/,
+    /Headcount with plus-ones\s*2/,
+  ]);
   await expect(
     page.getByRole("link", { name: "1 task belongs to an inactive Role" }),
   ).toHaveAttribute("href", `/events/${id}/team`);
@@ -210,7 +223,9 @@ test("nothing at risk shows the quiet line", async ({ page, request }) => {
   await page.goto(`/events/${id}`);
   await expect(page.getByRole("heading", { level: 2, name: /^At risk/ })).toBeVisible();
   await expect(page.getByText("Nothing is at risk right now.")).toBeVisible();
-  await expect(page.getByText("0 guests added")).toBeVisible();
+  // No guests: the numbers in text, no pie.
+  await expect(onTrack(page).getByRole("row").first()).toHaveText(/Invited\s*0/);
+  await expect(onTrack(page).getByRole("img")).toHaveCount(0);
   await expect(page.getByText(/inactive Role/)).toHaveCount(0);
 });
 
@@ -241,6 +256,8 @@ test("a holder of another Role sees an unreadable row, no foreign title and no o
   const { id, task } = setup(organizer, holder);
   psql(`update public.roles set active = true where event_id = '${id}' and key = 'guests'`);
   task("Venue task", 10, null);
+  psql(`update public.events set guest_count = 80 where id = '${id}'`);
+  psql(`insert into public.guests (event_id, name) values ('${id}', 'G1')`);
   psql(`insert into public.tasks (event_id, role_id, title, deadline)
     select '${id}', r.id, 'Guests secret', current_date + 3 from public.roles r
     where r.event_id = '${id}' and r.key = 'guests'`);
@@ -252,6 +269,9 @@ test("a holder of another Role sees an unreadable row, no foreign title and no o
   await expect(guests).toContainText("Tasks in Guests are visible to its team.");
   await expect(guests.getByRole("link")).toHaveCount(0);
   await expect(page.getByText("Guests secret")).toHaveCount(0);
-  await expect(page.getByText(/guests? added/)).toHaveCount(0);
+  // Only the questionnaire's expected count, nothing computed from guest rows
+  await expect(onTrack(page).getByText("80 guests expected")).toBeVisible();
+  await expect(onTrack(page).getByRole("table")).toHaveCount(0);
+  await expect(onTrack(page).getByRole("img")).toHaveCount(0);
   await expect(page.getByText(/inactive Role/)).toHaveCount(0);
 });

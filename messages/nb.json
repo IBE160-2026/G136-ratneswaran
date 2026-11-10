@@ -35,9 +35,18 @@
     "open": "{count} åpne",
     "overdue": "{count} forfalt",
     "unreadable": "Oppgaver i {role} er synlige for teamet.",
-    "guestsAdded": "{count, plural, one {# gjest lagt til} other {# gjester lagt til}}",
     "inactiveRoleTasks": "{count, plural, one {# oppgave hører til en inaktiv rolle} other {# oppgaver hører til inaktive roller}}",
-    "onTrackEmpty": "Ingen aktive roller ennå."
+    "onTrackEmpty": "Ingen aktive roller ennå.",
+    "rsvp": {
+      "title": "Oversikt over svar",
+      "pie": "Oversikt over svar: {invited} invitert, {coming} kommer, {notComing} kommer ikke, {notAnswered} har ikke svart.",
+      "invited": "Invitert",
+      "coming": "Kommer",
+      "notComing": "Kommer ikke",
+      "notAnswered": "Ikke svart",
+      "headcount": "Antall med følgesvenner",
+      "expected": "{count, plural, one {# gjest ventet} other {# gjester ventet}}"
+    }
   },
   "timeline": {
     "surface": "Tidslinje",
@@ -510,7 +519,8 @@
       },
       "plusOne": "Følgesvenn: {name}",
       "plusOneNoName": "Tar med en følgesvenn",
-      "needs": "Andre behov: {needs}"
+      "needs": "Andre behov: {needs}",
+      "showMore": "Vis flere"
     },
     "link": {
       "menu": "Del",
@@ -541,6 +551,23 @@
         "noDate": "Hei {name}! Du er invitert til {event}. Åpne den personlige invitasjonen din her: {link}",
         "untitled": "arrangementet vårt"
       }
+    },
+    "tiles": {
+      "label": "Oversikt over svar",
+      "all": "Gjester",
+      "coming": "Kommer",
+      "notComing": "Kommer ikke",
+      "notAnswered": "Ikke svart"
+    },
+    "filter": {
+      "showing": {
+        "all": "Viser alle {count, plural, one {# gjest} other {# gjester}}",
+        "coming": "Viser {count, plural, one {# gjest som kommer} other {# gjester som kommer}}",
+        "notComing": "Viser {count, plural, one {# gjest som ikke kommer} other {# gjester som ikke kommer}}",
+        "notAnswered": "Viser {count, plural, one {# gjest som ikke har svart} other {# gjester som ikke har svart}}"
+      },
+      "noMatch": "Ingen gjester passer til dette filteret.",
+      "clear": "Fjern filteret"
     }
   },
   "privacy": {

@@ -11,10 +11,12 @@ import { AppNav } from "@/components/app-nav";
 export function MobileMenu({
   profileLabel,
   organizedEventIds,
+  guestsEventIds,
   urgentByEvent,
 }: {
   profileLabel: string;
   organizedEventIds: string[];
+  guestsEventIds: string[];
   urgentByEvent: Record<string, number>;
 }) {
   const t = useTranslations("shell");
@@ -38,6 +40,7 @@ export function MobileMenu({
         <AppNav
           profileLabel={profileLabel}
           organizedEventIds={organizedEventIds}
+          guestsEventIds={guestsEventIds}
           urgentByEvent={urgentByEvent}
           onNavigate={() => setOpen(false)}
         />
