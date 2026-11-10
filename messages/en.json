@@ -35,9 +35,18 @@
     "open": "{count} open",
     "overdue": "{count} overdue",
     "unreadable": "Tasks in {role} are visible to its team.",
-    "guestsAdded": "{count, plural, one {# guest added} other {# guests added}}",
     "inactiveRoleTasks": "{count, plural, one {# task belongs to an inactive Role} other {# tasks belong to inactive Roles}}",
-    "onTrackEmpty": "No active Roles yet."
+    "onTrackEmpty": "No active Roles yet.",
+    "rsvp": {
+      "title": "RSVP summary",
+      "pie": "RSVP summary: {invited} invited, {coming} coming, {notComing} not coming, {notAnswered} not answered.",
+      "invited": "Invited",
+      "coming": "Coming",
+      "notComing": "Not coming",
+      "notAnswered": "Not answered",
+      "headcount": "Headcount with plus-ones",
+      "expected": "{count, plural, one {# guest expected} other {# guests expected}}"
+    }
   },
   "timeline": {
     "surface": "Timeline",
@@ -510,7 +519,8 @@
       },
       "plusOne": "Plus-one: {name}",
       "plusOneNoName": "Brings a plus-one",
-      "needs": "Other needs: {needs}"
+      "needs": "Other needs: {needs}",
+      "showMore": "Show more"
     },
     "link": {
       "menu": "Share",
@@ -541,6 +551,23 @@
         "noDate": "Hi {name}! You're invited to {event}. Open your personal invitation here: {link}",
         "untitled": "our event"
       }
+    },
+    "tiles": {
+      "label": "RSVP summary",
+      "all": "Guests",
+      "coming": "Coming",
+      "notComing": "Not coming",
+      "notAnswered": "Not answered"
+    },
+    "filter": {
+      "showing": {
+        "all": "Showing all {count, plural, one {# guest} other {# guests}}",
+        "coming": "Showing {count, plural, one {# guest who is coming} other {# guests who are coming}}",
+        "notComing": "Showing {count, plural, one {# guest who is not coming} other {# guests who are not coming}}",
+        "notAnswered": "Showing {count, plural, one {# guest who has not answered} other {# guests who have not answered}}"
+      },
+      "noMatch": "No guests match this filter.",
+      "clear": "Clear filter"
     }
   },
   "privacy": {
