@@ -58,3 +58,8 @@
 - [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — e2e feilet én gang med 404 på Organizerens gjesteside og bestod ved ny kjøring; årsak ikke funnet
 - [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — `loading.tsx` gir myk 404 (HTTP 200) for fremmede på `/rsvp`; eier avgjør
 - [ ] 2026-11-10 [story-7-5](981-2026-11-10-06-49-08-story-7-5-guest-dashboard.md) — «Min vurdering» i `docs/ki-logg.md` for 7.5, push og PR gjenstår
+- [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — holder av Guests-rollen leser fortsatt gjester og svar i et avlyst Event via API-et; eier avgjør om policyen skal snevres inn
+- [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — Guests-fanen og RSVP-oversikten teller høyst 1000 gjester; eksakt telling krever SQL-aggregat
+- [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — kakediagrammet er ikke sett i nettleser i lyst og mørkt tema
+- [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — tom gjesteliste uten «del en invitasjonslenke» (Target 3); eier bekrefter
+- [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — «Min vurdering» i `docs/ki-logg.md` for 7.7 og eventuelt refleksjonsnotat gjenstår
