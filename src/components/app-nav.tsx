@@ -66,11 +66,13 @@ function NavLink({
 export function AppNav({
   profileLabel,
   organizedEventIds,
+  guestsEventIds,
   urgentByEvent,
   onNavigate,
 }: {
   profileLabel: string;
   organizedEventIds: string[];
+  guestsEventIds: string[];
   urgentByEvent: Record<string, number>;
   onNavigate?: () => void;
 }) {
@@ -86,7 +88,7 @@ export function AppNav({
           <NavLink href={eventPath(eventId)} icon={House} onNavigate={onNavigate}>
             {t("dashboard")}
           </NavLink>
-          {organizer && (
+          {(organizer || guestsEventIds.includes(eventId)) && (
             <NavLink href={`${eventPath(eventId)}/guests`} icon={Contact} onNavigate={onNavigate}>
               {t("guests")}
             </NavLink>

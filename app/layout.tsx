@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { createClient, getClaims } from "@/lib/supabase/server";
+import { heldGuestsEventIds } from "@/modules/guests/access";
 import { AppNav } from "@/components/app-nav";
 import { MobileMenu } from "@/components/mobile-menu";
 import { OfflineNotice } from "@/components/offline-notice";
@@ -27,6 +28,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Failing closed would hand an Organizer the holder sidebar, so a failed query is an error page.
   if (organized.error) throw new Error("Could not load the sidebar");
   const organizedEventIds = organized.data.map((event) => event.id);
+  // The Guests item also shows to a holder of the active Guests Role (Story 7.7).
+  const guestsEventIds = claims ? await heldGuestsEventIds(claims.sub) : [];
   // Urgent per Event: the viewer's own open Tasks that are overdue. task_state holds the overdue
   // flag and tasks the owner, so two queries cover every Event at once.
   const supabase = claims ? await createClient() : null;
@@ -90,6 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <AppNav
                   profileLabel={profileLabel}
                   organizedEventIds={organizedEventIds}
+                  guestsEventIds={guestsEventIds}
                   urgentByEvent={urgentByEvent}
                 />
               </div>
@@ -108,6 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <MobileMenu
                   profileLabel={profileLabel}
                   organizedEventIds={organizedEventIds}
+                  guestsEventIds={guestsEventIds}
                   urgentByEvent={urgentByEvent}
                 />
               )}
