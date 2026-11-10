@@ -589,7 +589,8 @@
     },
     "deletion": {
       "title": "Deleting your data as a Guest",
-      "body": "On the Guest Dashboard, Delete my data removes your RSVP, food, hotel and requests."
+      "body": "On the Guest Dashboard, Delete my data removes your RSVP, food, hotel and requests.",
+      "tasks": "Text a team member has written about you in a task is not found by Delete my data. Ask the Organizer to remove it."
     }
   },
   "feedback": {
