@@ -37,6 +37,7 @@ export async function OnTrack({
   let rsvp = null;
   if (readsRsvps) {
     // Answers only: no names and no "other needs" are read.
+    // shortcut: reads every guest in one query, up to the API's 1000-row limit; count on the server when lists outgrow that.
     const result = await (
       await createClient()
     )
