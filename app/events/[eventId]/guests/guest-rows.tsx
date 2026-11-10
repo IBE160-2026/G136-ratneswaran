@@ -72,6 +72,8 @@ export function GuestRows({
   const press = (next: Filter) => {
     setPressed(next);
     setLimit(PAGE);
+    // An open edit would stay mounted but hidden if its row is filtered out.
+    setEditing(null);
   };
   const editButtons = useRef(new Map<string, HTMLButtonElement>());
   const returnFocus = useRef<string | null>(null);
