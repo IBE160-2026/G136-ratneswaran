@@ -268,7 +268,9 @@ test("the tiles count, filter and announce at 320px, and a new answer shows afte
 
   const tile = (name: string, count: number) =>
     page.getByRole("button", { name: new RegExp(`^${name}\\s*${count}$`) });
-  const rows = page.getByRole("region", { name: "5 guests" }).getByRole("listitem");
+  const list = (count: number) =>
+    page.getByRole("region", { name: `${count} guests` }).getByRole("listitem");
+  let rows = list(5);
   await expect(tile("Guests", 5)).toHaveAttribute("aria-pressed", "true");
   await expect(tile("Coming", 2)).toHaveAttribute("aria-pressed", "false");
   await expect(tile("Not coming", 1)).toBeVisible();
@@ -287,10 +289,17 @@ test("the tiles count, filter and announce at 320px, and a new answer shows afte
     page.getByRole("status").filter({ hasText: "Showing 2 guests who have not answered" }),
   ).toBeVisible();
 
+  // Removing under a filter moves focus to the neighbouring row that is shown, not a hidden one.
+  await page.getByRole("button", { name: "Remove Eli" }).click();
+  await expect(page.getByRole("button", { name: "Edit Dan" })).toBeFocused();
+  rows = list(4);
+  await expect(rows).toHaveText([/^Dan/]);
+  await expect(tile("Not answered", 1)).toBeVisible();
+
   // Dan answers elsewhere; the Organizer sees it on the next load, with no polling.
   answer(id, "Dan", false);
   await page.reload();
-  await expect(tile("Not answered", 1)).toBeVisible();
+  await expect(tile("Not answered", 0)).toBeVisible();
   await expect(tile("Not coming", 2)).toBeVisible();
   await expect(rows.filter({ hasText: "Dan" })).toContainText("Not coming");
 
@@ -300,8 +309,8 @@ test("the tiles count, filter and announce at 320px, and a new answer shows afte
   await expect(page.getByText("No guests match this filter.")).toBeVisible();
   await expect(rows).toHaveCount(0);
   await page.getByRole("button", { name: "Clear filter" }).click();
-  await expect(rows).toHaveCount(5);
-  await expect(tile("Guests", 5)).toHaveAttribute("aria-pressed", "true");
+  await expect(rows).toHaveCount(4);
+  await expect(tile("Guests", 4)).toHaveAttribute("aria-pressed", "true");
 });
 
 test("a long list renders 100 guests and Show more adds 100 at a time", async ({
