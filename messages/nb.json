@@ -888,6 +888,19 @@
     "cancelled": "Dette arrangementet er avlyst.",
     "ended": "Takk for at du kom!",
     "expired": "Denne lenken har utløpt. Be {organizer} om en ny.",
+    "delete": {
+      "button": "Slett mine data",
+      "title": "Vil du slette dataene dine for {event}?",
+      "body": "Vi fjerner navnet ditt, e-postadressen, svaret, følgesvennen og andre behov fra {event}. Dette kan ikke angres.",
+      "confirm": "Slett mine data",
+      "cancel": "Behold dataene mine",
+      "deleting": "Sletter …",
+      "done": "Dataene dine er slettet.",
+      "already": "Dataene dine er allerede slettet.",
+      "errors": {
+        "unavailable": "Vi fikk ikke slettet dataene dine. Ingenting ble fjernet, så prøv igjen."
+      }
+    },
     "errors": {
       "tooLong": "Dette er for langt.",
       "invalidCharacters": "Fjern spesialtegnene.",
