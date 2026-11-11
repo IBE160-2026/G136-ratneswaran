@@ -26,7 +26,7 @@ Bygge Story 7.8 («Delete guest data») med `/bmad-build-auto`: en gjest skal ku
 ### Åpne punkter
 
 - En bruker som både er gjest og Role-holder i bare ett Event, og aldri har satt passord, blir igjen i `auth.users` etter `events_delete`; eier avgjør hvem som rydder det.
-- Personvernteksten fra Epic 1 sier fortsatt at *Delete my data* fjerner mat, hotell og forespørsler, og dialogen sier ikke at kontoen slettes og gjesten logges ut; planleggingsdokumentene eier ordlyden.
+- Personvernteksten fra Epic 1 sier fortsatt at _Delete my data_ fjerner mat, hotell og forespørsler, og dialogen sier ikke at kontoen slettes og gjesten logges ut; planleggingsdokumentene eier ordlyden.
 - Låsen på brukerraden som hindrer en bruker uten data ved samtidige slettinger er ikke testet med to tilkoblinger.
 - Oppfølgingsreview anbefales: den nye sletteknappen på første spørsmål kom til etter at review var gjort, og den samspiller med innsending av svaret.
 - Dialogen og sluttsidene er ikke sett i nettleser i lyst og mørkt tema.
