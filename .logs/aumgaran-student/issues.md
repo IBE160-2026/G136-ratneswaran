@@ -69,3 +69,8 @@
 - [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — oppfølgingsreview anbefalt for sletteknappen på første spørsmål
 - [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — dialogen og sluttsidene er ikke sett i nettleser i lyst og mørkt tema
 - [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — «Min vurdering» i `docs/ki-logg.md` for 7.8 og eventuelt refleksjonsnotat gjenstår
+- [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — oppfølgingsreview anbefalt: lekkasjesjekken (21 sider × 3 holdere, 180 s) er ikke vist å bestå med hele suiten på standard workers
+- [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — hele e2e-suiten med standard workers er ikke kjørt ren (37 tidsavbrudd sett i urelaterte spec-er)
+- [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — «ingen konto opprettet» beviser bare at gjestens egen brukerrad er uendret og fjernet
+- [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — «Min vurdering» i `docs/ki-logg.md` for 7.10 og eventuelt refleksjonsnotat gjenstår
+- [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — push og PR gjenstår
