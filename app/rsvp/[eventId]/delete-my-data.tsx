@@ -66,7 +66,15 @@ export function DeleteMyData({
       >
         {t("delete.button")}
       </button>
-      <Dialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (pending) return;
+          setOpen(next);
+          // A reopened dialog starts clean, not with the last failure and its Retry.
+          if (!next) setFailed(null);
+        }}
+      >
         <DialogContent showCloseButton={false} className="text-base sm:max-w-md">
           <DialogTitle className="text-headline break-words">
             {t("delete.title", { event: eventName })}
