@@ -22,7 +22,7 @@ select is((select count(*) from seeded where attending and plus_one), 12::bigint
 select is((select count(*) from seeded where attending is false), 8::bigint, '8 are not coming');
 select is((select count(*) from seeded where attending is not null and user_id is not null and tokens = 1 and first_opened_at is not null),
   40::bigint, 'the 40 answered guests have a user, one active token and a first-opened time');
-select is((select count(*) from seeded where other_needs like 'Seed-needs: parking near the door'), 1::bigint,
+select is((select count(*) from seeded where other_needs = 'Seed-needs: parking near the door'), 1::bigint,
   'one coming guest carries the leak-check marker');
 select cmp_ok((select count(*) from seeded where attending and other_needs <> ''), '>=', 3::bigint,
   'at least three coming guests carry other needs');
