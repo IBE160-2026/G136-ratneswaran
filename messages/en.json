@@ -899,7 +899,7 @@
       "done": "Your data has been deleted.",
       "already": "Your data is already deleted.",
       "errors": {
-        "unavailable": "We couldn't delete your data. Nothing was removed, so try again.",
+        "unavailable": "We couldn't confirm that your data was deleted. Try again.",
         "noSession": "Open your personal invitation link again, then delete your data."
       }
     },

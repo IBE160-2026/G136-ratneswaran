@@ -64,6 +64,12 @@ describe("deleteMyData", () => {
     expect(signOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
+  it("still reports the committed delete when dropping the session throws", async () => {
+    rpc.mockResolvedValue({ data: "deleted_with_user", error: null });
+    signOut.mockRejectedValueOnce(new Error("network"));
+    expect(await deleteMyData({ eventId })).toEqual({ ok: true, data: { deleted: true } });
+  });
+
   it.each([
     [
       "the function had nothing to delete",

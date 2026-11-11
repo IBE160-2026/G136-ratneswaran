@@ -57,6 +57,12 @@ export async function deleteMyData(input: unknown): Promise<Result<{ deleted: bo
     maxAge: 600,
   });
   // The user is gone, so the session is too: drop its cookies. A kept user stays signed in.
-  if (data === "deleted_with_user") await supabase.auth.signOut({ scope: "local" });
+  if (data === "deleted_with_user") {
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // The delete is committed; stale cookies of a deleted user open nothing.
+    }
+  }
   return { ok: true, data: { deleted: true } };
 }
