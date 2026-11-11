@@ -87,7 +87,8 @@ values ('f1a90000-0000-4000-8000-0000000000c5', 'f1a90000-0000-4000-8000-0000000
 -- 80 fictional guests, numbered n = 1..80 (ids …00000001nnnn, users …00000002nnnn):
 --   1-15 not invited (no user, no token)        16-30 link copied, never opened      31-40 opened, not answered
 --   41-60 coming alone                          61-72 coming with a plus-one         73-80 not coming
--- Guest users are guest-only like the ones copyGuestLink creates: no password, no identity, no Role.
+-- Guest users have an empty password, no identity and no Role, so guests_is_guest_only holds for them
+-- (copyGuestLink's users carry an Auth-generated random password marked pending instead).
 create temp table seed_guests as
 select n,
   ('f1a90000-0000-4000-8000-00000001' || lpad(n::text, 4, '0'))::uuid as guest_id,
