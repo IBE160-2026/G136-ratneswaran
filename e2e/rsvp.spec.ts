@@ -432,3 +432,25 @@ test("a delete without a session or proof asks for the link again", async ({
   await expect(dialog.getByRole("button", { name: "Retry" })).toBeVisible();
   expect(psql(`select count(*) from public.guests where event_id = '${id}'`).trim()).toBe("1");
 });
+
+test("a guest with an account deletes before answering, at 320px, and keeps the account", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  const userId = psql(`select user_id from public.guests where event_id = '${id}'`).trim();
+  // A chosen password makes the guest an account holder: the user and the session stay.
+  psql(`update auth.users set encrypted_password = 'chosen' where id = '${userId}'`);
+  await guest.setViewportSize({ width: 320, height: 700 });
+
+  await guest.getByRole("button", { name: "Delete my data" }).click();
+  const dialog = guest.getByRole("dialog", { name: "Delete your data for Seeded?" });
+  await expect(dialog).toBeVisible();
+  expect(await guest.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  await dialog.getByRole("button", { name: "Delete my data" }).click();
+  await expect(guest.getByRole("heading", { name: "Your data has been deleted." })).toBeFocused();
+  expect(psql(`select count(*) from public.guests where event_id = '${id}'`).trim()).toBe("0");
+  expect(psql(`select count(*) from auth.users where id = '${userId}'`).trim()).toBe("1");
+});
