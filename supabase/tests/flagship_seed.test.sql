@@ -4,8 +4,8 @@ select plan(14);
 -- supabase/seed.sql is loaded by `supabase start` and `db reset`; the Playwright flagship spec re-applies it.
 select is((select count(*) from public.tasks where event_id = 'f1a90000-0000-4000-8000-0000000000e1'), 13::bigint,
   'the flagship Event holds 13 Tasks');
-select is((select count(*) from public.roles where event_id = 'f1a90000-0000-4000-8000-0000000000e1' and active), 4::bigint,
-  'four Roles are active');
+select is((select count(*) from public.roles where event_id = 'f1a90000-0000-4000-8000-0000000000e1' and active), 5::bigint,
+  'five Roles are active, the Guests Role among them');
 
 create temp view flagship as
   select s.*, t.status, t.lifecycle, t.parent_task_id

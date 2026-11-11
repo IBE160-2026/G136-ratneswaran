@@ -191,7 +191,7 @@ set local role anon;
 select throws_ok($$select public.guests_submit_rsvp('57000000-0000-0000-0000-000000000001', '{"attending": true}', null)$$,
   '42501', null, 'anon cannot execute it at all');
 reset role;
-select is((select count(*) from public.rsvps), 1::bigint, 'no refused call wrote a row');
+select is((select count(*) from public.rsvps where event_id::text like '57000000-%'), 1::bigint, 'no refused call wrote a row');
 
 -- Cancelled and ended: read-only
 set local role authenticated;
@@ -232,7 +232,7 @@ reset role;
 insert into public.rsvps (guest_id, event_id, attending) values
   ('77000000-0000-0000-0000-000000000002', '57000000-0000-0000-0000-000000000001', true);
 delete from public.guests where id = '77000000-0000-0000-0000-000000000002';
-select is((select count(*) from public.rsvps), 0::bigint, 'removing the guest removes the rsvp');
+select is((select count(*) from public.rsvps where event_id::text like '57000000-%'), 0::bigint, 'removing the guest removes the rsvp');
 
 select * from finish();
 rollback;
