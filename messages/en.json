@@ -589,7 +589,8 @@
     },
     "deletion": {
       "title": "Deleting your data as a Guest",
-      "body": "On the Guest Dashboard, Delete my data removes your RSVP, food, hotel and requests."
+      "body": "On the Guest Dashboard, Delete my data removes your RSVP, food, hotel and requests.",
+      "tasks": "Text a team member has written about you in a task is not found by Delete my data, so ask the Organizer to remove it."
     }
   },
   "feedback": {
@@ -888,6 +889,20 @@
     "cancelled": "This event has been cancelled.",
     "ended": "Thanks for coming!",
     "expired": "This link has expired. Ask {organizer} for a new one.",
+    "delete": {
+      "button": "Delete my data",
+      "title": "Delete your data for {event}?",
+      "body": "We'll remove your name, email, answer, plus-one and other needs from {event}. This can't be undone.",
+      "confirm": "Delete my data",
+      "cancel": "Keep my data",
+      "deleting": "Deleting…",
+      "done": "Your data has been deleted.",
+      "already": "Your data is already deleted.",
+      "errors": {
+        "unavailable": "We couldn't confirm that your data was deleted. Try again.",
+        "noSession": "Open your personal invitation link again, then delete your data."
+      }
+    },
     "errors": {
       "tooLong": "That is too long.",
       "invalidCharacters": "Remove the special characters.",

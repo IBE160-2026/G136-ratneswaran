@@ -57,6 +57,7 @@ test("a guest says yes with a plus-one and other needs, and the Organizer sees i
   await expect(guest.getByText(/^Reply by /)).toBeVisible();
   await expect(guest.getByText("Question 1 of 3")).toBeVisible();
   await expect(guest.getByRole("button", { name: "Back" })).toHaveCount(0);
+  await expect(guest.getByRole("button", { name: "Delete my data" })).toBeVisible();
   await guest.getByRole("button", { name: "Next", exact: true }).click();
   await expect(guest.getByText("Choose one answer to continue.")).toBeVisible();
 
@@ -350,4 +351,110 @@ test("an Event the viewer is only a guest of is not on All events", async ({
   await page.goto("/events");
   await expect(page.getByRole("link", { name: /Seeded/ })).toHaveCount(1);
   await expect(page.getByText("Hosted by someone else")).toHaveCount(0);
+});
+
+test("a guest deletes their data, and a second press elsewhere finds it already deleted", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  await guest.getByLabel("No, I can't make it").check();
+  await guest.getByRole("button", { name: "Send my answer" }).click();
+  const userId = psql(`select user_id from public.guests where event_id = '${id}'`).trim();
+  // The same guest with the dashboard open in a second tab.
+  const second = await guest.context().newPage();
+  await second.goto(`/rsvp/${id}`);
+  await second.getByRole("button", { name: "Delete my data" }).click();
+
+  await guest.getByRole("button", { name: "Delete my data" }).click();
+  const dialog = guest.getByRole("dialog", { name: "Delete your data for Seeded?" });
+  await expect(dialog).toContainText(
+    "We'll remove your name, email, answer, plus-one and other needs from Seeded. This can't be undone.",
+  );
+  expect(await guest.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+  await dialog.getByRole("button", { name: "Delete my data" }).click();
+  await expect(guest.getByRole("heading", { name: "Your data has been deleted." })).toBeFocused();
+  await expect(guest.getByRole("button", { name: /Delete my data|Change my answer/ })).toHaveCount(
+    0,
+  );
+  expect(psql(`select count(*) from auth.users where id = '${userId}'`).trim()).toBe("0");
+  expect((await guest.context().cookies()).filter((c) => c.name.startsWith("sb-"))).toEqual([]);
+
+  await second.getByRole("dialog").getByRole("button", { name: "Delete my data" }).click();
+  await expect(
+    second.getByRole("heading", { name: "Your data is already deleted." }),
+  ).toBeFocused();
+
+  // The link no longer opens the dashboard, and the Organizer no longer lists the guest.
+  await guest.goto(link);
+  await expect(guest.getByText(GENERIC)).toBeVisible();
+  await expect(guest.getByRole("button", { name: "Continue" })).toHaveCount(0);
+  await page.goto(`/events/${id}/guests`);
+  await expect(page.getByText("No guests yet. Add them by name and email.")).toBeVisible();
+});
+
+test("a guest of a cancelled Event can still delete their data", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  psql(`update public.events set cancelled_at = now() where id = '${id}'`);
+  await guest.goto(`/rsvp/${id}`);
+  await expect(
+    guest.getByRole("heading", { name: "This event has been cancelled." }),
+  ).toBeVisible();
+  await guest.getByRole("button", { name: "Delete my data" }).click();
+  await guest.getByRole("dialog").getByRole("button", { name: "Delete my data" }).click();
+  await expect(guest.getByRole("heading", { name: "Your data has been deleted." })).toBeFocused();
+  expect(psql(`select count(*) from public.guests where event_id = '${id}'`).trim()).toBe("0");
+});
+
+test("a delete without a session or proof asks for the link again", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  await guest.getByLabel("No, I can't make it").check();
+  await guest.getByRole("button", { name: "Send my answer" }).click();
+  // The answer view replaces the question view, which has its own Delete button.
+  await expect(
+    guest.getByRole("heading", { name: "Thanks for letting us know, Ann." }),
+  ).toBeVisible();
+  await guest.context().clearCookies();
+  await guest.getByRole("button", { name: "Delete my data" }).click();
+  const dialog = guest.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Delete my data" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "Open your personal invitation link again, then delete your data.",
+  );
+  await expect(dialog.getByRole("button", { name: "Retry" })).toBeVisible();
+  expect(psql(`select count(*) from public.guests where event_id = '${id}'`).trim()).toBe("1");
+});
+
+test("a guest with an account deletes before answering, at 320px, and keeps the account", async ({
+  page,
+  request,
+  browser,
+}) => {
+  const { id, link } = await invite(page, request);
+  const guest = await guestAt(browser, link);
+  const userId = psql(`select user_id from public.guests where event_id = '${id}'`).trim();
+  // A chosen password makes the guest an account holder: the user and the session stay.
+  psql(`update auth.users set encrypted_password = 'chosen' where id = '${userId}'`);
+  await guest.setViewportSize({ width: 320, height: 700 });
+
+  await guest.getByRole("button", { name: "Delete my data" }).click();
+  const dialog = guest.getByRole("dialog", { name: "Delete your data for Seeded?" });
+  await expect(dialog).toBeVisible();
+  expect(await guest.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  await dialog.getByRole("button", { name: "Delete my data" }).click();
+  await expect(guest.getByRole("heading", { name: "Your data has been deleted." })).toBeFocused();
+  expect(psql(`select count(*) from public.guests where event_id = '${id}'`).trim()).toBe("0");
+  expect(psql(`select count(*) from auth.users where id = '${userId}'`).trim()).toBe("1");
 });

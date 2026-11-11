@@ -1,8 +1,11 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { CookieNotice } from "@/components/cookie-notice";
 import { createClient, getClaims } from "@/lib/supabase/server";
+import { DELETED_COOKIE } from "@/modules/guests/deleted";
 import { firstName, readGuestLink } from "@/modules/guests/link";
+import { Deleted } from "./delete-my-data";
 import { RsvpFlow } from "./rsvp-flow";
 
 export async function generateMetadata() {
@@ -18,7 +21,10 @@ export default async function RsvpPage({ params }: { params: Promise<{ eventId: 
   const { eventId } = await params;
   const t = await getTranslations("rsvp");
   const claims = await getClaims();
+  // deleteMyData's marker: this browser deleted its guest data here. Setting it re-rendered this page.
+  const deleted = (await cookies()).get(DELETED_COOKIE)?.value === eventId;
   if (!claims) {
+    if (deleted) return <Deleted />;
     const { preview } = await readGuestLink();
     if (preview.status === "unavailable") throw new Error("Could not load the RSVP");
     // Anything `/invite` has a view for goes there: *Continue*, the cancelled or ended text, a Role invitation.
@@ -52,6 +58,8 @@ export default async function RsvpPage({ params }: { params: Promise<{ eventId: 
       .maybeSingle(),
   ]);
   if (guest.error || event.error) throw new Error("Could not load the RSVP");
+  // A kept user (an account, or a Guest elsewhere) still has a session after deleting.
+  if (!guest.data && deleted) return <Deleted />;
   if (!guest.data || !event.data) notFound();
   const rsvp = await supabase
     .from("rsvps")

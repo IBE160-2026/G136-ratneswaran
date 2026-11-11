@@ -7,6 +7,7 @@ import { buttonClass, Field, inputClass, secondaryClass } from "@/components/for
 import { callSafely } from "@/modules/events/save";
 import { submitRsvp } from "@/modules/guests/rsvp-actions";
 import { rsvpAnswersSchema, totalSteps } from "@/modules/guests/rsvp-schemas";
+import { Deleted, DeleteMyData } from "./delete-my-data";
 
 type Saved = {
   attending: boolean;
@@ -57,6 +58,7 @@ export function RsvpFlow({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [failed, setFailed] = useState<Failed | null>(null);
   const [pending, setPending] = useState(false);
+  const [gone, setGone] = useState<"done" | "already" | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
 
@@ -69,6 +71,8 @@ export function RsvpFlow({
   const shell = (children: React.ReactNode) => (
     <div className="flex max-w-md flex-col gap-4 py-12">{children}</div>
   );
+
+  if (gone) return <Deleted already={gone === "already"} />;
 
   if (closed || (answered && !editing)) {
     return shell(
@@ -117,6 +121,11 @@ export function RsvpFlow({
             )}
           </section>
         )}
+        <DeleteMyData
+          eventId={eventId}
+          eventName={eventName}
+          onGone={(deleted) => setGone(deleted ? "done" : "already")}
+        />
       </>,
     );
   }
@@ -335,6 +344,14 @@ export function RsvpFlow({
           )}
         </div>
       </form>
+      {/* A Guest who has not answered still has a name and an email here to delete. */}
+      {step === 1 && !answered && (
+        <DeleteMyData
+          eventId={eventId}
+          eventName={eventName}
+          onGone={(deleted) => setGone(deleted ? "done" : "already")}
+        />
+      )}
     </>,
   );
 }

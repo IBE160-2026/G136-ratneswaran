@@ -589,7 +589,8 @@
     },
     "deletion": {
       "title": "Slette dataene dine som gjest",
-      "body": "På gjestesiden fjerner Slett mine data svaret ditt, mat, hotell og forespørsler."
+      "body": "På gjestesiden fjerner Slett mine data svaret ditt, mat, hotell og forespørsler.",
+      "tasks": "Tekst et teammedlem har skrevet om deg i en oppgave, blir ikke funnet av Slett mine data, så be arrangøren om å fjerne den."
     }
   },
   "feedback": {
@@ -888,6 +889,20 @@
     "cancelled": "Dette arrangementet er avlyst.",
     "ended": "Takk for at du kom!",
     "expired": "Denne lenken har utløpt. Be {organizer} om en ny.",
+    "delete": {
+      "button": "Slett mine data",
+      "title": "Vil du slette dataene dine for {event}?",
+      "body": "Vi fjerner navnet ditt, e-postadressen, svaret, følgesvennen og andre behov fra {event}. Dette kan ikke angres.",
+      "confirm": "Slett mine data",
+      "cancel": "Behold dataene mine",
+      "deleting": "Sletter …",
+      "done": "Dataene dine er slettet.",
+      "already": "Dataene dine er allerede slettet.",
+      "errors": {
+        "unavailable": "Vi fikk ikke bekreftet at dataene dine ble slettet. Prøv igjen.",
+        "noSession": "Åpne den personlige invitasjonslenken din på nytt, og slett deretter dataene dine."
+      }
+    },
     "errors": {
       "tooLong": "Dette er for langt.",
       "invalidCharacters": "Fjern spesialtegnene.",

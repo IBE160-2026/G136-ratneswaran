@@ -457,6 +457,9 @@ isOneToOne: false
 "guests_copy_link":
 { Args: { "p_guest_id": string,"p_renew"?: boolean }; Returns: string
                            },
+"guests_delete_guest_data":
+{ Args: { "p_guest_id": string }; Returns: string
+                           },
 "guests_is_guest_only":
 { Args: { "p_user_id": string }; Returns: boolean
                            },

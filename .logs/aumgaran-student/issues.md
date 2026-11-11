@@ -63,3 +63,9 @@
 - [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — kakediagrammet er ikke sett i nettleser i lyst og mørkt tema
 - [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — tom gjesteliste uten «del en invitasjonslenke» (Target 3); eier bekrefter
 - [ ] 2026-11-10 [story-7-7](980-2026-11-10-14-59-26-story-7-7-guests-tab-and-rsvp-summary.md) — «Min vurdering» i `docs/ki-logg.md` for 7.7 og eventuelt refleksjonsnotat gjenstår
+- [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — en bruker som er gjest og Role-holder i bare ett Event, uten passord, blir igjen etter `events_delete`; eier avgjør
+- [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — personvernteksten fra Epic 1 nevner fortsatt mat og hotell, og dialogen sier ikke at kontoen slettes og gjesten logges ut
+- [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — samtidighetslåsen på brukerraden i `guests_delete_guest_data` mangler test med to tilkoblinger
+- [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — oppfølgingsreview anbefalt for sletteknappen på første spørsmål
+- [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — dialogen og sluttsidene er ikke sett i nettleser i lyst og mørkt tema
+- [ ] 2026-11-11 [story-7-8](979-2026-11-11-19-14-06-story-7-8-delete-guest-data.md) — «Min vurdering» i `docs/ki-logg.md` for 7.8 og eventuelt refleksjonsnotat gjenstår

@@ -25,6 +25,7 @@ export default async function PrivacyPage() {
       </ul>
       <h2 className="text-headline">{t("deletion.title")}</h2>
       <p>{t("deletion.body")}</p>
+      <p>{t("deletion.tasks")}</p>
     </div>
   );
 }
