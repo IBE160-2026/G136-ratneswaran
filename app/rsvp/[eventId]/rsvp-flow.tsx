@@ -344,6 +344,14 @@ export function RsvpFlow({
           )}
         </div>
       </form>
+      {/* A Guest who has not answered still has a name and an email here to delete. */}
+      {step === 1 && !answered && (
+        <DeleteMyData
+          eventId={eventId}
+          eventName={eventName}
+          onGone={(deleted) => setGone(deleted ? "done" : "already")}
+        />
+      )}
     </>,
   );
 }

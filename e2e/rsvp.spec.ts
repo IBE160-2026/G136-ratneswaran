@@ -57,6 +57,7 @@ test("a guest says yes with a plus-one and other needs, and the Organizer sees i
   await expect(guest.getByText(/^Reply by /)).toBeVisible();
   await expect(guest.getByText("Question 1 of 3")).toBeVisible();
   await expect(guest.getByRole("button", { name: "Back" })).toHaveCount(0);
+  await expect(guest.getByRole("button", { name: "Delete my data" })).toBeVisible();
   await guest.getByRole("button", { name: "Next", exact: true }).click();
   await expect(guest.getByText("Choose one answer to continue.")).toBeVisible();
 
