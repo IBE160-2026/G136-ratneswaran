@@ -31,4 +31,4 @@ Bygge Story 7.8 («Delete guest data») med `/bmad-build-auto`: en gjest skal ku
 - Oppfølgingsreview anbefales: den nye sletteknappen på første spørsmål kom til etter at review var gjort, og den samspiller med innsending av svaret.
 - Dialogen og sluttsidene er ikke sett i nettleser i lyst og mørkt tema.
 - «Min vurdering» i `docs/ki-logg.md` for 7.8 og eventuelt et refleksjonsnotat gjenstår.
-- Push og PR gjenstår.
+- PR #126 er åpnet og triagen er postet som kommentar; eier gjennomgår og merger.
