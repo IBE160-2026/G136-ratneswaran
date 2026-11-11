@@ -217,32 +217,52 @@ test("the Venue holder has no Guests tab, sees only the expected count, and neve
 const taskIds = () =>
   psql(`select id from public.tasks where event_id = '${EVENT}'`).trim().split("\n");
 
+const otherNeeds = () =>
+  psql(`select other_needs from public.rsvps where event_id = '${EVENT}' and other_needs <> ''`)
+    .trim()
+    .split("\n");
+
+// Every page of the Event a holder can open; Gwen alone may read /guests.
+const leakPaths = () => {
+  const ids = taskIds();
+  expect(ids).toHaveLength(13);
+  return [
+    "",
+    "/tasks",
+    "/my-tasks",
+    "/timeline",
+    "/timeline?view=list",
+    "/team",
+    "/settings",
+    "/guests",
+    ...ids.map((id) => `/tasks/${id}`),
+  ];
+};
+
 for (const [who, email] of [
   ["Venue", VENUE_HOLDER],
   ["Food", FOOD_HOLDER],
+  ["Guests Role", GUESTS_HOLDER],
 ] as const) {
-  test(`the marker other-needs text appears on no page of the ${who} holder`, async ({ page }) => {
+  test(`no other-needs text or guest email appears where the ${who} holder may not read it`, async ({
+    page,
+  }) => {
     // Twenty-one pages, each rendered on demand by the dev server.
     test.setTimeout(180_000);
-    const ids = taskIds();
-    expect(ids).toHaveLength(13);
-    const paths = [
-      "",
-      "/tasks",
-      "/my-tasks",
-      "/timeline",
-      "/timeline?view=list",
-      "/team",
-      "/settings",
-      "/guests",
-      ...ids.map((id) => `/tasks/${id}`),
-    ];
+    const needs = otherNeeds();
+    expect(needs).toContain(MARKER);
+    const paths = leakPaths();
     await logIn(page, email);
     for (const path of paths) {
       await page.goto(`/events/${EVENT}${path}`);
-      expect(await page.content(), path).not.toContain(MARKER);
-      expect(await page.locator("body").innerText(), path).not.toContain(MARKER);
-      expect(await page.content(), path).not.toMatch(/seed\.guest\.\d+@example/);
+      const html = await page.content();
+      const text = await page.locator("body").innerText();
+      expect(html, path).not.toMatch(/seed\.guest\.\d+@example/);
+      if (email === GUESTS_HOLDER && path === "/guests") continue;
+      for (const need of needs) {
+        expect(html, `${path}: ${need}`).not.toContain(need);
+        expect(text, `${path}: ${need}`).not.toContain(need);
+      }
     }
   });
 }
@@ -288,19 +308,22 @@ test("a link replaced by New link shows the expired page, naming the Organizer a
   await expect(stranger.getByRole("button", { name: "Continue" })).toHaveCount(0);
 });
 
-// Scoped to the seeded guests: other specs sign users up in parallel, so a global count would race.
-const passwordUsers = () =>
+// The guest's own row, not a global user count: other specs sign users up in parallel.
+const guestUser = () =>
   psql(
-    "select count(*) from auth.users where email like 'seed.guest.%' and encrypted_password <> ''",
+    "select id || '|' || (encrypted_password = '') from auth.users where email = 'seed.guest.20@example.com'",
   ).trim();
 
 test("a seeded Guest answers, changes the answer and deletes their data at 375px, with no account created", async ({
   page,
   browser,
 }) => {
-  const before = passwordUsers();
+  const user = guestUser();
+  expect(user).toMatch(/\|true$/);
+  expect(user.split("\n")).toHaveLength(1);
+  const link = linkOf(20);
   const guest = await phoneBrowser(browser);
-  await guest.goto(linkOf(20));
+  await guest.goto(link);
   await guest.getByRole("button", { name: "Continue" }).click();
   await expect(guest.getByRole("heading", { name: "Will you be there?" })).toBeFocused();
 
@@ -326,13 +349,25 @@ test("a seeded Guest answers, changes the answer and deletes their data at 375px
   ).toBeVisible();
   expect(await guest.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 
+  expect(guestUser()).toBe(user);
   await guest.getByRole("button", { name: "Delete my data" }).click();
   await guest
     .getByRole("dialog", { name: "Delete your data for Demo 40th Birthday?" })
     .getByRole("button", { name: "Delete my data" })
     .click();
   await expect(guest.getByRole("heading", { name: "Your data has been deleted." })).toBeFocused();
-  expect(passwordUsers()).toBe(before);
+  expect(guestUser()).toBe("");
+  expect(
+    psql(
+      "select count(*) from public.guest_contacts where email = 'seed.guest.20@example.com'",
+    ).trim(),
+  ).toBe("0");
+  const stranger = await phoneBrowser(browser);
+  await stranger.goto(link);
+  await expect(
+    stranger.getByText("This link has expired. Ask the person who invited you for a new one."),
+  ).toBeVisible();
+  await expect(stranger.getByRole("button", { name: "Continue" })).toHaveCount(0);
 
   await logIn(page, ORGANIZER);
   await page.goto(`/events/${EVENT}/guests`);
