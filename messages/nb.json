@@ -590,7 +590,7 @@
     "deletion": {
       "title": "Slette dataene dine som gjest",
       "body": "På gjestesiden fjerner Slett mine data svaret ditt, mat, hotell og forespørsler.",
-      "tasks": "Tekst et teammedlem har skrevet om deg i en oppgave, blir ikke funnet av Slett mine data. Be arrangøren om å fjerne den."
+      "tasks": "Tekst et teammedlem har skrevet om deg i en oppgave, blir ikke funnet av Slett mine data, så be arrangøren om å fjerne den."
     }
   },
   "feedback": {
