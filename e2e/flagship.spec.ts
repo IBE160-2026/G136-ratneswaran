@@ -288,8 +288,11 @@ test("a link replaced by New link shows the expired page, naming the Organizer a
   await expect(stranger.getByRole("button", { name: "Continue" })).toHaveCount(0);
 });
 
+// Scoped to the seeded guests: other specs sign users up in parallel, so a global count would race.
 const passwordUsers = () =>
-  psql("select count(*) from auth.users where encrypted_password <> ''").trim();
+  psql(
+    "select count(*) from auth.users where email like 'seed.guest.%' and encrypted_password <> ''",
+  ).trim();
 
 test("a seeded Guest answers, changes the answer and deletes their data at 375px, with no account created", async ({
   page,
