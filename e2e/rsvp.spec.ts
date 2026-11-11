@@ -422,6 +422,10 @@ test("a delete without a session or proof asks for the link again", async ({
   const guest = await guestAt(browser, link);
   await guest.getByLabel("No, I can't make it").check();
   await guest.getByRole("button", { name: "Send my answer" }).click();
+  // The answer view replaces the question view, which has its own Delete button.
+  await expect(
+    guest.getByRole("heading", { name: "Thanks for letting us know, Ann." }),
+  ).toBeVisible();
   await guest.context().clearCookies();
   await guest.getByRole("button", { name: "Delete my data" }).click();
   const dialog = guest.getByRole("dialog");
