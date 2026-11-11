@@ -426,7 +426,7 @@ test("a delete without a session or proof asks for the link again", async ({
   const dialog = guest.getByRole("dialog");
   await dialog.getByRole("button", { name: "Delete my data" }).click();
   await expect(dialog.getByRole("alert")).toHaveText(
-    "Open your personal invitation link again to answer.",
+    "Open your personal invitation link again, then delete your data.",
   );
   await expect(dialog.getByRole("button", { name: "Retry" })).toBeVisible();
   expect(psql(`select count(*) from public.guests where event_id = '${id}'`).trim()).toBe("1");

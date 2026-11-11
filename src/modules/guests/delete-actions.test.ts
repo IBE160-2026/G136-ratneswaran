@@ -81,7 +81,7 @@ describe("deleteMyData", () => {
     getClaims.mockResolvedValue(null);
     expect(await deleteMyData({ eventId })).toMatchObject({
       ok: false,
-      error: { code: "no_session", message: "rsvp.errors.noSession" },
+      error: { code: "no_session", message: "rsvp.delete.errors.noSession" },
     });
     jar.get.mockReturnValue({ value: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" });
     expect(await deleteMyData({ eventId })).toMatchObject({ ok: false });

@@ -25,7 +25,7 @@ export async function deleteMyData(input: unknown): Promise<Result<{ deleted: bo
     if (cookieStore.get(DELETED_COOKIE)?.value === eventId) {
       return { ok: true, data: { deleted: false } };
     }
-    return refuse("no_session", "rsvp.errors.noSession");
+    return refuse("no_session", `${E}.noSession`);
   }
 
   const supabase = await createClient();

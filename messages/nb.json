@@ -899,7 +899,8 @@
       "done": "Dataene dine er slettet.",
       "already": "Dataene dine er allerede slettet.",
       "errors": {
-        "unavailable": "Vi fikk ikke slettet dataene dine. Ingenting ble fjernet, så prøv igjen."
+        "unavailable": "Vi fikk ikke slettet dataene dine. Ingenting ble fjernet, så prøv igjen.",
+        "noSession": "Åpne den personlige invitasjonslenken din på nytt, og slett deretter dataene dine."
       }
     },
     "errors": {
