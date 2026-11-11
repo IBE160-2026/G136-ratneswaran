@@ -123,7 +123,7 @@ development_status:
   7-7-guests-tab-and-rsvp-summary: done
   7-8-delete-guest-data: done
   7-9-automatic-deletion-15-days-after-the-event: backlog
-  7-10-guest-flow-check: review
+  7-10-guest-flow-check: done
   epic-7-retrospective: optional
 
   epic-8: backlog
