@@ -56,14 +56,15 @@ begin
     raise exception 'task_not_active' using errcode = '22023';
   end if;
 
-  select id into v_id from public.problems where task_id = p_task_id and resolved_at is null;
-  if found then
-    return v_id;
-  end if;
-
+  -- A concurrent report loses quietly: it gets the winner's id and emits nothing.
   insert into public.problems (task_id, raised_by, note)
   values (p_task_id, v_me, btrim(coalesce(p_note, '')))
+  on conflict (task_id) where resolved_at is null do nothing
   returning id into v_id;
+  if v_id is null then
+    select id into v_id from public.problems where task_id = p_task_id and resolved_at is null;
+    return v_id;
+  end if;
 
   if exists (select 1 from public.events e where e.id = t.event_id and e.published_at is not null) then
     select array_agg(row('user', u.id)::public.recipient_spec) into v_recipients
