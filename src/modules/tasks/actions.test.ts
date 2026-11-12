@@ -494,6 +494,18 @@ describe("reportProblem and resolveProblem", () => {
     log.mockRestore();
   });
 
+  it("maps resolve denials and never logs the note", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const resolve = { eventId, taskId, note: "Rebooked secretly" };
+    rpc.mockResolvedValue({ error: { code: "42501" } });
+    expect(await resolveProblem(resolve)).toMatchObject({ error: { code: "forbidden" } });
+    rpc.mockResolvedValue({ error: { code: "55000" } });
+    expect(await resolveProblem(resolve)).toMatchObject({ error: { code: "read_only" } });
+    expect(log).toHaveBeenCalled();
+    expect(JSON.stringify(log.mock.calls)).not.toContain("Rebooked");
+    log.mockRestore();
+  });
+
   it("resolves with an optional note", async () => {
     expect(await resolveProblem({ eventId, taskId, note: " Rebooked " })).toEqual({
       ok: true,
