@@ -799,7 +799,7 @@
         "resolveTitle": "Løse dette problemet?",
         "resolveBody": "Legg gjerne til et notat om hvordan det ble løst.",
         "noteLabel": "Hva har gått galt",
-        "resolveNoteLabel": "Notat (valgfritt)",
+        "resolveNoteLabel": "Hvordan det ble løst (valgfritt)",
         "counter": "{count} av 500",
         "submitReport": "Meld problem",
         "submitResolve": "Løs",

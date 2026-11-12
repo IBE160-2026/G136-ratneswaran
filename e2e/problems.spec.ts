@@ -52,7 +52,7 @@ test("an owner reports and resolves a problem; a plain holder cannot", async ({
 
   await page.goto(`/events/${id}/tasks/${mine}`);
   await page.getByRole("button", { name: "Resolve problem" }).click();
-  await page.getByLabel("Note (optional)").fill("Dried out");
+  await page.getByLabel("How it was solved (optional)").fill("Dried out");
   await page.getByRole("button", { name: "Resolve", exact: true }).click();
   await expect(page.getByRole("button", { name: "Report a problem" })).toBeVisible();
   await expect(page.getByText("Problem resolved").first()).toBeVisible();

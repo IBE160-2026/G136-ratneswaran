@@ -799,7 +799,7 @@
         "resolveTitle": "Resolve this problem?",
         "resolveBody": "Add a note about how it was solved, if you like.",
         "noteLabel": "What has gone wrong",
-        "resolveNoteLabel": "Note (optional)",
+        "resolveNoteLabel": "How it was solved (optional)",
         "counter": "{count} of 500",
         "submitReport": "Report problem",
         "submitResolve": "Resolve",
