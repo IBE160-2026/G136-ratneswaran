@@ -18,15 +18,16 @@ export const loadListed = cache(async function loadListed(
     supabase
       .from("tasks")
       .select(
-        "id, title, deadline, status, owner_user_id, delegated_at, lifecycle, role_id, parent_task_id",
+        "id, title, deadline, status, owner_user_id, delegated_at, lifecycle, role_id, parent_task_id, problems(note)",
       )
       .eq("event_id", eventId)
-      .eq("lifecycle", "active"),
+      .eq("lifecycle", "active")
+      .is("problems.resolved_at", null),
     supabase.from("roles").select("id, key, active").eq("event_id", eventId),
     supabase
       .from("task_state")
       .select(
-        "id, blocked, blocked_by, blocked_by_count, blocks_count, overdue, overdue_days, accepted, stale_unaccepted, is_pending, obsolete",
+        "id, blocked, blocked_by, blocked_by_count, blocks_count, overdue, overdue_days, accepted, stale_unaccepted, is_pending, obsolete, has_problem",
       )
       .eq("event_id", eventId),
     supabase
@@ -81,8 +82,10 @@ export const loadListed = cache(async function loadListed(
     const state = states.get(task.id);
     const open = !state?.obsolete && task.status !== "done";
     const waiting = state?.blocked && open;
+    const { problems, ...fields } = task;
     const row: ListedTask = {
-      ...task,
+      ...fields,
+      problemNote: state?.has_problem ? (problems[0]?.note ?? null) : null,
       roleName: roleName.get(task.role_id) ?? "",
       waitsFor: waiting ? (titles.get(state.blocked_by ?? "") ?? null) : null,
       waitsForMore: state?.blocked_by_count ?? 0,
@@ -109,6 +112,7 @@ export const loadListed = cache(async function loadListed(
       stale_unaccepted: state?.stale_unaccepted === true,
       accepted: row.accepted,
       obsolete: state?.obsolete === true,
+      hasProblem: state?.has_problem === true,
       lifecycle: task.lifecycle,
       roleActive: roleActive.get(task.role_id) ?? false,
     };

@@ -31,9 +31,10 @@ export default async function TasksPage({ params }: Props) {
     supabase
       .from("tasks")
       .select(
-        "id, title, deadline, status, owner_user_id, delegated_at, lifecycle, obsolete, role_id, parent_task_id, updated_at",
+        "id, title, deadline, status, owner_user_id, delegated_at, lifecycle, obsolete, role_id, parent_task_id, updated_at, problems(note)",
       )
       .eq("event_id", eventId)
+      .is("problems.resolved_at", null)
       .order("deadline", { ascending: true, nullsFirst: false })
       .order("title"),
     supabase.from("roles").select("id, key, active").eq("event_id", eventId),
@@ -47,7 +48,7 @@ export default async function TasksPage({ params }: Props) {
     supabase
       .from("task_state")
       .select(
-        "id, blocked, blocked_by, blocked_by_count, blocks_count, overdue_days, accepted, stale_unaccepted",
+        "id, blocked, blocked_by, blocked_by_count, blocks_count, overdue_days, accepted, stale_unaccepted, has_problem",
       )
       .eq("event_id", eventId),
     supabase.from("role_members").select("user_id, name").eq("event_id", eventId),
@@ -89,8 +90,10 @@ export default async function TasksPage({ params }: Props) {
     const state = states.get(task.id);
     // A Task that is dismissed or Done is not waiting, whatever its blockers do.
     const waiting = state?.blocked && task.lifecycle === "active" && task.status !== "done";
+    const { problems, ...fields } = task;
     return {
-      ...task,
+      ...fields,
+      problemNote: state?.has_problem ? (problems[0]?.note ?? null) : null,
       roleName: roleName.get(task.role_id) ?? "",
       waitsFor: waiting ? (titles.get(state.blocked_by ?? "") ?? null) : null,
       waitsForMore: state?.blocked_by_count ?? 0,
