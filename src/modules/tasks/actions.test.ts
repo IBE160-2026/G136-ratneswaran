@@ -29,6 +29,8 @@ const {
   promoteSubtask,
   removeDependency,
   removeStatusNote,
+  reportProblem,
+  resolveProblem,
   restoreTask,
   setTaskStatus,
   updateTask,
@@ -453,5 +455,58 @@ describe("acceptTask", () => {
     expect(await acceptTask(input)).toMatchObject({ error: { code: "invalid_input" } });
     rpc.mockResolvedValue({ error: { code: "55000" } });
     expect(await acceptTask(input)).toMatchObject({ error: { code: "read_only" } });
+  });
+});
+
+describe("reportProblem and resolveProblem", () => {
+  const input = { eventId, taskId, note: "  Caterer cancelled " };
+
+  it("reports with the trimmed note", async () => {
+    expect(await reportProblem(input)).toEqual({ ok: true, data: null });
+    expect(rpc).toHaveBeenCalledWith("tasks_report_problem", {
+      p_task_id: taskId,
+      p_note: "Caterer cancelled",
+    });
+    expect(revalidatePath).toHaveBeenCalled();
+  });
+
+  it("refuses a blank, long or control-character note without calling the database", async () => {
+    for (const note of ["   ", "x".repeat(501), "a\u0000b"]) {
+      expect(await reportProblem({ ...input, note })).toMatchObject({
+        ok: false,
+        error: { code: "invalid_input" },
+      });
+    }
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("maps a denial, a closed Task and a read-only Event, and never logs the note", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    rpc.mockResolvedValue({ error: { code: "42501" } });
+    expect(await reportProblem(input)).toMatchObject({ error: { code: "forbidden" } });
+    rpc.mockResolvedValue({ error: { code: "22023" } });
+    expect(await reportProblem(input)).toMatchObject({
+      error: { message: "tasks.errors.notActive" },
+    });
+    rpc.mockResolvedValue({ error: { code: "55000" } });
+    expect(await reportProblem(input)).toMatchObject({ error: { code: "read_only" } });
+    expect(JSON.stringify(log.mock.calls)).not.toContain("Caterer");
+    log.mockRestore();
+  });
+
+  it("resolves with an optional note", async () => {
+    expect(await resolveProblem({ eventId, taskId, note: " Rebooked " })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(rpc).toHaveBeenCalledWith("tasks_resolve_problem", {
+      p_task_id: taskId,
+      p_note: "Rebooked",
+    });
+    await resolveProblem({ eventId, taskId, note: "" });
+    expect(rpc).toHaveBeenLastCalledWith("tasks_resolve_problem", {
+      p_task_id: taskId,
+      p_note: undefined,
+    });
   });
 });
