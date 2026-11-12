@@ -86,7 +86,6 @@ const problemNote = z
   .string()
   .trim()
   .max(500, error("problemNote"))
-  // eslint-disable-next-line no-control-regex
   .refine((value) => !/[\u0000-\u0008\u000B-\u001F\u007F]/.test(value), error("problemNote"));
 
 export const reportProblemSchema = z.object({

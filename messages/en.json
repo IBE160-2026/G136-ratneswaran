@@ -786,7 +786,26 @@
         "removeBody": "The note is deleted. The status change stays in the history.",
         "removeConfirm": "Remove note",
         "keep": "Keep note",
-        "by": "{name}, {time}"
+        "by": "{name}, {time}",
+        "problemRaised": "Problem reported",
+        "problemResolved": "Problem resolved"
+      },
+      "problem": {
+        "title": "Problem",
+        "report": "Report a problem",
+        "reportTitle": "Report a problem",
+        "reportBody": "Say what has gone wrong. The Organizer and the Role lead are told. Don't include allergy, food or hotel details.",
+        "resolve": "Resolve problem",
+        "resolveTitle": "Resolve this problem?",
+        "resolveBody": "Add a note about how it was solved, if you like.",
+        "noteLabel": "What has gone wrong",
+        "resolveNoteLabel": "Note (optional)",
+        "counter": "{count} of 500",
+        "submitReport": "Report problem",
+        "submitResolve": "Resolve",
+        "cancel": "Cancel",
+        "reported": "Problem reported.",
+        "resolved": "Problem resolved."
       }
     },
     "errors": {
@@ -804,7 +823,9 @@
       "subtaskInvalid": "A subtask needs an active task of the same Role as its parent, and a title and date.",
       "dependencyInvalid": "A task can only wait for another active task of the same Role, and never in a circle.",
       "parentDismissed": "Restore the parent task first.",
-      "acceptFirst": "Accept this task first."
+      "acceptFirst": "Accept this task first.",
+      "problemNote": "Enter a note of 1 to 500 characters.",
+      "notActive": "This task is closed, so it can't be flagged."
     },
     "subtasks": {
       "title": "Subtasks",

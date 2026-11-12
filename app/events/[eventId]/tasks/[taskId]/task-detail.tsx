@@ -14,7 +14,8 @@ import { dismissTask, restoreTask } from "@/modules/tasks/actions";
 import { TaskForm } from "../task-form";
 import { AcceptBanner } from "./accept-banner";
 import { DelegatePanel, type Candidate } from "./delegate-panel";
-import { StatusControl, StatusHistory, type HistoryEntry } from "./status-panel";
+import { ProblemPanel } from "./problem-panel";
+import { StatusControl, StatusHistory, type HistoryEntry, type ProblemEntry } from "./status-panel";
 import { DependsOnCard, PartOf, SubtasksCard, WaitsFor, type LinkedTask } from "./task-links";
 import { AcceptedSignal, useDeadline } from "../task-row";
 
@@ -53,6 +54,7 @@ export function TaskDetail({
   canSetStatus,
   overdueDays,
   history,
+  problem,
   canDelegate,
   candidates,
   ownerName,
@@ -69,7 +71,8 @@ export function TaskDetail({
   canEdit: boolean;
   canSetStatus: boolean;
   overdueDays: number | null;
-  history: HistoryEntry[];
+  history: (HistoryEntry | ProblemEntry)[];
+  problem: { note: string | null; raisedBy: string | null; canAct: boolean };
   canDelegate: boolean;
   candidates: Candidate[];
   ownerName: string | null;
@@ -211,6 +214,7 @@ export function TaskDetail({
               {task.description ?? t("detail.noDescription")}
             </p>
           </section>
+          <ProblemPanel eventId={eventId} taskId={task.id} {...problem} />
           {canDelegate && (
             <DelegatePanel
               eventId={eventId}
