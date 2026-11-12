@@ -123,6 +123,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"problems": {
+                  Row: {
+                    "id": string,"note": string,"raised_at": string,"raised_by": string | null,"resolution_note": string | null,"resolved_at": string | null,"resolved_by": string | null,"task_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"note": string,"raised_at"?: string,"raised_by"?: string | null,"resolution_note"?: string | null,"resolved_at"?: string | null,"resolved_by"?: string | null,"task_id": string
+                  }
+                  Update: {
+                    "id"?: string,"note"?: string,"raised_at"?: string,"raised_by"?: string | null,"resolution_note"?: string | null,"resolved_at"?: string | null,"resolved_by"?: string | null,"task_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "problems_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "task_state"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "problems_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"role_member_contacts": {
                   Row: {
                     "email": string,"event_id": string,"role_member_id": string
@@ -380,7 +406,7 @@ isOneToOne: false
           Views: {
             "task_state": {
                   Row: {
-                    "accepted": boolean | null,"blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"obsolete": boolean | null,"overdue": boolean | null,"overdue_days": number | null,"role_id": string | null,"stale_unaccepted": boolean | null
+                    "accepted": boolean | null,"blocked": boolean | null,"blocked_by": string | null,"blocked_by_count": number | null,"blocks_count": number | null,"event_id": string | null,"has_problem": boolean | null,"id": string | null,"is_delegated": boolean | null,"is_pending": boolean | null,"obsolete": boolean | null,"overdue": boolean | null,"overdue_days": number | null,"role_id": string | null,"stale_unaccepted": boolean | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -579,8 +605,14 @@ isOneToOne: false
 "tasks_remove_status_note":
 { Args: { "p_history_id": string }; Returns: undefined
                            },
+"tasks_report_problem":
+{ Args: { "p_note": string,"p_task_id": string }; Returns: string
+                           },
 "tasks_resolve_deadline":
 { Args: { "p_days_before": number,"p_deadline": string,"p_event_id": string }; Returns: string
+                           },
+"tasks_resolve_problem":
+{ Args: { "p_note"?: string,"p_task_id": string }; Returns: undefined
                            },
 "tasks_restore":
 { Args: { "p_expected": string,"p_task_id": string }; Returns: undefined

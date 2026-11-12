@@ -786,7 +786,26 @@
         "removeBody": "Notatet slettes. Statusendringen blir stående i historikken.",
         "removeConfirm": "Fjern notat",
         "keep": "Behold notat",
-        "by": "{name}, {time}"
+        "by": "{name}, {time}",
+        "problemRaised": "Problem meldt",
+        "problemResolved": "Problem løst"
+      },
+      "problem": {
+        "title": "Problem",
+        "report": "Meld et problem",
+        "reportTitle": "Meld et problem",
+        "reportBody": "Skriv hva som har gått galt. Arrangøren og Rollelederen får beskjed. La være å ta med allergi-, mat- eller hotelldetaljer.",
+        "resolve": "Løs problemet",
+        "resolveTitle": "Løse dette problemet?",
+        "resolveBody": "Legg gjerne til et notat om hvordan det ble løst.",
+        "noteLabel": "Hva har gått galt",
+        "resolveNoteLabel": "Hvordan det ble løst (valgfritt)",
+        "counter": "{count} av 500",
+        "submitReport": "Meld problem",
+        "submitResolve": "Løs",
+        "cancel": "Avbryt",
+        "reported": "Problem meldt.",
+        "resolved": "Problem løst."
       }
     },
     "errors": {
@@ -804,7 +823,9 @@
       "subtaskInvalid": "En deloppgave trenger en aktiv oppgave i samme Rolle som forelder, og en tittel og en dato.",
       "dependencyInvalid": "En oppgave kan bare vente på en annen aktiv oppgave i samme Rolle, og aldri i ring.",
       "parentDismissed": "Gjenopprett overordnet oppgave først.",
-      "acceptFirst": "Godta oppgaven først."
+      "acceptFirst": "Godta oppgaven først.",
+      "problemNote": "Skriv et notat på 1 til 500 tegn.",
+      "notActive": "Denne oppgaven er lukket, så den kan ikke flagges."
     },
     "subtasks": {
       "title": "Deloppgaver",

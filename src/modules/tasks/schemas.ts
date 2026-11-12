@@ -81,6 +81,25 @@ export const delegateSchema = z.object({
   newOwner: z.uuid(),
 });
 
+// Tabs and line breaks are fine in a note; other control characters are not.
+const problemNote = z
+  .string()
+  .trim()
+  .max(500, error("problemNote"))
+  .refine((value) => !/[\u0000-\u0008\u000B-\u001F\u007F]/.test(value), error("problemNote"));
+
+export const reportProblemSchema = z.object({
+  eventId: z.uuid(),
+  taskId: z.uuid(),
+  note: problemNote.min(1, error("problemNote")),
+});
+
+export const resolveProblemSchema = z.object({
+  eventId: z.uuid(),
+  taskId: z.uuid(),
+  note: problemNote,
+});
+
 export const removeNoteSchema = z.object({ eventId: z.uuid(), historyId: z.uuid() });
 
 /** The arguments `tasks_create` and `tasks_set_deadline` take for the chosen kind. */

@@ -5,7 +5,7 @@ import { createClient, getClaims } from "@/lib/supabase/server";
 import { eventPath, isDraft, isPast } from "@/modules/events/list";
 import { loadEvent } from "../../load-event";
 import type { Candidate } from "./delegate-panel";
-import type { HistoryEntry } from "./status-panel";
+import type { HistoryEntry, ProblemEntry } from "./status-panel";
 import { daysSince } from "../task-row";
 import { TaskDetail } from "./task-detail";
 
@@ -43,6 +43,7 @@ export default async function TaskPage({ params }: Props) {
     historyResult,
     namesResult,
     logResult,
+    problemResult,
   ] = await Promise.all([
     supabase.from("roles").select("key").eq("id", task.role_id).single(),
     supabase
@@ -83,6 +84,10 @@ export default async function TaskPage({ params }: Props) {
       .eq("kind", "delegated")
       .order("created_at", { ascending: false })
       .limit(1),
+    supabase
+      .from("problems")
+      .select("id, note, raised_by, raised_at, resolved_at, resolved_by, resolution_note")
+      .eq("task_id", task.id),
   ]);
   if (
     roleResult.error ||
@@ -92,7 +97,8 @@ export default async function TaskPage({ params }: Props) {
     stateResult.error ||
     historyResult.error ||
     namesResult.error ||
-    logResult.error
+    logResult.error ||
+    problemResult.error
   ) {
     throw new Error("Could not load the task");
   }
@@ -150,6 +156,31 @@ export default async function TaskPage({ params }: Props) {
     createdAt: row.created_at,
     canRemove: !readOnly && (event.organizer_id === claims.sub || row.changed_by === claims.sub),
   }));
+  const problems = problemResult.data;
+  const open = task.obsolete ? undefined : problems.find((p) => p.resolved_at === null);
+  const problemHistory: ProblemEntry[] = problems.flatMap((p) => [
+    {
+      id: p.id,
+      problem: "raised" as const,
+      note: p.note,
+      author: nameOf(p.raised_by),
+      createdAt: p.raised_at,
+    },
+    ...(p.resolved_at
+      ? [
+          {
+            id: p.id,
+            problem: "resolved" as const,
+            note: p.resolution_note,
+            author: nameOf(p.resolved_by),
+            createdAt: p.resolved_at,
+          },
+        ]
+      : []),
+  ]);
+  const entries = [...history, ...problemHistory].toSorted(
+    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
+  );
   const canLink = (canEdit || (task.owner_user_id === claims.sub && !readOnly)) && !dismissed;
   const peers = peersResult.data;
   const waitingFor = new Set(linksResult.data.map((link) => link.depends_on_id));
@@ -181,7 +212,12 @@ export default async function TaskPage({ params }: Props) {
       canEdit={canEdit}
       canSetStatus={canSetStatus}
       overdueDays={task.lifecycle === "active" ? state.overdue_days : null}
-      history={history}
+      history={entries}
+      problem={{
+        note: open?.note ?? null,
+        raisedBy: open ? nameOf(open.raised_by) : null,
+        canAct: (lead || ownsIt) && !readOnly && task.lifecycle === "active" && !task.obsolete,
+      }}
       canDelegate={canDelegate}
       candidates={candidates}
       ownerName={nameOf(task.owner_user_id)}

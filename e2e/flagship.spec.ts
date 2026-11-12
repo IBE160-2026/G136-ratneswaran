@@ -45,8 +45,12 @@ async function logIn(page: Page, email: string) {
 }
 
 const region = (page: Page, name: RegExp) => page.getByRole("region", { name });
-const noPlaceholders = (page: Page) =>
-  expect(page.getByText(/Needs your decision|Problem reported/)).toHaveCount(0);
+// Decision cards never exist yet; Problems exist only where the seed puts one (Order tables).
+const noPlaceholders = (page: Page, problems = 0) =>
+  Promise.all([
+    expect(page.getByText(/Needs your decision/)).toHaveCount(0),
+    expect(page.getByText(/Problem reported/)).toHaveCount(problems),
+  ]);
 const roleRow = (page: Page, name: string) =>
   page.getByRole("heading", { level: 3, name, exact: true }).locator("xpath=ancestor::li[1]");
 
@@ -56,14 +60,17 @@ test("the Organizer reads the Event's status from the Dashboard and opens a Task
   await logIn(page, ORGANIZER);
   await page.goto(`/events/${EVENT}`);
 
-  await expect(page.getByRole("heading", { level: 2, name: /^Needs you/ })).toContainText("3");
+  await expect(page.getByRole("heading", { level: 2, name: /^Needs you/ })).toContainText("4");
   const needs = region(page, /^Needs you/).getByRole("link");
-  await expect(needs).toHaveCount(3);
-  await expect(needs.nth(0)).toContainText("Send menu to caterer");
-  await expect(needs.nth(0)).toContainText("Overdue 6 days");
-  await expect(needs.nth(1)).toContainText("Print the programme");
-  await expect(needs.nth(1)).toContainText("Overdue 2 days");
-  await expect(needs.nth(2)).toContainText("Agree catering access");
+  await expect(needs).toHaveCount(4);
+  await expect(needs.nth(0)).toContainText("Order tables");
+  await expect(needs.nth(0)).toContainText("Problem reported");
+  await expect(needs.nth(0)).toContainText("no round tables left");
+  await expect(needs.nth(1)).toContainText("Send menu to caterer");
+  await expect(needs.nth(1)).toContainText("Overdue 6 days");
+  await expect(needs.nth(2)).toContainText("Print the programme");
+  await expect(needs.nth(2)).toContainText("Overdue 2 days");
+  await expect(needs.nth(3)).toContainText("Agree catering access");
 
   await expect(page.getByRole("heading", { level: 2, name: /^At risk/ })).toContainText(
     "2 at risk",
@@ -90,7 +97,7 @@ test("the Organizer reads the Event's status from the Dashboard and opens a Task
   await expect(page.getByRole("heading", { level: 3 })).toHaveCount(5);
 
   await expect(page.getByText(PROPOSED)).toHaveCount(0);
-  await noPlaceholders(page);
+  await noPlaceholders(page, 1);
 
   await page.goto(`/events/${EVENT}/timeline`);
   const timeline = page.getByRole("region", { name: "Timeline" });
@@ -114,9 +121,12 @@ test("the Venue holder sees own Tasks first and no other Role's Task title anywh
   await page.goto(`/events/${EVENT}`);
 
   const needs = region(page, /^Needs you/).getByRole("link");
-  await expect(needs).toHaveCount(1);
-  await expect(needs.first()).toContainText("Agree catering access");
-  await expect(needs.first()).toContainText("Not yet accepted");
+  // Vera leads Venue, so the seeded Problem on Order tables comes first, then her own unaccepted Task.
+  await expect(needs).toHaveCount(2);
+  await expect(needs.first()).toContainText("Order tables");
+  await expect(needs.first()).toContainText("Problem reported");
+  await expect(needs.nth(1)).toContainText("Agree catering access");
+  await expect(needs.nth(1)).toContainText("Not yet accepted");
   await expect(
     region(page, /^At risk/)
       .getByRole("link")
@@ -144,7 +154,8 @@ test("the Venue holder sees own Tasks first and no other Role's Task title anywh
     for (const title of [...OTHER_ROLE_TITLES, PROPOSED]) {
       await expect(page.getByText(title)).toHaveCount(0);
     }
-    await noPlaceholders(page);
+    // The Venue lead sees the seeded Problem on the Dashboard only.
+    await noPlaceholders(page, path === pages[0] ? 1 : 0);
   }
 });
 

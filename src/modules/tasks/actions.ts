@@ -13,6 +13,8 @@ import {
   editSchema,
   lifecycleSchema,
   removeNoteSchema,
+  reportProblemSchema,
+  resolveProblemSchema,
   statusSchema,
   subtaskSchema,
 } from "./schemas";
@@ -273,4 +275,43 @@ export async function delegateTask(input: {
   if (error) return fail(error.code);
   touched(eventId);
   return { ok: true, data: { updatedAt: data } };
+}
+
+type ProblemInput = { eventId: string; taskId: string; note: string };
+
+/** The owner, the Role lead or the Organizer flags a Task through `tasks_report_problem`. A repeat is quiet. */
+export async function reportProblem(input: ProblemInput): Promise<Result<null>> {
+  const parsed = reportProblemSchema.safeParse(input);
+  if (!parsed.success) {
+    return refuse("invalid_input", "tasks.errors.problemNote", fieldErrors(parsed.error));
+  }
+  const { eventId, taskId, note } = parsed.data;
+  const fail = await caller("reportProblem", eventId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("tasks_report_problem", { p_task_id: taskId, p_note: note });
+  if (error)
+    return fail(
+      error.code,
+      error.code === "22023" ? "tasks.errors.notActive" : "tasks.errors.problemNote",
+    );
+  touched(eventId);
+  return { ok: true, data: null };
+}
+
+/** Closes the open Problem through `tasks_resolve_problem`, with an optional note. A repeat changes nothing. */
+export async function resolveProblem(input: ProblemInput): Promise<Result<null>> {
+  const parsed = resolveProblemSchema.safeParse(input);
+  if (!parsed.success) {
+    return refuse("invalid_input", "tasks.errors.problemNote", fieldErrors(parsed.error));
+  }
+  const { eventId, taskId, note } = parsed.data;
+  const fail = await caller("resolveProblem", eventId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("tasks_resolve_problem", {
+    p_task_id: taskId,
+    p_note: note || undefined,
+  });
+  if (error) return fail(error.code);
+  touched(eventId);
+  return { ok: true, data: null };
 }

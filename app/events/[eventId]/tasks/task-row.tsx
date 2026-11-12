@@ -21,6 +21,8 @@ export type ListedTask = {
   overdueDays: number | null;
   subtasks: number;
   externalNote?: string | null;
+  // The open Problem's note; null when none is open.
+  problemNote: string | null;
 };
 
 /** Deadlines are calendar dates, so they format in UTC and never shift a day. */
@@ -32,6 +34,29 @@ export const useDeadline = () => {
 
 /** Whole days since an ISO timestamp. */
 export const daysSince = (iso: string) => Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
+
+// One line: whitespace collapses, and the cut is on code points so an emoji is never split.
+export const excerpt = (note: string) => {
+  const chars = Array.from(note.replace(/\s+/g, " ").trim());
+  return chars.length > 80 ? `${chars.slice(0, 80).join("")}…` : chars.join("");
+};
+
+/** The flag, the words and a note excerpt (plain text) for an open Problem. */
+export function ProblemFlag({ note, full = false }: { note: string; full?: boolean }) {
+  const ts = useTranslations("status");
+  return (
+    <span className={`${STATUSES.problem.tone} inline-flex items-start gap-1.5`}>
+      <STATUSES.problem.icon aria-hidden strokeWidth={1.75} className="mt-0.5 size-4 shrink-0" />
+      <span className="min-w-0 break-words">
+        {ts("problem")}
+        <span className="text-muted-foreground whitespace-pre-line">
+          {" · "}
+          {full ? note : excerpt(note)}
+        </span>
+      </span>
+    </span>
+  );
+}
 
 /** Delegated-to line and the separate accepted signal, shared by the row and the detail page. */
 export function AcceptedSignal({
@@ -73,9 +98,7 @@ export function TaskRow({ eventId, task }: { eventId: string; task: ListedTask }
           {task.status === "waiting_external" && task.externalNote && (
             <span className="text-muted-foreground break-words">
               {" · "}
-              {task.externalNote.length > 80
-                ? `${task.externalNote.slice(0, 80)}…`
-                : task.externalNote}
+              {excerpt(task.externalNote)}
             </span>
           )}
         </span>
@@ -85,12 +108,14 @@ export function TaskRow({ eventId, task }: { eventId: string; task: ListedTask }
           {` · ${task.owner_user_id === null ? t("row.notDelegated") : t("row.delegatedTo", { name: task.ownerName ?? t("row.someone") })}`}
           {task.deadline && ` · ${t("row.due", { date: formatDeadline(task.deadline) })}`}
         </span>
-        {(task.accepted !== null ||
+        {(task.problemNote !== null ||
+          task.accepted !== null ||
           task.waitsFor ||
           task.blocks > 0 ||
           task.subtasks > 0 ||
           task.overdueDays !== null) && (
           <span className="text-subhead text-muted-foreground flex w-full flex-wrap gap-x-4">
+            {task.problemNote !== null && <ProblemFlag note={task.problemNote} />}
             {task.accepted !== null && (
               <AcceptedSignal accepted={task.accepted} staleDays={task.staleDays} />
             )}

@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(16);
 
 -- supabase/seed.sql is loaded by `supabase start` and `db reset`; the Playwright flagship spec re-applies it.
 select is((select count(*) from public.tasks where event_id = 'f1a90000-0000-4000-8000-0000000000e1'), 13::bigint,
@@ -17,6 +17,9 @@ select is((select count(*) from flagship where overdue), 2::bigint, 'two Tasks a
 select is((select count(*) from flagship where blocked), 1::bigint, 'one Task is blocked');
 select is((select count(*) from flagship where status = 'waiting_external'), 1::bigint, 'one Task waits on external');
 select is((select count(*) from flagship where stale_unaccepted), 1::bigint, 'one delegated Task is unaccepted after 48 hours');
+select is((select count(*) from flagship where has_problem), 1::bigint, 'one Task carries an open Problem, in no other derived state');
+select is((select count(*) from flagship where has_problem and (overdue or blocked or stale_unaccepted)), 0::bigint,
+  'the Problem Task is in no other Needs you group');
 select is((select count(*) from flagship where parent_task_id is not null), 1::bigint, 'one Subtask');
 select is((select count(*) from flagship where lifecycle = 'proposed' and not overdue and not blocked and not stale_unaccepted),
   1::bigint, 'the Proposed Task exists and is in no derived state');

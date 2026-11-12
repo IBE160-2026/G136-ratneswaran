@@ -81,6 +81,11 @@ values ('f1a90000-0000-4000-8000-0000000000c4', 'f1a90000-0000-4000-8000-0000000
   'f1a90000-0000-4000-8000-0000000000b1', 'Reserve chairs', (now() at time zone 'Europe/Oslo')::date + 32,
   'f1a90000-0000-4000-8000-0000000000c3', now() - interval '30 days');
 
+-- One open Problem, raised by the Organizer on a Core Task that is otherwise in no Needs you group.
+insert into public.problems (task_id, raised_by, note, raised_at)
+values ('f1a90000-0000-4000-8000-0000000000c3', 'f1a90000-0000-4000-8000-0000000000a1',
+  'The rental firm has no round tables left for the date.', now() - interval '1 day');
+
 insert into public.task_dependencies (task_id, depends_on_id)
 values ('f1a90000-0000-4000-8000-0000000000c5', 'f1a90000-0000-4000-8000-0000000000c3');
 

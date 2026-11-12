@@ -12,7 +12,16 @@ import { callSafely } from "@/modules/events/save";
 import { removeStatusNote, setTaskStatus } from "@/modules/tasks/actions";
 import { taskStatuses } from "@/modules/tasks/schemas";
 
+export type ProblemEntry = {
+  id: string;
+  problem: "raised" | "resolved";
+  note: string | null;
+  author: string | null;
+  createdAt: string;
+};
+
 export type HistoryEntry = {
+  problem?: undefined;
   id: string;
   toStatus: keyof typeof taskStatus;
   note: string | null;
@@ -182,7 +191,13 @@ function RemoveNote({ eventId, entry }: { eventId: string; entry: HistoryEntry }
   );
 }
 
-export function StatusHistory({ eventId, entries }: { eventId: string; entries: HistoryEntry[] }) {
+export function StatusHistory({
+  eventId,
+  entries,
+}: {
+  eventId: string;
+  entries: (HistoryEntry | ProblemEntry)[];
+}) {
   const t = useTranslations("tasks");
   const format = useFormatter();
   return (
@@ -195,11 +210,40 @@ export function StatusHistory({ eventId, entries }: { eventId: string; entries: 
       ) : (
         <ul role="list" className="divide-border flex flex-col divide-y">
           {entries.map((entry) => {
-            const Icon = STATUSES[taskStatus[entry.toStatus]].icon;
             const time = format.dateTime(new Date(entry.createdAt), {
               dateStyle: "medium",
               timeStyle: "short",
             });
+            if (entry.problem) {
+              return (
+                <li
+                  key={`${entry.problem}-${entry.id}`}
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2"
+                >
+                  <span
+                    className={`${STATUSES.problem.tone} inline-flex items-center gap-1.5 font-semibold`}
+                  >
+                    <STATUSES.problem.icon
+                      aria-hidden
+                      strokeWidth={1.75}
+                      className="size-4 shrink-0"
+                    />
+                    {t(
+                      entry.problem === "raised"
+                        ? "detail.history.problemRaised"
+                        : "detail.history.problemResolved",
+                    )}
+                  </span>
+                  <span className="text-subhead text-muted-foreground ml-auto">
+                    {entry.author ? t("detail.history.by", { name: entry.author, time }) : time}
+                  </span>
+                  {entry.note && (
+                    <p className="w-full break-words whitespace-pre-line">{entry.note}</p>
+                  )}
+                </li>
+              );
+            }
+            const Icon = STATUSES[taskStatus[entry.toStatus]].icon;
             return (
               <li key={entry.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2">
                 <span className="inline-flex items-center gap-1.5 font-semibold">
