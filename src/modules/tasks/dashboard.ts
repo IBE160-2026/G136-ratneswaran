@@ -10,6 +10,7 @@ export type DashboardTask = {
   stale_unaccepted: boolean;
   accepted: boolean | null;
   obsolete: boolean;
+  hasProblem: boolean;
   lifecycle: string;
   roleActive: boolean;
 };
@@ -57,7 +58,10 @@ export function classifyDashboard(tasks: DashboardTask[], viewer: DashboardViewe
   });
 
   const open = listed.filter((t) => t.status !== "done");
+  // Order of Story 5.1: Decision Tasks (not built yet), then Problems, overdue, stale, not yet accepted.
+  // A Problem may sit on a done Task, so this group reads from every listed Task.
   const groups = [
+    listed.filter((t) => t.hasProblem),
     open.filter((t) => t.overdue),
     open.filter((t) => t.stale_unaccepted && manages(t)),
     open.filter(isNotAccepted),

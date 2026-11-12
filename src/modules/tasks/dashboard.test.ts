@@ -19,6 +19,7 @@ const task = (over: Partial<DashboardTask> = {}): DashboardTask => ({
   stale_unaccepted: false,
   accepted: null,
   obsolete: false,
+  hasProblem: false,
   lifecycle: "active",
   roleActive: true,
   ...over,
@@ -36,6 +37,32 @@ describe("classifyDashboard", () => {
     expect(d.needsYou[0]).toMatchObject({ blocked: true, overdue: true, notAccepted: true });
     expect(d.atRisk).toHaveLength(0);
     expect(total(d)).toBe(1);
+  });
+
+  it("puts a Problem first, once, with the other flags kept", () => {
+    const o = task({ overdue: true, deadline: "2026-11-01" });
+    const p = task({ hasProblem: true, overdue: true, blocked: true, deadline: "2026-11-30" });
+    const d = classifyDashboard([o, p], organizer);
+    expect(ids(d.needsYou)).toEqual([p.id, o.id]);
+    expect(d.needsYou[0]).toMatchObject({ hasProblem: true, overdue: true, blocked: true });
+    expect(total(d)).toBe(2);
+  });
+
+  it("orders Problems by deadline then title, and keeps a done Task's Problem", () => {
+    const b = task({ hasProblem: true, deadline: "2026-12-02", title: "B" });
+    const a = task({ hasProblem: true, deadline: "2026-12-02", title: "A", status: "done" });
+    const early = task({ hasProblem: true, deadline: "2026-12-01" });
+    expect(ids(classifyDashboard([b, a, early], organizer).needsYou)).toEqual([
+      early.id,
+      a.id,
+      b.id,
+    ]);
+  });
+
+  it("shows a Problem only within the viewer's scope", () => {
+    const mine = task({ hasProblem: true, ownerId: "me" });
+    const mate = task({ hasProblem: true, ownerId: "mate" });
+    expect(ids(classifyDashboard([mine, mate], holder).needsYou)).toEqual([mine.id]);
   });
 
   it("orders the Organizer's overdue before stale, each by deadline", () => {
