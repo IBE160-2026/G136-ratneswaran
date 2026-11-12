@@ -74,3 +74,8 @@
 - [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — «ingen konto opprettet» beviser bare at gjestens egen brukerrad er uendret og fjernet
 - [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — «Min vurdering» i `docs/ki-logg.md` for 7.10 og eventuelt refleksjonsnotat gjenstår
 - [ ] 2026-11-11 [story-7-10](978-2026-11-11-20-55-48-story-7-10-guest-flow-check.md) — push og PR gjenstår
+- [ ] 2026-11-12 [story-4-8](977-2026-11-12-10-47-55-story-4-8-problem-flag.md) — Role lead og Organizer som løser et problem, og utkast-Event, er ikke dekket i e2e (bare pgTAP)
+- [ ] 2026-11-12 [story-4-8](977-2026-11-12-10-47-55-story-4-8-problem-flag.md) — Problem-raden er ikke sett i nettleser i lyst og mørkt tema
+- [ ] 2026-11-12 [story-4-8](977-2026-11-12-10-47-55-story-4-8-problem-flag.md) — «Couldn't save right now» på resolve sett én gang uten forklart årsak (trolig hengt dev-server)
+- [ ] 2026-11-12 [story-4-8](977-2026-11-12-10-47-55-story-4-8-problem-flag.md) — «Min vurdering» i `docs/ki-logg.md` for 4.8 og eventuelt refleksjonsnotat gjenstår
+- [ ] 2026-11-12 [story-4-8](977-2026-11-12-10-47-55-story-4-8-problem-flag.md) — push og PR gjenstår
