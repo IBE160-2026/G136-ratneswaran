@@ -121,9 +121,12 @@ test("the Venue holder sees own Tasks first and no other Role's Task title anywh
   await page.goto(`/events/${EVENT}`);
 
   const needs = region(page, /^Needs you/).getByRole("link");
-  await expect(needs).toHaveCount(1);
-  await expect(needs.first()).toContainText("Agree catering access");
-  await expect(needs.first()).toContainText("Not yet accepted");
+  // Vera leads Venue, so the seeded Problem on Order tables comes first, then her own unaccepted Task.
+  await expect(needs).toHaveCount(2);
+  await expect(needs.first()).toContainText("Order tables");
+  await expect(needs.first()).toContainText("Problem reported");
+  await expect(needs.nth(1)).toContainText("Agree catering access");
+  await expect(needs.nth(1)).toContainText("Not yet accepted");
   await expect(
     region(page, /^At risk/)
       .getByRole("link")
@@ -151,7 +154,8 @@ test("the Venue holder sees own Tasks first and no other Role's Task title anywh
     for (const title of [...OTHER_ROLE_TITLES, PROPOSED]) {
       await expect(page.getByText(title)).toHaveCount(0);
     }
-    await noPlaceholders(page);
+    // The Venue lead sees the seeded Problem on the Dashboard only.
+    await noPlaceholders(page, path === pages[0] ? 1 : 0);
   }
 });
 
