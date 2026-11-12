@@ -1,5 +1,5 @@
 begin;
-select plan(45);
+select plan(47);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'organizer-a@example.test'),
@@ -91,6 +91,10 @@ set local role anon;
 select throws_ok($$select public.tasks_report_problem('8b000000-0000-0000-0000-000000000001', 'No')$$,
   '42501', null, 'anon cannot call report');
 
+set local role anon;
+select throws_ok($$select public.tasks_resolve_problem('8b000000-0000-0000-0000-000000000001')$$,
+  '42501', null, 'anon cannot call resolve');
+
 -- The owner reports
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "dddddddd-dddd-dddd-dddd-dddddddddddd", "role": "authenticated"}';
@@ -139,6 +143,8 @@ select is((select (select string_agg(r.id::text, ',') from unnest(recipients) r)
 select lives_ok($$select public.tasks_report_problem('8b000000-0000-0000-0000-000000000007', 'Draft note')$$, 'a draft Event allows the report');
 select is((select count(*)::int from public.emit_log), 4, 'but a draft emits nothing');
 select throws_ok($$select public.tasks_report_problem('8b000000-0000-0000-0000-000000000006', 'x')$$, '55000', null, 'a cancelled Event is read-only');
+
+select throws_ok($$select public.tasks_resolve_problem('8b000000-0000-0000-0000-000000000006')$$, '55000', null, 'resolving on a cancelled Event is read-only');
 
 -- Direct writes
 select throws_ok($$insert into public.problems (task_id, note) values ('8b000000-0000-0000-0000-000000000009', 'x')$$, '42501', null, 'a direct insert is denied');
