@@ -35,7 +35,11 @@ export const useDeadline = () => {
 /** Whole days since an ISO timestamp. */
 export const daysSince = (iso: string) => Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
 
-export const excerpt = (note: string) => (note.length > 80 ? `${note.slice(0, 80)}…` : note);
+// One line: whitespace collapses, and the cut is on code points so an emoji is never split.
+export const excerpt = (note: string) => {
+  const chars = Array.from(note.replace(/\s+/g, " ").trim());
+  return chars.length > 80 ? `${chars.slice(0, 80).join("")}…` : chars.join("");
+};
 
 /** The flag, the words and a note excerpt (plain text) for an open Problem. */
 export function ProblemFlag({ note, full = false }: { note: string; full?: boolean }) {
