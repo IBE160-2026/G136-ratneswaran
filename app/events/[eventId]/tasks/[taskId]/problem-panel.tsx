@@ -67,6 +67,7 @@ export function ProblemPanel({
             if (pending) return;
             setOpen(next);
             setFailure(null);
+            setText("");
           }}
         >
           <div>
