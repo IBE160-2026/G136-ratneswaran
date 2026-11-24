@@ -76,7 +76,7 @@ Map: [wireframes/ia.excalidraw](wireframes/ia.excalidraw) (open at excalidraw.co
 
 Microcopy. The brand voice lives in DESIGN.md › Brand & Style. There are two registers:
 
-- **Quiet & plain** on working surfaces: status labels, Dashboard rows, Timeline, task metadata, Guests tab.
+- **Quiet & plain** on working surfaces: status labels, Dashboard rows, Timeline, task metadata, Guests tab. The Dashboard's key-number row is the one louder element: neutral surfaces, with status colour only on *Overdue* and *Waiting for decision*.
 - **Warm & reassuring** at human moments: confirmations, empty states, onboarding, success, and the whole Guest side.
 
 | Moment | Say | Don't say |

@@ -210,6 +210,23 @@ components:
   guest-summary-tile:
     background: '{colors.card}'
     radius: '{rounded.md}'
+  page-head:
+    titleStyle: '{typography.large-title-desktop}'
+    action: '{components.button-primary}'
+  key-tile:
+    background: '{colors.card}'
+    border: '1.5px solid {colors.border}'
+    radius: '{rounded.md}'
+    shadow: '0 1px 2px rgba(0,0,0,.05) (light only)'
+  key-tile-overdue:
+    border: '1.5px solid {colors.status-overdue}'
+  role-progress-bar:
+    height: 6px
+    radius: '{rounded.full}'
+  section-card:
+    background: '{colors.card}'
+    border: '1.5px solid {colors.border}'
+    radius: '{rounded.lg}'
 ---
 
 # Arrangly — Design Spine
@@ -368,6 +385,11 @@ Arrangly-specific components. Key-screen mocks: [Dashboard](mockups/key-dashboar
 - **Guest row.** Name · RSVP status word · plus-one. Beneath it, bullet points for food, allergies and requests (only the fields the viewer's Role may see).
 - **Landing page** (guest). A hero with the event name (large title), date and place, then grouped cards: About · Program (time-stamped list, which is the Run of Show) · Location · Menu · Practical info.
 - **Guest Dashboard.** Cards for My RSVP (with *Change*), Resolved for you (primary-soft tint, `circle-check`), My requests (each with its reply or "Waiting for an answer").
+- **Page head** (Dashboard). `h1` large title, a subhead row (date · `clock` "{n} days left" · status pill in `{colors.primary-soft}`), and the primary button right-aligned; the button wraps under the title below 640px.
+- **Key tile** (Dashboard). `{components.key-tile}`: a label (subhead, muted, Lucide icon), the number at large-title scale, one line of context and an optional 6px progress bar in `{colors.primary}`. *Overdue* uses `{components.key-tile-overdue}` with the number in `{colors.status-overdue}`; *Waiting for decision* uses `{colors.status-decision}` for label and number. No other tile uses status colour.
+- **Role progress bar** (On track). Role name, a 6px bar in `{colors.primary}` with the overdue share in `{colors.status-overdue}`, and "done / total" in words, never colour alone.
+- **Next deadlines** (Dashboard). A date block (month, day), the Task title and its Role; five rows, soonest first, one quiet line when empty.
+- **Section card** (Dashboard). `{components.section-card}` with a section-label `h2`, a count pill and an optional "See all" link; `{rounded.md}` on phone.
 - **Send a request** (guest). A secondary button with the `message-circle-plus` icon. On phone it's in a sticky bottom bar on the landing page and Guest Dashboard.
 
 ## Do's and Don'ts

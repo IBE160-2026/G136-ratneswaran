@@ -166,6 +166,15 @@ development_status:
   11-6-manual-test-plan-and-the-shipped-vs-planned-record: backlog
   11-7-launch-check: backlog
   epic-11-retrospective: optional
+
+  # Core; built after Epic 7 Core and before Epic 11 (sprint-change-proposal-2026-11-23.md)
+  epic-12: backlog
+  12-1-shared-components-and-the-card: backlog
+  12-2-app-frame-auth-and-home: backlog
+  12-3-dashboard-redesign: backlog
+  12-4-task-page: backlog
+  12-5-timeline-controls-phone-and-guest-screens: backlog
+  epic-12-retrospective: optional
 action_items:
   - id: "epic-1-retro-item-1-make-githooks-test-sh-independent-of-the"
     epic: 1

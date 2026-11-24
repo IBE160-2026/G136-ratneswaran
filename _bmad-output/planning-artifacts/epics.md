@@ -154,7 +154,7 @@ UX-DR6: Build the All events home with Event cards (one link with a full accessi
 
 UX-DR7: Build the six-step Create event wizard (Questionnaire → Guests → Description → Review ✦ → Team → Publish) with step captions, Back/Next on every step, "Not sure yet" skips that produce ✦ Proposed Tasks, inline validation of pasted guest rows, per-Role grouped review rows with ✓/✕/edit, auto-saved draft event, and a Publish confirmation ending in "Invitations are on their way to N guests."
 
-UX-DR8: Build the Dashboard with fixed sections Needs you (decisions → Problems → ✦ Proposed Tasks → overdue → not yet accepted), At risk (waiting → blocked) and On track (per-Role summary and guest numbers), soonest deadline first, empty sections collapsing to a quiet line, section `h2` with count pills, a *Show dismissed (n)* link with *Restore*, and the "Only your team can see this event" publish banner.
+UX-DR8: Build the Dashboard with fixed sections Needs you (decisions → Problems → ✦ Proposed Tasks → overdue → not yet accepted), At risk (waiting → blocked) and On track (per-Role summary and guest numbers), soonest deadline first, empty sections collapsing to a quiet line, section `h2` with count pills, a *Show dismissed (n)* link with *Restore*, and the "Only your team can see this event" publish banner. The Dashboard also has a page head (Event name, date, days left, status, *New task*), a key-number row (Open tasks, Overdue, Guests answered, and Waiting for decision once decisions exist) and a *Next deadlines* card, and *On track* shows one progress bar per Role (Epic 12, Story 12.3).
 
 UX-DR9: Build the Proposed Task row (✦) with source attribution ("From caterer note · Catering · Peter · due Wed 14 Oct"), inline title editing, ✓/✕ with 44px hit areas, Undo toasts, and the specified focus management after the row leaves or is restored.
 
@@ -288,6 +288,12 @@ The product runs in production with its own environment, secrets and email provi
 
 **FRs covered:** none new; closes SM-1 and NFR9
 
+### Epic 12: Visual polish and Dashboard redesign
+
+The built screens match the composition in DESIGN.md: shared components, an app frame and a Dashboard that answers "what needs me now?" at a glance. Core. Built after Epic 7's Core stories and before Epic 11 (`sprint-change-proposal-2026-11-23.md`).
+
+**FRs covered:** none new; serves NFR12 and SM-5
+
 ## Release tiers
 
 Set by `sprint-change-proposal-2026-10-12.md`. Feature freeze: **2026-12-15**. Target is built in this order only once Core is stable.
@@ -304,7 +310,8 @@ Set by `sprint-change-proposal-2026-10-12.md`. Feature freeze: **2026-12-15**. T
 | 8 Guest requests | — | T4 |
 | 9 Landing page and Run of Show | — | T4 |
 | 10 Announcements and channels | — | T3 |
-| 11 Ready for launch | all | — |
+| 12 Visual polish and Dashboard redesign | 12.1–12.3; 12.4–12.5 only if time remains before the freeze | — |
+| 11 Ready for launch | all, built last | — |
 
 - **T1:** AI task suggestions (FR6) and Proposed Tasks from questionnaire gaps.
 - **T2:** Accept step and 48-hour rule, Problem flag, Decision Tasks and obsolete-marking, and guest allergies, food and hotel with consent and automatic deletion after 15 days (Stories 7.4, 7.9).
@@ -3571,6 +3578,121 @@ So that FR21 and FR23 hold before the freeze.
 - Epic 9: no dependency; nothing in the Landing page emits a notification.
 - Epic 11: push and email delivery, and the real VAPID/SMTP configuration, are manual checks in `docs/testplan.md`; the flagship seed's announcement and reminder are part of the launch run.
 - Settled in `sprint-change-proposal-2026-10-13.md`: Stories 4.10 and 4.11's notification calls carry the explicit "(Target 3)" gate matching Story 4.5, so Epic 4 never calls a function that does not exist yet when built before this epic.
+
+## Epic 12: Visual polish and Dashboard redesign
+
+**Tier:** Core — see Release tiers. Built after Epic 7's Core stories and before Epic 11. Set by `sprint-change-proposal-2026-11-23.md`.
+
+The built screens match the composition in DESIGN.md and EXPERIENCE.md: shared components, an app frame, and a Dashboard that answers "what needs me now?" at a glance. No story adds a table, column, function or policy.
+
+**FRs covered:** none new; serves NFR12 and SM-5.
+
+**Epic-wide conventions (apply to every story below):**
+
+- Only DESIGN.md tokens and shadcn components are used. No second brand colour, no gradients, no emojis, one shadow rule (hairline on cards; only the decision card lifts) (DESIGN.md Do's and Don'ts).
+- All data comes from existing loaders under the viewer's session and RLS. A holder never sees a number that reveals Tasks of a Role they do not hold (Epic 5 conventions).
+- Nothing renders for a feature that has not shipped: no placeholder tile, no empty decision card (Epic 5 Core scope note).
+- Every changed screen is checked at 1024px, 375px and 320px, light and dark, and keeps its existing Playwright tests green; text changes go to `messages/nb.json` and `messages/en.json` (AD-14).
+- Mosaic (Cruip, `cruip/tailwind-dashboard-template`) is GPL-3.0: no code or markup is copied from it. It was a visual reference only, and the Dev Notes of every story say so.
+- Cut line: Stories 12.1–12.3 are the commitment; 12.4 and 12.5 are built only if time remains before the 2026-12-15 freeze, otherwise they go to the shipped-vs-planned record of Story 11.6.
+
+### Story 12.1: Shared components and the card
+
+As a developer,
+I want the shadcn parts DESIGN.md names and one card, section and row pattern,
+So that screens stop hand-writing cards.
+
+**Acceptance Criteria:**
+
+**Given** the components list in DESIGN.md
+**When** the story is done
+**Then** `Card`, `Select`, `Tabs` (segmented variant), `Switch`, `Separator` and `Avatar` exist in `src/components/ui/`, use `{colors.input}` for control borders and the focus ring token, and the hairline card shadow of DESIGN.md Elevation (light only)
+**And** a `SectionCard` (section-label `h2`, count pill, optional link) and a `TaskRow` (48px desktop and 44px phone minimum, status icon, word, subhead) are the only way the Dashboard, Tasks and My tasks list rows and sections
+**And** existing Playwright and Vitest tests pass without edits to their assertions.
+
+### Story 12.2: App frame, auth and home
+
+As a visitor or a signed-in user,
+I want a frame and entry pages that look finished,
+So that the product feels trustworthy before I do anything.
+
+**Acceptance Criteria:**
+
+**Given** any page
+**When** it renders
+**Then** the header has the app name, the primary navigation and the profile or log-in controls laid out as in DESIGN.md Sidebar, and the privacy link sits in the footer, not beside the menu
+**And** the sidebar item "Arrangementsinnstillinger" and every other nb label wrap at word boundaries or are shortened in `messages/nb.json`, never broken mid-word at 240px.
+
+**Given** `/login`, `/signup`, `/forgot-password` and `/reset-password`
+**When** they render
+**Then** the form is a centred `Card`, the primary button is the full-width pill, the password rules keep their icon and word, and the OAuth buttons are secondary buttons.
+
+**Given** `/`
+**When** it renders
+**Then** it shows a hero (large title, tagline, sign-up and log-in actions) and nothing that implies a feature that does not exist.
+
+### Story 12.3: Dashboard redesign
+
+As an Organizer or Role-holder,
+I want the Dashboard to open on a clear head, a few key numbers and then my work,
+So that I can state the Event's status in one look.
+
+**Acceptance Criteria:**
+
+**Given** the Dashboard
+**When** it renders
+**Then** the page head shows the Event name (`h1`), date, a "{n} days left" countdown computed on the server in the Event's time zone (AD-13, Conventions), the Draft or Published pill, and the primary *New task* button (Organizer only)
+**And** the cancelled, past and draft states of Stories 5.3 and 5.4 keep their text and read-only behaviour inside the new head.
+
+**Given** the key row
+**When** it renders
+**Then** it shows tiles for *Open tasks* (of total, with a thin bar), *Overdue* (status-overdue outline and number, with the oldest in days) and *Guests answered* (n of N, with a thin bar, numbers only, no names or food data, NFR2), computed from `task_state` and the guest counts Story 7.7 already reads
+**And** a *Waiting for decision* tile appears only once Stories 4.10–4.12 have shipped, in `{colors.status-decision}`, and not before
+**And** a holder of one Role sees tiles counted from the rows RLS lets them read, and a Role they cannot read adds nothing to any tile.
+
+**Given** *Needs you*, *At risk* and *On track*
+**When** they render
+**Then** each is a `SectionCard` with the same order, rows and rules as UX-DR8 and Stories 5.1–5.4
+**And** *On track* shows one progress bar per Role (done of total, overdue segment in `{colors.status-overdue}`, label with counts) replacing the plain count row, still with Role lead, holders and link, and still showing "Tasks in {Role} are visible to its team." where the viewer cannot read
+**And** a *Next deadlines* card lists the five soonest open Tasks the viewer can read (date block, title, Role), computed per request and never stored, and collapses to one quiet line when empty
+**And** the decision card sits above *Needs you*, is the only lifted element and is shown only when a decision exists.
+
+**Given** the Dashboard at 375px and 320px
+**When** it reflows
+**Then** the key row is two columns and then one, the two-column body stacks, and nothing scrolls sideways (UX-DR24, NFR5)
+**And** the existing Dashboard and flagship Playwright tests pass, with new assertions for the page head, the key tiles' numbers against the seed (Story 5.9) and the *Next deadlines* order.
+
+### Story 12.4: Task page
+
+As an owner,
+I want the Task page laid out as DESIGN.md describes,
+So that the next action is obvious.
+
+**Acceptance Criteria:**
+
+**Given** the Task page
+**When** it renders
+**Then** it shows, top to bottom: back control and `h1`, the Accept banner until accepted, the metadata inset card, the status control (segmented on desktop, full-width `Select` on phone) with the note field, then the Problem, Delegate and history cards
+**And** the Help card and any option or decision section render only when their Target stories have shipped
+**And** on phone the primary actions sit in the sticky bottom bar with the safe-area inset, and toasts stack above it (DESIGN.md Elevation)
+**And** all Task Playwright tests pass.
+
+### Story 12.5: Timeline controls, phone and guest screens
+
+As any user on a phone,
+I want every built screen to hold at 375px and 320px,
+So that no screen is only good on desktop.
+
+**Acceptance Criteria:**
+
+**Given** the Timeline
+**When** it renders
+**Then** *Svømmebaner / Liste* is a segmented control and *Ny oppgave* and *Hopp til i dag* use the secondary and primary button styles, with unchanged lane, bar and today-line behaviour.
+
+**Given** Alle arrangementer, Guests, Team & Roles, the Guest Dashboard, the RSVP flow and the invite pages
+**When** they render
+**Then** each uses the shared components of Story 12.1, holds at 375px and reflows at 320px without two-way scrolling, in light and dark
+**And** a visual pass lists any remaining deviation from DESIGN.md as a finding in the story file, and a finding that needs a rule change goes to a new correct-course.
 
 ## Epic 11: Ready for launch
 
